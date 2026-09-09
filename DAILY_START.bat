@@ -7,9 +7,9 @@ echo   LEGACY - prefer silent auto-start
 echo ========================================
 echo.
 echo Use SILENT_START.vbs / Task Scheduler instead of this bat.
-echo This script still works if you need a manual kick.
+echo Scanner Chrome starts HIDDEN. Sign in from the board UI.
 echo.
-echo 1) Starting scanner Chrome...
+echo 1) Starting scanner Chrome HIDDEN...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scanner\daily_start_chrome.ps1"
 if errorlevel 1 (
   echo ERROR: Could not start Chrome.
@@ -28,12 +28,13 @@ echo.
 echo 4) Waiting 3s...
 timeout /t 3 /nobreak >nul
 
-echo 5) Starting scanner minimized...
+echo 5) Starting scanner (pythonw / no console)...
 call "%~dp0scanner\START_SCANNER_CDP.bat"
 
 echo.
 echo Board: http://localhost:8765/
-echo Prefer: SILENT_START.vbs (no pause / no extra browser).
+echo Sign in brokers from the board UI (no extra Chrome windows).
+echo Prefer: SILENT_START.vbs
 echo.
 start "" "http://localhost:8765/"
 pause

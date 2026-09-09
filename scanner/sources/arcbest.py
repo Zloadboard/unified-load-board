@@ -136,6 +136,15 @@ def _summary_to_raw(s: dict, url: str) -> dict | None:
     if st:
         notes_parts.append(f"type={st}")
 
+    # Prefer shipmentId deep-link (portal internal); keep Load # as id (referenceNumber).
+    sid = s.get("shipmentId")
+    sid_s = str(sid).strip() if sid is not None and str(sid).strip() else ""
+    if sid_s and re.fullmatch(r"[\w-]+", sid_s):
+        detail_url = f"https://carriers.arcb.com/Shipments?shipmentId={sid_s}"
+    elif lid and re.fullmatch(r"[\w-]+", str(lid)):
+        detail_url = f"https://carriers.arcb.com/Shipments?referenceNumber={lid}"
+    else:
+        detail_url = url or BOARD
     return {
         "id": lid,
         "origin": origin,
@@ -153,7 +162,7 @@ def _summary_to_raw(s: dict, url: str) -> dict | None:
         "miles": miles,
         "rate": rate,
         "status": status,
-        "url": url or BOARD,
+        "url": detail_url,
         "notes": " | ".join(notes_parts),
         "shipmentType": st,
         "referenceNumber": s.get("referenceNumber"),

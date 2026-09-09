@@ -132,6 +132,41 @@
     .broker-link.Echo:hover { border-color: var(--echo); color: var(--echo); }
     .broker-link.CHR:hover { border-color: var(--chr); color: var(--chr); }
 
+    .scanner-controls {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      margin-left: 0.35rem;
+    }
+    .btn-scanner {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-scanner:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-scanner:disabled { opacity: 0.55; cursor: not-allowed; }
+    .scanner-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--surface);
+    }
+    .scanner-pill.hidden { border-color: #64748b; color: #94a3b8; }
+    .scanner-pill.visible { border-color: #22c55e; color: #4ade80; }
+    .scanner-pill.cdp_down, .scanner-pill.error, .scanner-pill.unavailable {
+      border-color: #f59e0b; color: #fbbf24;
+    }
+
+
     .remote-note {
       display: none;
       background: rgba(59,130,246,.12);
@@ -824,14 +859,13 @@
     </div>
   </header>
 
-  <div class="broker-bar" id="brokerBar" aria-label="Broker login links">
-    <span class="broker-help" id="brokerHelp">Live data comes from the work PC. Sign into brokers there once (scanner Chrome). Links below open the broker site for you — they do not feed the scraper.</span>
-    <a class="broker-link Arrive" href="https://carrier.arrivelogistics.com/find-loads" target="_blank" rel="noopener noreferrer"><span class="blabel">Login:</span> Arrive</a>
-    <a class="broker-link RXO" href="https://carrier.rxoconnect.rxo.com/loads/available-loads" target="_blank" rel="noopener noreferrer">RXO</a>
-    <a class="broker-link ArcBest" href="https://carriers.arcb.com/Shipments" target="_blank" rel="noopener noreferrer">ArcBest</a>
-    <a class="broker-link MoLo" href="https://carriers.arcb.com/Shipments" target="_blank" rel="noopener noreferrer">MoLo/ArcBest</a>
-    <a class="broker-link Echo" href="https://echodrive.echo.com/carrier/10261/availableLoads" target="_blank" rel="noopener noreferrer">Echo</a>
-    <a class="broker-link CHR" href="https://www.navispherecarrier.com/" target="_blank" rel="noopener noreferrer">CHR</a>
+  <div class="broker-bar" id="brokerBar" aria-label="Scanner Chrome controls">
+    <span class="broker-help" id="brokerHelp">Live data comes from the work PC. Use <strong>Sign in brokers</strong> on http://localhost:8765/ to briefly show the hidden scanner Chrome (same profile the scraper uses). GitHub Pages cannot control scanner Chrome.</span>
+    <div class="scanner-controls" id="scannerControls">
+      <button type="button" class="btn-scanner" id="btnSignInBrokers" title="Unhide scanner Chrome on this PC so you can log into brokers">Sign in brokers</button>
+      <button type="button" class="btn-scanner" id="btnHideScanner" title="Hide scanner Chrome again">Hide scanner</button>
+      <span class="scanner-pill" id="scannerStatusPill" title="Scanner Chrome visibility">scanner: …</span>
+    </div>
   </div>
 
   <div class="settings-panel" id="settingsPanel" aria-label="API settings">
@@ -1044,7 +1078,7 @@
   </div>
 
   <footer>
-    Live board: auto-refreshes from <code>loads.json</code> every 20s. Live data comes from the work PC — sign into brokers there once (scanner Chrome). Optional: <code>?api=https://…</code> or Settings.
+    Live board: auto-refreshes from <code>loads.json</code> every 20s. On the work PC use <strong>Sign in brokers</strong> / <strong>Hide scanner</strong> (http://localhost:8765/). GitHub Pages cannot control scanner Chrome. Optional: <code>?api=https://…</code> or Settings.
   </footer>
 
   <script src="config.js"></script>
@@ -1095,9 +1129,103 @@
         }
         if (help) {
           help.textContent = remote
-            ? "Live data comes from the work PC. Sign into brokers there once (scanner Chrome). Links open the broker site for you — they do not feed the scraper."
-            : "Local board: keep scanner Chrome signed in on this PC. Broker links open login pages (use the scanner Chrome profile for scraping).";
+            ? "Live data comes from the work PC. Sign-in controls only work on http://localhost:8765/ (GitHub Pages cannot unhide scanner Chrome)."
+            : "Local board: scanner Chrome stays hidden. Use Sign in brokers / Hide scanner — scraping never pops extra Chrome windows.";
         }
+      }
+
+
+      function scannerApiBase() {
+        // Scanner show/hide only works against the work-PC server (localhost or tunnel).
+        // Prefer explicit API_BASE; else same-origin when on localhost.
+        if (API_BASE) return API_BASE.replace(/\/+$/, "");
+        const h = (location.hostname || "").toLowerCase();
+        if (h === "localhost" || h === "127.0.0.1") return "";
+        return null; // unavailable from GitHub Pages without api base
+      }
+
+      function setScannerPill(state, detail) {
+        const pill = document.getElementById("scannerStatusPill");
+        if (!pill) return;
+        const s = String(state || "unknown");
+        pill.className = "scanner-pill " + s;
+        const labels = {
+          hidden: "scanner: hidden",
+          visible: "scanner: visible",
+          cdp_down: "scanner: CDP down",
+          unavailable: "scanner: use localhost",
+          error: "scanner: error",
+          unknown: "scanner: …",
+        };
+        pill.textContent = labels[s] || ("scanner: " + s);
+        pill.title = detail || pill.textContent;
+      }
+
+      async function callScanner(action) {
+        const base = scannerApiBase();
+        if (base === null) {
+          setScannerPill("unavailable", "Sign-in only works on the work PC board http://localhost:8765/");
+          return null;
+        }
+        const path = "api/scanner/" + action;
+        const url = base ? (base + "/" + path) : ("/" + path);
+        const opts = action === "status"
+          ? { method: "GET", cache: "no-store" }
+          : { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json" }, body: "{}" };
+        const res = await fetch(url, opts);
+        const data = await res.json().catch(function () { return { ok: false, error: "bad_json" }; });
+        const st = (data && data.state) || (data && data.cdp === false ? "cdp_down" : "error");
+        setScannerPill(st, JSON.stringify(data));
+        return data;
+      }
+
+      let _scannerHideTimer = null;
+      function wireScannerControls() {
+        const btnIn = document.getElementById("btnSignInBrokers");
+        const btnHide = document.getElementById("btnHideScanner");
+        if (btnIn) {
+          btnIn.addEventListener("click", async function () {
+            btnIn.disabled = true;
+            try {
+              const data = await callScanner("show");
+              if (data && data.ok) {
+                // Auto-hide after 10 minutes so the window does not stay up forever
+                if (_scannerHideTimer) clearTimeout(_scannerHideTimer);
+                _scannerHideTimer = setTimeout(function () {
+                  callScanner("hide").catch(function () {});
+                }, 10 * 60 * 1000);
+              } else if (scannerApiBase() === null) {
+                alert("Sign-in brokers only works on the work PC board:\\nhttp://localhost:8765/");
+              }
+            } catch (err) {
+              setScannerPill("error", String(err && err.message || err));
+            } finally {
+              btnIn.disabled = false;
+            }
+          });
+        }
+        if (btnHide) {
+          btnHide.addEventListener("click", async function () {
+            btnHide.disabled = true;
+            try {
+              if (_scannerHideTimer) { clearTimeout(_scannerHideTimer); _scannerHideTimer = null; }
+              await callScanner("hide");
+            } catch (err) {
+              setScannerPill("error", String(err && err.message || err));
+            } finally {
+              btnHide.disabled = false;
+            }
+          });
+        }
+        // Initial status + light poll when local/tunneled
+        callScanner("status").catch(function () {
+          setScannerPill(scannerApiBase() === null ? "unavailable" : "cdp_down");
+        });
+        setInterval(function () {
+          if (document.hidden) return;
+          if (scannerApiBase() === null) return;
+          callScanner("status").catch(function () {});
+        }, 15000);
       }
 
       const state = {
@@ -1188,22 +1316,40 @@
         return s.length === 0 || s.length >= ALL_BROKERS.length;
       }
 
-      function isUsefulLoadUrl(url, id) {
-        const u = String(url || "").trim();
+      function isUsefulLoadUrl(u, id) {
         if (!u || !/^https?:\/\//i.test(u)) return false;
-        if (/^tel:/i.test(u)) return false;
         const bare = u.replace(/\/$/, "");
-        const boards = Object.keys(BROKER_BOARD_URLS).map((k) =>
-          String(BROKER_BOARD_URLS[k]).replace(/\/$/, "")
-        );
+        const boards = Object.keys(BROKER_BOARD_URLS).map(function (k) {
+          return String(BROKER_BOARD_URLS[k]).replace(/\/$/, "");
+        });
         if (boards.indexOf(bare) >= 0) return false;
-        // Generic board path with only query-less board URL variants
+        // Board homepage variants (no load-specific path/query)
         for (let i = 0; i < boards.length; i++) {
           if (bare === boards[i]) return false;
         }
-        if (id && u.indexOf(String(id)) >= 0) return true;
+        const idStr = String(id || "");
+        if (idStr && u.indexOf(idStr) >= 0) return true;
+        // load-specific query/path markers
+        if (/[?&#](loadId|loadNumber|loadBoardId|shipmentId|referenceNumber)=/i.test(u)) return true;
+        if (/\/(loads|availableLoads|Shipments|find-loads)\/[^/?#]+/i.test(u)) return true;
         // Non-board http(s) link (detail / filtered / deep) counts as useful
         return true;
+      }
+
+      function isSyntheticLoadId(id) {
+        const s = String(id || "").trim();
+        if (!s) return true;
+        // Real numeric / alphanumeric load numbers are NEVER synthetic
+        if (/^\d+$/.test(s)) return false;
+        if (/^\d+-\d+$/.test(s)) return false; // RXO-style 2-21508696
+        if (/^[A-Za-z0-9_-]+$/.test(s) && !/^(ARR|ARC|ECHO|CHR|EXAMPLE)-/i.test(s) && s.indexOf(",") < 0) {
+          // MoLo/ArcBest reference numbers etc.
+          return false;
+        }
+        return (
+          /^(ARR-|ARC-|ECHO-|CHR-|EXAMPLE-)/i.test(s) ||
+          s.indexOf(",") >= 0
+        );
       }
 
       function loadDetailUrl(load) {
@@ -1212,24 +1358,20 @@
         const raw = String((load && load.url) || "").trim();
         if (isUsefulLoadUrl(raw, id)) return raw;
         const board = BROKER_BOARD_URLS[src] || "";
-        const synthetic =
-          !id ||
-          /^(ARR-|ARC-|ECHO-|CHR-|EXAMPLE-)/i.test(id) ||
-          id.indexOf(",") >= 0;
-        if (synthetic) return board || raw || "";
+        if (isSyntheticLoadId(id)) return board || raw || "";
         const enc = encodeURIComponent(id);
         if (src === "Arrive") {
           return "https://carrier.arrivelogistics.com/find-loads?loadBoardId=" + enc;
         }
         if (src === "RXO") {
-          // RXO ids often look like "2-21508696"
           return "https://carrier.rxoconnect.rxo.com/loads/" + enc;
         }
         if (src === "ArcBest" || src === "MoLo") {
-          return "https://carriers.arcb.com/Shipments?shipmentId=" + enc;
+          return "https://carriers.arcb.com/Shipments?referenceNumber=" + enc;
         }
         if (src === "Echo") {
-          return "https://echodrive.echo.com/carrier/10261/availableLoads?loadId=" + enc;
+          // CDP-proven: /v2/…?loadId= expands the correct load (email/lane-alert style)
+          return "https://echodrive.echo.com/v2/carrier/10261/availableLoads?loadId=" + enc;
         }
         if (src === "CHR") {
           return "https://www.navispherecarrier.com/?loadId=" + enc;
@@ -3064,6 +3206,7 @@
           });
         }
         refreshApiUi();
+        wireScannerControls();
       })();
 
       loadGeoData().then(function () { return loadData(); }).then(function () {

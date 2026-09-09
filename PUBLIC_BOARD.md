@@ -8,8 +8,8 @@
 
 ## Honest constraint (also shown in the UI)
 
-> Live data comes from the work PC. Sign into brokers there once (scanner Chrome).  
-> Broker links from your phone open the broker site for you, but do **not** feed the scraper.
+> Live data comes from the work PC. Sign into brokers on **http://localhost:8765/** (**Sign in brokers**).  
+> GitHub Pages cannot unhide scanner Chrome. Load # links open the broker load in your browser; they do **not** feed the scraper.
 
 ## Morning flow (should be ~zero clicks)
 
@@ -20,7 +20,7 @@ After Task Scheduler is installed:
 3. Open the board:
    - Local: `http://localhost:8765/`
    - Phone: tunnel URL from `tunnel_url.txt` (or GitHub Pages with `?api=…`)
-4. First time / after Chrome profile wipe: briefly open the minimized scanner Chrome and sign into Arrive / RXO / ArcBest / Echo. Leave it alone the rest of the day.
+4. First time / after Chrome profile wipe: on **http://localhost:8765/** click **Sign in brokers**, sign into Arrive / RXO / ArcBest / Echo / CHR, then **Hide scanner**. Do not rely on visible scanner Chrome windows.
 
 Optional tunnel each day (quick tunnels change URL):
 

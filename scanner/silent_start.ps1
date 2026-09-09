@@ -1,4 +1,4 @@
-# Unified Load Board - silent auto-start (no console spam, no browser open, no pause).
+# Unified Load Board - silent auto-start (no console spam, no visible scanner Chrome, no pause).
 # Called by SILENT_START.vbs / Task Scheduler. Safe to re-run (idempotent).
 $ErrorActionPreference = "SilentlyContinue"
 $Scanner = $PSScriptRoot
@@ -40,10 +40,21 @@ function Find-Pythonw {
   return $null
 }
 
+function Invoke-ChromeWindow([string]$Action) {
+  $pyw = Find-Pythonw
+  $helper = Join-Path $Scanner "chrome_window.py"
+  if (-not $pyw -or -not (Test-Path $helper)) {
+    Write-Log "WARN: cannot $Action scanner chrome (pythonw/helper missing)"
+    return
+  }
+  Start-Process -FilePath $pyw -ArgumentList "`"$helper`"","$Action" -WindowStyle Hidden -Wait | Out-Null
+}
+
 function Start-ScannerChrome {
   $port = 9222
   if (Test-PortListen $port) {
-    Write-Log "CDP $port already listening - skip Chrome start"
+    Write-Log "CDP $port already listening - hide only (no new Chrome windows)"
+    Invoke-ChromeWindow "hide"
     return
   }
   $profile = Join-Path $Scanner "chrome_cdp_profile"
@@ -58,22 +69,24 @@ function Start-ScannerChrome {
     Write-Log "ERROR: Chrome not found"
     return
   }
-  $urls = @(
-    "https://carrier.arrivelogistics.com/find-loads",
-    "https://carrier.rxoconnect.rxo.com/loads/available-loads",
-    "https://carriers.arcb.com/Shipments",
-    "https://echodrive.echo.com/carrier/10261/availableLoads",
-    "https://www.navispherecarrier.com/"
-  )
+  # Hidden + off-screen. Prefer hidden over headless (broker logins break headless).
+  # Start about:blank only — ensure-tabs opens broker boards inside this CDP Chrome.
   $chromeArgs = @(
     "--remote-debugging-port=$port",
     "--user-data-dir=$profile",
     "--no-first-run",
     "--no-default-browser-check",
-    "--start-minimized"
-  ) + $urls
-  Write-Log "Starting scanner Chrome minimized (CDP $port)"
-  Start-Process -FilePath $chrome -ArgumentList $chromeArgs -WindowStyle Minimized
+    "--window-position=-32000,-32000",
+    "--window-size=1280,900",
+    "about:blank"
+  )
+  Write-Log "Starting scanner Chrome HIDDEN (CDP $port)"
+  Start-Process -FilePath $chrome -ArgumentList $chromeArgs -WindowStyle Hidden
+  Start-Sleep -Seconds 4
+  Invoke-ChromeWindow "hide"
+  Invoke-ChromeWindow "ensure-tabs"
+  Start-Sleep -Seconds 1
+  Invoke-ChromeWindow "hide"
 }
 
 function Start-BoardServer {
@@ -110,8 +123,10 @@ function Start-CdpAttach {
 
 Write-Log "=== silent_start begin ==="
 Start-ScannerChrome
-Start-Sleep -Seconds 6
+Start-Sleep -Seconds 4
 Start-BoardServer
 Start-Sleep -Seconds 2
 Start-CdpAttach
+# Final hide pass in case Chrome flashed
+Invoke-ChromeWindow "hide"
 Write-Log "=== silent_start done ==="

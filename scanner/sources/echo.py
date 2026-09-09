@@ -256,8 +256,11 @@ def _parse_api_items(body: Any, url: str, price_by_id: dict | None = None) -> li
             "equipment": equip,
             "miles": miles,
             "rate": rate,
+            # CDP-proven Echo deep link (lane-alert / email style):
+            # /v2/carrier/{id}/availableLoads?loadId=N expands the correct load row.
+            # Canonicalizes to /carrier/.../availableLoads?loadId=N.
             "url": (
-                f"https://echodrive.echo.com/carrier/10261/availableLoads?loadId={load_id}"
+                f"https://echodrive.echo.com/v2/carrier/10261/availableLoads?loadId={load_id}"
                 if load_id and str(load_id).isdigit()
                 else url
             ),

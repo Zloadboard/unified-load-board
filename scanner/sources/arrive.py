@@ -451,6 +451,11 @@ def parse_table(page, url: str) -> list[dict]:
             continue
         seen.add(key)
 
+        detail_url = (
+            f"https://carrier.arrivelogistics.com/find-loads?loadBoardId={lid}"
+            if re.fullmatch(r"\d+", str(lid))
+            else url
+        )
         raw = {
             "id": lid,
             "origin": pu["city"],
@@ -467,7 +472,7 @@ def parse_table(page, url: str) -> list[dict]:
             "weight": weight,
             "equipment": eq,
             "rate": rate,
-            "url": url,
+            "url": detail_url,
             "notes": "",
         }
         try:

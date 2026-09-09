@@ -1,16 +1,8 @@
-UNIFIED LOAD BOARD — EVERY MORNING (2 minutes)
-==============================================
-
-1. Double-click:  Desktop\unified-load-board\DAILY_START.bat
-2. In the scanner Chrome window that opens, sign into:
-     - Arrive
-     - RXO Connect
-     - ArcBest
-     - EchoDrive  → Available Loads → Romeoville 100mi → set pickup dates → Search
-     - CH Robinson / Navisphere Carrier (www.navispherecarrier.com) → Find Loads
-3. Leave THAT Chrome open all day (minimize OK, do not close)
-4. Open board: http://localhost:8765/  (Ctrl+F5 once)
-
-If AI Load Offers pings "board stale" — run DAILY_START.bat again and re-check logins.
-
-Do NOT close the two minimized Python windows (table + scanner).
+Unified Load Board — daily checklist
+====================================
+1. SILENT_START.vbs / Task Scheduler starts everything hidden.
+2. Open ONLY the board: http://localhost:8765/
+3. If a broker needs login: board → "Sign in brokers" → log in → "Hide scanner".
+4. Do NOT open extra Chrome windows for scraping.
+5. Load # opens the broker load in your current browser (OK).
+6. GitHub Pages / phone: live data via tunnel; sign-in still on work PC board.

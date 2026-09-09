@@ -366,6 +366,10 @@ def cleanse_arrive(load: dict) -> Optional[dict]:
     old_id = str(out.get("id") or "").strip()
     if old_id.isdigit():
         out["id"] = old_id  # Arrive LoadBoardId from GraphQL / data-testid=load-row-N
+        # Persist real detail URL (SPA does not change path on row click)
+        url = str(out.get("url") or "")
+        if "loadBoardId=" not in url:
+            out["url"] = f"https://carrier.arrivelogistics.com/find-loads?loadBoardId={old_id}"
     elif _looks_like_arrive_stop(old_id) or not old_id or old_id.startswith("ARR-"):
         base = (
             f"ARR-{_sanitize_id_part(origin)}-"
@@ -579,6 +583,19 @@ def cleanse_arcbest(load: dict) -> Optional[dict]:
     url = str(out.get("url") or "")
     if url.lower().startswith("tel:"):
         out["url"] = ARCBEST_BOARD_URL
+    lid_now = str(out.get("id") or "").strip()
+    sid = str(out.get("shipmentId") or "").strip()
+    # Prefer a load-specific URL; never leave board homepage for real ids
+    boardish = url.rstrip("/") in (
+        "https://carriers.arcb.com/Shipments",
+        "https://carriers.arcb.com/Shipments/",
+        ARCBEST_BOARD_URL.rstrip("/"),
+        "",
+    ) or url.lower().startswith("tel:")
+    if boardish and sid and re.fullmatch(r"[\w-]+", sid):
+        out["url"] = f"https://carriers.arcb.com/Shipments?shipmentId={sid}"
+    elif boardish and lid_now and re.fullmatch(r"[\w-]+", lid_now) and not lid_now.upper().startswith("ARC-"):
+        out["url"] = f"https://carriers.arcb.com/Shipments?referenceNumber={lid_now}"
 
     return out
 
@@ -663,6 +680,33 @@ def cleanse_rxo(load: dict) -> Optional[dict]:
 
 
 
+
+def cleanse_echo(load: dict) -> dict | None:
+    """Keep real Echo loadId; rewrite board homepage urls to /availableLoads/{id}."""
+    if not isinstance(load, dict):
+        return None
+    out = dict(load)
+    out["source"] = "Echo"
+    lid = str(out.get("id") or "").strip()
+    # Never invent ECHO-city synthetics here — scrapers already fall back if needed.
+    # If somehow we got a synthetic with commas, leave it (UI treats as board-only).
+    url = str(out.get("url") or "")
+    boardish = (
+        not url
+        or url.rstrip("/") in (
+            "https://echodrive.echo.com/carrier/10261/availableLoads",
+            "https://echodrive.echo.com/carrier/10261/availableLoads/",
+        )
+        or (url.rstrip("/").endswith("/availableLoads") and "loadId=" not in url)
+    )
+    if lid.isdigit() and (boardish or "/availableLoads/" in url or "loadId=" not in url):
+        out["url"] = f"https://echodrive.echo.com/v2/carrier/10261/availableLoads?loadId={lid}"
+    elif lid.isdigit() and "loadId=" in url and "/v2/" not in url:
+        # Normalize to /v2/…?loadId= (CDP-proven expander)
+        out["url"] = f"https://echodrive.echo.com/v2/carrier/10261/availableLoads?loadId={lid}"
+    return out
+
+
 def cleanse_chr(load: dict) -> dict | None:
     """Light CHR / Navisphere pass: aliases + drop empty junk."""
     if not isinstance(load, dict):
@@ -710,6 +754,8 @@ def cleanse_loads(loads: list[dict]) -> list[dict]:
                 row = cleanse_rxo(load)
             elif src == "CHR":
                 row = cleanse_chr(load)
+            elif src == "Echo":
+                row = cleanse_echo(load)
             else:
                 row = dict(load)
         except Exception:
