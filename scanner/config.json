@@ -1,0 +1,11 @@
+{
+  "interval_seconds": 60,
+  "headed": true,
+  "output": "../loads.json",
+  "sources": {
+    "Arrive": "https://carrier.arrivelogistics.com/find-loads",
+    "RXO": "https://carrier.rxoconnect.rxo.com/loads/available-loads",
+    "ArcBest": "https://carriers.arcb.com/Shipments",
+    "Echo": "https://echodrive.echo.com/carrier/10261/availableLoads"
+  }
+}

@@ -1,0 +1,3704 @@
+{
+  "Abilene, KS": {
+    "lat": 38.937144,
+    "lon": -97.20632,
+    "city": "Abilene",
+    "state": "KS"
+  },
+  "Adairsville, GA": {
+    "lat": 34.359527,
+    "lon": -84.917634,
+    "city": "Adairsville",
+    "state": "GA"
+  },
+  "Addison, IL": {
+    "lat": 41.933509,
+    "lon": -88.0054,
+    "city": "Addison",
+    "state": "IL"
+  },
+  "Albany, GA": {
+    "lat": 31.567783,
+    "lon": -84.161923,
+    "city": "Albany",
+    "state": "GA"
+  },
+  "Albert Lea, MN": {
+    "lat": 43.653678,
+    "lon": -93.370672,
+    "city": "Albert Lea",
+    "state": "MN"
+  },
+  "Alexandria, IN": {
+    "lat": 40.256081,
+    "lon": -85.668148,
+    "city": "Alexandria",
+    "state": "IN"
+  },
+  "Alexandria, MN": {
+    "lat": 45.881747,
+    "lon": -95.381994,
+    "city": "Alexandria",
+    "state": "MN"
+  },
+  "Allegan, MI": {
+    "lat": 42.525609,
+    "lon": -85.86608,
+    "city": "Allegan",
+    "state": "MI"
+  },
+  "Allentown, PA": {
+    "lat": 40.602729,
+    "lon": -75.470955,
+    "city": "Allentown",
+    "state": "PA"
+  },
+  "Alstead, NH": {
+    "lat": 43.126484,
+    "lon": -72.328052,
+    "city": "Alstead",
+    "state": "NH"
+  },
+  "Altoona, PA": {
+    "lat": 40.520945,
+    "lon": -78.408901,
+    "city": "Altoona",
+    "state": "PA"
+  },
+  "American Canyon, CA": {
+    "lat": 38.175,
+    "lon": -122.259722,
+    "city": "American Canyon",
+    "state": "CA"
+  },
+  "Anderson, IN": {
+    "lat": 40.114577,
+    "lon": -85.725305,
+    "city": "Anderson",
+    "state": "IN"
+  },
+  "Ankeny, IA": {
+    "lat": 41.72755,
+    "lon": -93.602175,
+    "city": "Ankeny",
+    "state": "IA"
+  },
+  "Appleton, WI": {
+    "lat": 44.277325,
+    "lon": -88.397649,
+    "city": "Appleton",
+    "state": "WI"
+  },
+  "Archbold, OH": {
+    "lat": 41.533255,
+    "lon": -84.304833,
+    "city": "Archbold",
+    "state": "OH"
+  },
+  "Arcola, IL": {
+    "lat": 39.687001,
+    "lon": -88.303679,
+    "city": "Arcola",
+    "state": "IL"
+  },
+  "Ardmore, OK": {
+    "lat": 34.176681,
+    "lon": -97.134157,
+    "city": "Ardmore",
+    "state": "OK"
+  },
+  "Arlington, TX": {
+    "lat": 32.6336,
+    "lon": -97.1469,
+    "city": "Arlington",
+    "state": "TX"
+  },
+  "Ashland, OH": {
+    "lat": 40.855892,
+    "lon": -82.318931,
+    "city": "Ashland",
+    "state": "OH"
+  },
+  "Aston, PA": {
+    "lat": 39.864282,
+    "lon": -75.43321,
+    "city": "Aston",
+    "state": "PA"
+  },
+  "Athens, PA": {
+    "lat": 41.949002,
+    "lon": -76.488855,
+    "city": "Athens",
+    "state": "PA"
+  },
+  "Athens, TN": {
+    "lat": 35.457389,
+    "lon": -84.604261,
+    "city": "Athens",
+    "state": "TN"
+  },
+  "Atlanta, GA": {
+    "lat": 33.749788,
+    "lon": -84.31685,
+    "city": "Atlanta",
+    "state": "GA"
+  },
+  "Auburn, NY": {
+    "lat": 42.929958,
+    "lon": -76.562605,
+    "city": "Auburn",
+    "state": "NY"
+  },
+  "Augusta, GA": {
+    "lat": 33.511692,
+    "lon": -82.099505,
+    "city": "Augusta",
+    "state": "GA"
+  },
+  "Aurora, CO": {
+    "lat": 39.737809,
+    "lon": -104.815233,
+    "city": "Aurora",
+    "state": "CO"
+  },
+  "Aurora, IL": {
+    "lat": 41.78262,
+    "lon": -88.260697,
+    "city": "Aurora",
+    "state": "IL"
+  },
+  "Avenel, NJ": {
+    "lat": 40.582568,
+    "lon": -74.278522,
+    "city": "Avenel",
+    "state": "NJ"
+  },
+  "Avon, NY": {
+    "lat": 42.903034,
+    "lon": -77.727398,
+    "city": "Avon",
+    "state": "NY"
+  },
+  "Baltimore, MD": {
+    "lat": 39.17185,
+    "lon": -76.648287,
+    "city": "Baltimore",
+    "state": "MD"
+  },
+  "Baxter, TN": {
+    "lat": 36.124917,
+    "lon": -85.637766,
+    "city": "Baxter",
+    "state": "TN"
+  },
+  "Baytown, TX": {
+    "lat": 29.746063,
+    "lon": -94.965265,
+    "city": "Baytown",
+    "state": "TX"
+  },
+  "Beaumont, TX": {
+    "lat": 30.068805,
+    "lon": -94.103896,
+    "city": "Beaumont",
+    "state": "TX"
+  },
+  "Beaver Dam, WI": {
+    "lat": 43.461574,
+    "lon": -88.840681,
+    "city": "Beaver Dam",
+    "state": "WI"
+  },
+  "Bedford Park, IL": {
+    "lat": 41.759444,
+    "lon": -87.786667,
+    "city": "Bedford Park",
+    "state": "IL"
+  },
+  "Belle Plaine, IA": {
+    "lat": 41.899159,
+    "lon": -92.257381,
+    "city": "Belle Plaine",
+    "state": "IA"
+  },
+  "Belvidere, IL": {
+    "lat": 42.259465,
+    "lon": -88.850943,
+    "city": "Belvidere",
+    "state": "IL"
+  },
+  "Bensalem, PA": {
+    "lat": 40.110881,
+    "lon": -74.937753,
+    "city": "Bensalem",
+    "state": "PA"
+  },
+  "Bensenville, IL": {
+    "lat": 41.9536,
+    "lon": -87.935,
+    "city": "Bensenville",
+    "state": "IL"
+  },
+  "Birmingham, AL": {
+    "lat": 33.519,
+    "lon": -86.8014,
+    "city": "Birmingham",
+    "state": "AL"
+  },
+  "Black River Falls, WI": {
+    "lat": 44.292101,
+    "lon": -90.847952,
+    "city": "Black River Falls",
+    "state": "WI"
+  },
+  "Blair, NE": {
+    "lat": 41.545376,
+    "lon": -96.161666,
+    "city": "Blair",
+    "state": "NE"
+  },
+  "Bloomfield, CT": {
+    "lat": 41.831647,
+    "lon": -72.72493,
+    "city": "Bloomfield",
+    "state": "CT"
+  },
+  "Bloomingdale, GA": {
+    "lat": 32.117654,
+    "lon": -81.308465,
+    "city": "Bloomingdale",
+    "state": "GA"
+  },
+  "Bolingbrook, IL": {
+    "lat": 41.697605,
+    "lon": -88.087315,
+    "city": "Bolingbrook",
+    "state": "IL"
+  },
+  "Borger, TX": {
+    "lat": 35.664299,
+    "lon": -101.403245,
+    "city": "Borger",
+    "state": "TX"
+  },
+  "Braselton, GA": {
+    "lat": 34.138941,
+    "lon": -83.781162,
+    "city": "Braselton",
+    "state": "GA"
+  },
+  "Breinigsville, PA": {
+    "lat": 40.552621,
+    "lon": -75.655269,
+    "city": "Breinigsville",
+    "state": "PA"
+  },
+  "Bremen, AL": {
+    "lat": 33.973664,
+    "lon": -87.004281,
+    "city": "Bremen",
+    "state": "AL"
+  },
+  "Bristol, PA": {
+    "lat": 40.109174,
+    "lon": -74.860718,
+    "city": "Bristol",
+    "state": "PA"
+  },
+  "Broadview, IL": {
+    "lat": 41.863889,
+    "lon": -87.853333,
+    "city": "Broadview",
+    "state": "IL"
+  },
+  "Brockport, NY": {
+    "lat": 43.21284,
+    "lon": -77.936797,
+    "city": "Brockport",
+    "state": "NY"
+  },
+  "Brooklyn, NY": {
+    "lat": 40.694021,
+    "lon": -73.99034,
+    "city": "Brooklyn",
+    "state": "NY"
+  },
+  "Brundidge, AL": {
+    "lat": 31.701324,
+    "lon": -85.817668,
+    "city": "Brundidge",
+    "state": "AL"
+  },
+  "Bryan, OH": {
+    "lat": 41.474839,
+    "lon": -84.56287,
+    "city": "Bryan",
+    "state": "OH"
+  },
+  "Buckner, KY": {
+    "lat": 38.363008,
+    "lon": -85.47406,
+    "city": "Buckner",
+    "state": "KY"
+  },
+  "Buena Park, CA": {
+    "lat": 33.840607,
+    "lon": -118.011359,
+    "city": "Buena Park",
+    "state": "CA"
+  },
+  "Buffalo Grove, IL": {
+    "lat": 42.159843,
+    "lon": -87.964364,
+    "city": "Buffalo Grove",
+    "state": "IL"
+  },
+  "Buford, GA": {
+    "lat": 34.1313,
+    "lon": -84.0267,
+    "city": "Buford",
+    "state": "GA"
+  },
+  "Buhl, ID": {
+    "lat": 42.600763,
+    "lon": -114.782545,
+    "city": "Buhl",
+    "state": "ID"
+  },
+  "Burleson, TX": {
+    "lat": 32.531624,
+    "lon": -97.308959,
+    "city": "Burleson",
+    "state": "TX"
+  },
+  "Burley, ID": {
+    "lat": 42.524442,
+    "lon": -113.793081,
+    "city": "Burley",
+    "state": "ID"
+  },
+  "Burlington, IA": {
+    "lat": 40.808665,
+    "lon": -91.116972,
+    "city": "Burlington",
+    "state": "IA"
+  },
+  "Burlington, NJ": {
+    "lat": 40.068015,
+    "lon": -74.845353,
+    "city": "Burlington",
+    "state": "NJ"
+  },
+  "Byhalia, MS": {
+    "lat": 34.885351,
+    "lon": -89.676332,
+    "city": "Byhalia",
+    "state": "MS"
+  },
+  "Calvert City, KY": {
+    "lat": 37.014741,
+    "lon": -88.381115,
+    "city": "Calvert City",
+    "state": "KY"
+  },
+  "Cambridge, MD": {
+    "lat": 38.564282,
+    "lon": -76.087358,
+    "city": "Cambridge",
+    "state": "MD"
+  },
+  "Cannelton, IN": {
+    "lat": 37.910851,
+    "lon": -86.732617,
+    "city": "Cannelton",
+    "state": "IN"
+  },
+  "Carlisle, PA": {
+    "lat": 40.203877,
+    "lon": -77.199526,
+    "city": "Carlisle",
+    "state": "PA"
+  },
+  "Carlstadt, NJ": {
+    "lat": 40.840298,
+    "lon": -74.092498,
+    "city": "Carlstadt",
+    "state": "NJ"
+  },
+  "Carmi, IL": {
+    "lat": 38.080819,
+    "lon": -88.166987,
+    "city": "Carmi",
+    "state": "IL"
+  },
+  "Carthage, MO": {
+    "lat": 37.159686,
+    "lon": -94.311232,
+    "city": "Carthage",
+    "state": "MO"
+  },
+  "Cedar Rapids, IA": {
+    "lat": 41.9743,
+    "lon": -91.655382,
+    "city": "Cedar Rapids",
+    "state": "IA"
+  },
+  "Centerville, LA": {
+    "lat": 29.759444,
+    "lon": -91.428333,
+    "city": "Centerville",
+    "state": "LA"
+  },
+  "Centralia, IL": {
+    "lat": 38.524117,
+    "lon": -89.136478,
+    "city": "Centralia",
+    "state": "IL"
+  },
+  "Chambersburg, PA": {
+    "lat": 39.931318,
+    "lon": -77.657928,
+    "city": "Chambersburg",
+    "state": "PA"
+  },
+  "Champaign, IL": {
+    "lat": 40.111017,
+    "lon": -88.240747,
+    "city": "Champaign",
+    "state": "IL"
+  },
+  "Charlotte, NC": {
+    "lat": 35.2269,
+    "lon": -80.8433,
+    "city": "Charlotte",
+    "state": "NC"
+  },
+  "Chatsworth, GA": {
+    "lat": 34.758929,
+    "lon": -84.794293,
+    "city": "Chatsworth",
+    "state": "GA"
+  },
+  "Chattanooga, TN": {
+    "lat": 35.0455,
+    "lon": -85.3081,
+    "city": "Chattanooga",
+    "state": "TN"
+  },
+  "Cherokee, AL": {
+    "lat": 34.744188,
+    "lon": -87.972445,
+    "city": "Cherokee",
+    "state": "AL"
+  },
+  "Chester, NY": {
+    "lat": 41.355381,
+    "lon": -74.265116,
+    "city": "Chester",
+    "state": "NY"
+  },
+  "Chester, PA": {
+    "lat": 39.849817,
+    "lon": -75.374687,
+    "city": "Chester",
+    "state": "PA"
+  },
+  "Chester, VT": {
+    "lat": 43.283124,
+    "lon": -72.603125,
+    "city": "Chester",
+    "state": "VT"
+  },
+  "Chicago, IL": {
+    "lat": 41.885847,
+    "lon": -87.618123,
+    "city": "Chicago",
+    "state": "IL"
+  },
+  "Chicago, IL 60612": {
+    "lat": 41.885847,
+    "lon": -87.618123,
+    "city": "Chicago",
+    "state": "IL"
+  },
+  "Chippewa Falls, WI": {
+    "lat": 44.932202,
+    "lon": -91.384376,
+    "city": "Chippewa Falls",
+    "state": "WI"
+  },
+  "Cincinnati, OH": {
+    "lat": 39.091293,
+    "lon": -84.277383,
+    "city": "Cincinnati",
+    "state": "OH"
+  },
+  "Cleveland, OH": {
+    "lat": 41.4918,
+    "lon": -81.6757,
+    "city": "Cleveland",
+    "state": "OH"
+  },
+  "Cleveland, TN": {
+    "lat": 35.131257,
+    "lon": -84.875006,
+    "city": "Cleveland",
+    "state": "TN"
+  },
+  "Clinton, IA": {
+    "lat": 41.851684,
+    "lon": -90.207784,
+    "city": "Clinton",
+    "state": "IA"
+  },
+  "Clinton, TN": {
+    "lat": 36.08688,
+    "lon": -84.189735,
+    "city": "Clinton",
+    "state": "TN"
+  },
+  "Clute, TX": {
+    "lat": 29.032502,
+    "lon": -95.402595,
+    "city": "Clute",
+    "state": "TX"
+  },
+  "Colby, WI": {
+    "lat": 44.911651,
+    "lon": -90.314432,
+    "city": "Colby",
+    "state": "WI"
+  },
+  "Cold Spring, MN": {
+    "lat": 45.449976,
+    "lon": -94.437823,
+    "city": "Cold Spring",
+    "state": "MN"
+  },
+  "Coldwater, MI": {
+    "lat": 41.925464,
+    "lon": -85.005682,
+    "city": "Coldwater",
+    "state": "MI"
+  },
+  "Colfax, NC": {
+    "lat": 36.100272,
+    "lon": -80.010276,
+    "city": "Colfax",
+    "state": "NC"
+  },
+  "Columbia, MO": {
+    "lat": 38.938176,
+    "lon": -92.304865,
+    "city": "Columbia",
+    "state": "MO"
+  },
+  "Columbia, SC": {
+    "lat": 34.072613,
+    "lon": -81.179617,
+    "city": "Columbia",
+    "state": "SC"
+  },
+  "Columbus, IN": {
+    "lat": 39.205507,
+    "lon": -85.931745,
+    "city": "Columbus",
+    "state": "IN"
+  },
+  "Columbus, OH": {
+    "lat": 40.1444,
+    "lon": -82.9789,
+    "city": "Columbus",
+    "state": "OH"
+  },
+  "Commerce City, CO": {
+    "lat": 39.825875,
+    "lon": -104.911349,
+    "city": "Commerce City",
+    "state": "CO"
+  },
+  "Concord, NC": {
+    "lat": 35.371614,
+    "lon": -80.530027,
+    "city": "Concord",
+    "state": "NC"
+  },
+  "Congers, NY": {
+    "lat": 41.148689,
+    "lon": -73.94131,
+    "city": "Congers",
+    "state": "NY"
+  },
+  "Conley, GA": {
+    "lat": 33.644722,
+    "lon": -84.325833,
+    "city": "Conley",
+    "state": "GA"
+  },
+  "Conyers, GA": {
+    "lat": 33.6947,
+    "lon": -84.0152,
+    "city": "Conyers",
+    "state": "GA"
+  },
+  "Council Bluffs, IA": {
+    "lat": 41.252954,
+    "lon": -95.880992,
+    "city": "Council Bluffs",
+    "state": "IA"
+  },
+  "Covington, GA": {
+    "lat": 33.5817,
+    "lon": -83.8467,
+    "city": "Covington",
+    "state": "GA"
+  },
+  "Covington, TN": {
+    "lat": 35.559838,
+    "lon": -89.650144,
+    "city": "Covington",
+    "state": "TN"
+  },
+  "Crandall, GA": {
+    "lat": 34.941225,
+    "lon": -84.764533,
+    "city": "Crandall",
+    "state": "GA"
+  },
+  "Crockett, TX": {
+    "lat": 31.315067,
+    "lon": -95.46833,
+    "city": "Crockett",
+    "state": "TX"
+  },
+  "Crossville, TN": {
+    "lat": 35.944041,
+    "lon": -85.017171,
+    "city": "Crossville",
+    "state": "TN"
+  },
+  "Dallas, TX": {
+    "lat": 32.996848,
+    "lon": -96.792113,
+    "city": "Dallas",
+    "state": "TX"
+  },
+  "Danville, IL": {
+    "lat": 40.136976,
+    "lon": -87.621737,
+    "city": "Danville",
+    "state": "IL"
+  },
+  "Darien, IL": {
+    "lat": 41.751944,
+    "lon": -87.973889,
+    "city": "Darien",
+    "state": "IL"
+  },
+  "Davenport, IA": {
+    "lat": 41.5218,
+    "lon": -90.5743,
+    "city": "Davenport",
+    "state": "IA"
+  },
+  "Dayton, NJ": {
+    "lat": 40.38249,
+    "lon": -74.511102,
+    "city": "Dayton",
+    "state": "NJ"
+  },
+  "Decatur, IL": {
+    "lat": 39.827137,
+    "lon": -88.925984,
+    "city": "Decatur",
+    "state": "IL"
+  },
+  "Decatur, IN": {
+    "lat": 40.827333,
+    "lon": -84.931432,
+    "city": "Decatur",
+    "state": "IN"
+  },
+  "Dekalb, IL": {
+    "lat": 41.934245,
+    "lon": -88.760673,
+    "city": "Dekalb",
+    "state": "IL"
+  },
+  "Deland, FL": {
+    "lat": 29.02659,
+    "lon": -81.334853,
+    "city": "Deland",
+    "state": "FL"
+  },
+  "Delano, CA": {
+    "lat": 35.771511,
+    "lon": -119.24594,
+    "city": "Delano",
+    "state": "CA"
+  },
+  "Delhi, NY": {
+    "lat": 42.287851,
+    "lon": -74.922823,
+    "city": "Delhi",
+    "state": "NY"
+  },
+  "Denison, TX": {
+    "lat": 33.745009,
+    "lon": -96.549574,
+    "city": "Denison",
+    "state": "TX"
+  },
+  "Denver, CO": {
+    "lat": 39.840562,
+    "lon": -105.007985,
+    "city": "Denver",
+    "state": "CO"
+  },
+  "Des Moines, IA": {
+    "lat": 41.6005,
+    "lon": -93.6088,
+    "city": "Des Moines",
+    "state": "IA"
+  },
+  "Des Plaines, IL": {
+    "lat": 42.046734,
+    "lon": -87.885899,
+    "city": "Des Plaines",
+    "state": "IL"
+  },
+  "Detroit, MI": {
+    "lat": 42.347429,
+    "lon": -83.060398,
+    "city": "Detroit",
+    "state": "MI"
+  },
+  "Draper, UT": {
+    "lat": 40.504599,
+    "lon": -111.88096,
+    "city": "Draper",
+    "state": "UT"
+  },
+  "Duncan, SC": {
+    "lat": 34.917645,
+    "lon": -82.125821,
+    "city": "Duncan",
+    "state": "SC"
+  },
+  "Dunkirk, IN": {
+    "lat": 40.388291,
+    "lon": -85.225541,
+    "city": "Dunkirk",
+    "state": "IN"
+  },
+  "Dunkirk, NY": {
+    "lat": 42.475907,
+    "lon": -79.329366,
+    "city": "Dunkirk",
+    "state": "NY"
+  },
+  "Durham, NC": {
+    "lat": 35.996725,
+    "lon": -78.896613,
+    "city": "Durham",
+    "state": "NC"
+  },
+  "East Syracuse, NY": {
+    "lat": 43.073359,
+    "lon": -76.05578,
+    "city": "East Syracuse",
+    "state": "NY"
+  },
+  "Edgerton, KS": {
+    "lat": 38.781084,
+    "lon": -95.009377,
+    "city": "Edgerton",
+    "state": "KS"
+  },
+  "Edison, NJ": {
+    "lat": 40.517079,
+    "lon": -74.397286,
+    "city": "Edison",
+    "state": "NJ"
+  },
+  "Effingham, SC": {
+    "lat": 34.094571,
+    "lon": -79.791822,
+    "city": "Effingham",
+    "state": "SC"
+  },
+  "El Mirage, AZ": {
+    "lat": 33.608153,
+    "lon": -112.324147,
+    "city": "El Mirage",
+    "state": "AZ"
+  },
+  "El Paso, TX": {
+    "lat": 31.758411,
+    "lon": -106.478311,
+    "city": "El Paso",
+    "state": "TX"
+  },
+  "Elgin, IL": {
+    "lat": 42.038356,
+    "lon": -88.260631,
+    "city": "Elgin",
+    "state": "IL"
+  },
+  "Elk Grove Village, IL": {
+    "lat": 42.005613,
+    "lon": -88.012775,
+    "city": "Elk Grove Village",
+    "state": "IL"
+  },
+  "Elkhart, IN": {
+    "lat": 41.710083,
+    "lon": -85.972949,
+    "city": "Elkhart",
+    "state": "IN"
+  },
+  "Ellenwood, GA": {
+    "lat": 33.61,
+    "lon": -84.288056,
+    "city": "Ellenwood",
+    "state": "GA"
+  },
+  "Elliston, VA": {
+    "lat": 37.212651,
+    "lon": -80.249658,
+    "city": "Elliston",
+    "state": "VA"
+  },
+  "Elwood, IL": {
+    "lat": 41.426018,
+    "lon": -88.08642,
+    "city": "Elwood",
+    "state": "IL"
+  },
+  "Enid, OK": {
+    "lat": 36.402842,
+    "lon": -97.862257,
+    "city": "Enid",
+    "state": "OK"
+  },
+  "Erie, PA": {
+    "lat": 42.125962,
+    "lon": -80.08601,
+    "city": "Erie",
+    "state": "PA"
+  },
+  "Erlanger, KY": {
+    "lat": 39.008238,
+    "lon": -84.597745,
+    "city": "Erlanger",
+    "state": "KY"
+  },
+  "Evansville, IN": {
+    "lat": 37.9746,
+    "lon": -87.5674,
+    "city": "Evansville",
+    "state": "IN"
+  },
+  "Fairburn, GA": {
+    "lat": 33.56482,
+    "lon": -84.580857,
+    "city": "Fairburn",
+    "state": "GA"
+  },
+  "Fairfax, VT": {
+    "lat": 44.692387,
+    "lon": -73.024078,
+    "city": "Fairfax",
+    "state": "VT"
+  },
+  "Fargo, ND": {
+    "lat": 46.900878,
+    "lon": -96.793577,
+    "city": "Fargo",
+    "state": "ND"
+  },
+  "Farley, IA": {
+    "lat": 42.445059,
+    "lon": -91.008266,
+    "city": "Farley",
+    "state": "IA"
+  },
+  "Fayetteville, AR": {
+    "lat": 36.052045,
+    "lon": -94.153395,
+    "city": "Fayetteville",
+    "state": "AR"
+  },
+  "Fayetteville, NC": {
+    "lat": 35.05099,
+    "lon": -78.842255,
+    "city": "Fayetteville",
+    "state": "NC"
+  },
+  "Findlay, OH": {
+    "lat": 41.044167,
+    "lon": -83.65,
+    "city": "Findlay",
+    "state": "OH"
+  },
+  "Flemington, NJ": {
+    "lat": 40.517976,
+    "lon": -74.845316,
+    "city": "Flemington",
+    "state": "NJ"
+  },
+  "Florence, KY": {
+    "lat": 38.998889,
+    "lon": -84.626667,
+    "city": "Florence",
+    "state": "KY"
+  },
+  "Florence, VT": {
+    "lat": 43.709294,
+    "lon": -73.078988,
+    "city": "Florence",
+    "state": "VT"
+  },
+  "Fond Du Lac, WI": {
+    "lat": 43.770446,
+    "lon": -88.429149,
+    "city": "Fond Du Lac",
+    "state": "WI"
+  },
+  "Forest Grove, OR": {
+    "lat": 45.532835,
+    "lon": -123.115152,
+    "city": "Forest Grove",
+    "state": "OR"
+  },
+  "Fort Atkinson, WI": {
+    "lat": 42.922902,
+    "lon": -88.846689,
+    "city": "Fort Atkinson",
+    "state": "WI"
+  },
+  "Fort Collins, CO": {
+    "lat": 40.581293,
+    "lon": -105.103884,
+    "city": "Fort Collins",
+    "state": "CO"
+  },
+  "Fort Payne, AL": {
+    "lat": 34.436792,
+    "lon": -85.712394,
+    "city": "Fort Payne",
+    "state": "AL"
+  },
+  "Fort Smith, AR": {
+    "lat": 35.365272,
+    "lon": -94.411035,
+    "city": "Fort Smith",
+    "state": "AR"
+  },
+  "Fort Wayne, IN": {
+    "lat": 41.0716,
+    "lon": -85.1367,
+    "city": "Fort Wayne",
+    "state": "IN"
+  },
+  "Fort Worth, TX": {
+    "lat": 32.7469,
+    "lon": -97.3268,
+    "city": "Fort Worth",
+    "state": "TX"
+  },
+  "Franklin, WI": {
+    "lat": 42.901728,
+    "lon": -88.008582,
+    "city": "Franklin",
+    "state": "WI"
+  },
+  "Franksville, WI": {
+    "lat": 42.785892,
+    "lon": -87.987273,
+    "city": "Franksville",
+    "state": "WI"
+  },
+  "Freeport, IL": {
+    "lat": 42.299148,
+    "lon": -89.634521,
+    "city": "Freeport",
+    "state": "IL"
+  },
+  "Fremont, OH": {
+    "lat": 41.349792,
+    "lon": -83.118095,
+    "city": "Fremont",
+    "state": "OH"
+  },
+  "Gainesville, GA": {
+    "lat": 34.307269,
+    "lon": -83.825596,
+    "city": "Gainesville",
+    "state": "GA"
+  },
+  "Garland, TX": {
+    "lat": 32.922744,
+    "lon": -96.624804,
+    "city": "Garland",
+    "state": "TX"
+  },
+  "Garrettsville, OH": {
+    "lat": 41.298803,
+    "lon": -81.070365,
+    "city": "Garrettsville",
+    "state": "OH"
+  },
+  "Geismar, LA": {
+    "lat": 30.236265,
+    "lon": -90.975824,
+    "city": "Geismar",
+    "state": "LA"
+  },
+  "Geneva, IL": {
+    "lat": 41.886013,
+    "lon": -88.310954,
+    "city": "Geneva",
+    "state": "IL"
+  },
+  "Geneva, NY": {
+    "lat": 42.86372,
+    "lon": -76.991349,
+    "city": "Geneva",
+    "state": "NY"
+  },
+  "Gibsonton, FL": {
+    "lat": 27.841059,
+    "lon": -82.369831,
+    "city": "Gibsonton",
+    "state": "FL"
+  },
+  "Gilman, IL": {
+    "lat": 40.767987,
+    "lon": -87.993336,
+    "city": "Gilman",
+    "state": "IL"
+  },
+  "Golden, CO": {
+    "lat": 39.730548,
+    "lon": -105.191528,
+    "city": "Golden",
+    "state": "CO"
+  },
+  "Gonzales, TX": {
+    "lat": 29.50857,
+    "lon": -97.449456,
+    "city": "Gonzales",
+    "state": "TX"
+  },
+  "Goodyear, AZ": {
+    "lat": 33.436809,
+    "lon": -112.383385,
+    "city": "Goodyear",
+    "state": "AZ"
+  },
+  "Gordonsville, TN": {
+    "lat": 36.184317,
+    "lon": -86.000818,
+    "city": "Gordonsville",
+    "state": "TN"
+  },
+  "Goshen, IN": {
+    "lat": 41.584484,
+    "lon": -85.837988,
+    "city": "Goshen",
+    "state": "IN"
+  },
+  "Grand Prairie, TX": {
+    "lat": 32.76488,
+    "lon": -97.01121,
+    "city": "Grand Prairie",
+    "state": "TX"
+  },
+  "Grand Rapids, MI": {
+    "lat": 42.9704,
+    "lon": -85.6738,
+    "city": "Grand Rapids",
+    "state": "MI"
+  },
+  "Granite City, IL": {
+    "lat": 38.721572,
+    "lon": -90.115822,
+    "city": "Granite City",
+    "state": "IL"
+  },
+  "Grapevine, TX": {
+    "lat": 32.93143,
+    "lon": -97.096203,
+    "city": "Grapevine",
+    "state": "TX"
+  },
+  "Gray Court, SC": {
+    "lat": 34.580984,
+    "lon": -82.157035,
+    "city": "Gray Court",
+    "state": "SC"
+  },
+  "Greeley, CO": {
+    "lat": 40.413968,
+    "lon": -104.704756,
+    "city": "Greeley",
+    "state": "CO"
+  },
+  "Greenfield, IN": {
+    "lat": 39.790204,
+    "lon": -85.814102,
+    "city": "Greenfield",
+    "state": "IN"
+  },
+  "Greensboro, NC": {
+    "lat": 36.0726,
+    "lon": -79.792,
+    "city": "Greensboro",
+    "state": "NC"
+  },
+  "Greenville, MI": {
+    "lat": 43.17926,
+    "lon": -85.249705,
+    "city": "Greenville",
+    "state": "MI"
+  },
+  "Greenville, MS": {
+    "lat": 33.378737,
+    "lon": -91.046793,
+    "city": "Greenville",
+    "state": "MS"
+  },
+  "Greenville, SC": {
+    "lat": 34.847165,
+    "lon": -82.406049,
+    "city": "Greenville",
+    "state": "SC"
+  },
+  "Greenville, TX": {
+    "lat": 33.117476,
+    "lon": -96.102416,
+    "city": "Greenville",
+    "state": "TX"
+  },
+  "Greenville, WI": {
+    "lat": 44.299747,
+    "lon": -88.569579,
+    "city": "Greenville",
+    "state": "WI"
+  },
+  "Greer, SC": {
+    "lat": 34.8968,
+    "lon": -82.267442,
+    "city": "Greer",
+    "state": "SC"
+  },
+  "Grove City, OH": {
+    "lat": 39.881382,
+    "lon": -83.083944,
+    "city": "Grove City",
+    "state": "OH"
+  },
+  "Groveland, FL": {
+    "lat": 28.564445,
+    "lon": -81.874526,
+    "city": "Groveland",
+    "state": "FL"
+  },
+  "Groveport, OH": {
+    "lat": 39.858137,
+    "lon": -82.887219,
+    "city": "Groveport",
+    "state": "OH"
+  },
+  "Grover, NC": {
+    "lat": 35.183639,
+    "lon": -81.455182,
+    "city": "Grover",
+    "state": "NC"
+  },
+  "Hagerstown, MD": {
+    "lat": 39.632022,
+    "lon": -77.737215,
+    "city": "Hagerstown",
+    "state": "MD"
+  },
+  "Hamburg, PA": {
+    "lat": 40.548799,
+    "lon": -75.987361,
+    "city": "Hamburg",
+    "state": "PA"
+  },
+  "Hamilton, OH": {
+    "lat": 39.405906,
+    "lon": -84.522117,
+    "city": "Hamilton",
+    "state": "OH"
+  },
+  "Hammond, IN": {
+    "lat": 41.609929,
+    "lon": -87.507911,
+    "city": "Hammond",
+    "state": "IN"
+  },
+  "Hammonton, NJ": {
+    "lat": 39.638878,
+    "lon": -74.790735,
+    "city": "Hammonton",
+    "state": "NJ"
+  },
+  "Hanover, PA": {
+    "lat": 39.794286,
+    "lon": -76.981196,
+    "city": "Hanover",
+    "state": "PA"
+  },
+  "Hatfield, PA": {
+    "lat": 40.277826,
+    "lon": -75.297507,
+    "city": "Hatfield",
+    "state": "PA"
+  },
+  "Hazleton, PA": {
+    "lat": 40.962107,
+    "lon": -75.978193,
+    "city": "Hazleton",
+    "state": "PA"
+  },
+  "Hebron, KY": {
+    "lat": 39.07553,
+    "lon": -84.700745,
+    "city": "Hebron",
+    "state": "KY"
+  },
+  "Henderson, CO": {
+    "lat": 39.898304,
+    "lon": -104.871834,
+    "city": "Henderson",
+    "state": "CO"
+  },
+  "Henderson, NC": {
+    "lat": 36.330068,
+    "lon": -78.398086,
+    "city": "Henderson",
+    "state": "NC"
+  },
+  "Hendersonville, NC": {
+    "lat": 35.319213,
+    "lon": -82.499995,
+    "city": "Hendersonville",
+    "state": "NC"
+  },
+  "Hennepin, IL": {
+    "lat": 41.235154,
+    "lon": -89.321791,
+    "city": "Hennepin",
+    "state": "IL"
+  },
+  "Hildebran, NC": {
+    "lat": 35.713889,
+    "lon": -81.422222,
+    "city": "Hildebran",
+    "state": "NC"
+  },
+  "Hillsboro, AL": {
+    "lat": 34.64763,
+    "lon": -87.180379,
+    "city": "Hillsboro",
+    "state": "AL"
+  },
+  "Holland, MI": {
+    "lat": 42.7875,
+    "lon": -86.108889,
+    "city": "Holland",
+    "state": "MI"
+  },
+  "Holly Springs, MS": {
+    "lat": 34.7687,
+    "lon": -89.4483,
+    "city": "Holly Springs",
+    "state": "MS"
+  },
+  "Holyoke, MA": {
+    "lat": 42.202007,
+    "lon": -72.626193,
+    "city": "Holyoke",
+    "state": "MA"
+  },
+  "Hopkins, MN": {
+    "lat": 44.925,
+    "lon": -93.4625,
+    "city": "Hopkins",
+    "state": "MN"
+  },
+  "Horse Cave, KY": {
+    "lat": 37.184939,
+    "lon": -85.878549,
+    "city": "Horse Cave",
+    "state": "KY"
+  },
+  "Houston, TX": {
+    "lat": 29.596156,
+    "lon": -95.458709,
+    "city": "Houston",
+    "state": "TX"
+  },
+  "Howard, PA": {
+    "lat": 41.020315,
+    "lon": -77.670178,
+    "city": "Howard",
+    "state": "PA"
+  },
+  "Hudson, MA": {
+    "lat": 42.391796,
+    "lon": -71.560896,
+    "city": "Hudson",
+    "state": "MA"
+  },
+  "Huntley, IL": {
+    "lat": 42.175555,
+    "lon": -88.426848,
+    "city": "Huntley",
+    "state": "IL"
+  },
+  "Huron, SD": {
+    "lat": 44.359022,
+    "lon": -98.216293,
+    "city": "Huron",
+    "state": "SD"
+  },
+  "Hutchins, TX": {
+    "lat": 32.639586,
+    "lon": -96.707021,
+    "city": "Hutchins",
+    "state": "TX"
+  },
+  "Independence, MO": {
+    "lat": 39.098288,
+    "lon": -94.411072,
+    "city": "Independence",
+    "state": "MO"
+  },
+  "Iola, KS": {
+    "lat": 37.928244,
+    "lon": -95.402146,
+    "city": "Iola",
+    "state": "KS"
+  },
+  "Iowa City, IA": {
+    "lat": 41.654899,
+    "lon": -91.511192,
+    "city": "Iowa City",
+    "state": "IA"
+  },
+  "Irving, TX": {
+    "lat": 32.842,
+    "lon": -96.9719,
+    "city": "Irving",
+    "state": "TX"
+  },
+  "Itasca, IL": {
+    "lat": 41.971967,
+    "lon": -88.020247,
+    "city": "Itasca",
+    "state": "IL"
+  },
+  "Jacksonville, FL": {
+    "lat": 30.3163,
+    "lon": -81.4175,
+    "city": "Jacksonville",
+    "state": "FL"
+  },
+  "Jeanerette, LA": {
+    "lat": 29.90324,
+    "lon": -91.654397,
+    "city": "Jeanerette",
+    "state": "LA"
+  },
+  "Jefferson, WI": {
+    "lat": 43.000557,
+    "lon": -88.807765,
+    "city": "Jefferson",
+    "state": "WI"
+  },
+  "Jeffersonville, IN": {
+    "lat": 38.307767,
+    "lon": -85.735885,
+    "city": "Jeffersonville",
+    "state": "IN"
+  },
+  "Jenks, OK": {
+    "lat": 36.014834,
+    "lon": -95.979711,
+    "city": "Jenks",
+    "state": "OK"
+  },
+  "Jersey Shore, PA": {
+    "lat": 41.200733,
+    "lon": -77.242704,
+    "city": "Jersey Shore",
+    "state": "PA"
+  },
+  "Jessup, MD": {
+    "lat": 39.148399,
+    "lon": -76.792239,
+    "city": "Jessup",
+    "state": "MD"
+  },
+  "Johnstown, OH": {
+    "lat": 40.14452,
+    "lon": -82.697284,
+    "city": "Johnstown",
+    "state": "OH"
+  },
+  "Joliet, IL": {
+    "lat": 41.527154,
+    "lon": -88.08241,
+    "city": "Joliet",
+    "state": "IL"
+  },
+  "Jonesboro, AR": {
+    "lat": 35.833016,
+    "lon": -90.696526,
+    "city": "Jonesboro",
+    "state": "AR"
+  },
+  "Jupiter, FL": {
+    "lat": 26.933938,
+    "lon": -80.120091,
+    "city": "Jupiter",
+    "state": "FL"
+  },
+  "Kannapolis, NC": {
+    "lat": 35.502016,
+    "lon": -80.635875,
+    "city": "Kannapolis",
+    "state": "NC"
+  },
+  "Kansas City, MO": {
+    "lat": 39.163189,
+    "lon": -94.569882,
+    "city": "Kansas City",
+    "state": "MO"
+  },
+  "Keene, NH": {
+    "lat": 42.943127,
+    "lon": -72.28954,
+    "city": "Keene",
+    "state": "NH"
+  },
+  "Kent, WA": {
+    "lat": 47.3695,
+    "lon": -122.1949,
+    "city": "Kent",
+    "state": "WA"
+  },
+  "Kings Mountain, NC": {
+    "lat": 35.251578,
+    "lon": -81.380567,
+    "city": "Kings Mountain",
+    "state": "NC"
+  },
+  "Kirksville, MO": {
+    "lat": 40.190765,
+    "lon": -92.585634,
+    "city": "Kirksville",
+    "state": "MO"
+  },
+  "Kirtland Afb, NM": {
+    "lat": 35.0362,
+    "lon": -106.5594,
+    "city": "Kirtland Afb",
+    "state": "NM"
+  },
+  "Kutztown, PA": {
+    "lat": 40.521354,
+    "lon": -75.777395,
+    "city": "Kutztown",
+    "state": "PA"
+  },
+  "La Crosse, WI": {
+    "lat": 43.798938,
+    "lon": -91.217494,
+    "city": "La Crosse",
+    "state": "WI"
+  },
+  "La Porte, TX": {
+    "lat": 29.660098,
+    "lon": -95.05721,
+    "city": "La Porte",
+    "state": "TX"
+  },
+  "Lacombe, LA": {
+    "lat": 30.322027,
+    "lon": -89.929744,
+    "city": "Lacombe",
+    "state": "LA"
+  },
+  "Ladson, SC": {
+    "lat": 32.993019,
+    "lon": -80.125701,
+    "city": "Ladson",
+    "state": "SC"
+  },
+  "Lake Alfred, FL": {
+    "lat": 28.089483,
+    "lon": -81.727138,
+    "city": "Lake Alfred",
+    "state": "FL"
+  },
+  "Lake City, FL": {
+    "lat": 30.0949,
+    "lon": -82.7117,
+    "city": "Lake City",
+    "state": "FL"
+  },
+  "Lake Norden, SD": {
+    "lat": 44.584351,
+    "lon": -97.200867,
+    "city": "Lake Norden",
+    "state": "SD"
+  },
+  "Lake Wales, FL": {
+    "lat": 27.903734,
+    "lon": -81.548805,
+    "city": "Lake Wales",
+    "state": "FL"
+  },
+  "Lake Zurich, IL": {
+    "lat": 42.196721,
+    "lon": -88.070299,
+    "city": "Lake Zurich",
+    "state": "IL"
+  },
+  "Lakeland, FL": {
+    "lat": 28.038134,
+    "lon": -81.939153,
+    "city": "Lakeland",
+    "state": "FL"
+  },
+  "Lakeville, MN": {
+    "lat": 44.674865,
+    "lon": -93.257802,
+    "city": "Lakeville",
+    "state": "MN"
+  },
+  "Lakewood, WA": {
+    "lat": 47.122905,
+    "lon": -122.529326,
+    "city": "Lakewood",
+    "state": "WA"
+  },
+  "Lancaster, PA": {
+    "lat": 40.075381,
+    "lon": -76.319888,
+    "city": "Lancaster",
+    "state": "PA"
+  },
+  "Lancaster, TX": {
+    "lat": 32.616056,
+    "lon": -96.782997,
+    "city": "Lancaster",
+    "state": "TX"
+  },
+  "Lanham, MD": {
+    "lat": 38.967222,
+    "lon": -76.851944,
+    "city": "Lanham",
+    "state": "MD"
+  },
+  "Laredo, TX": {
+    "lat": 27.515538,
+    "lon": -99.498579,
+    "city": "Laredo",
+    "state": "TX"
+  },
+  "Las Vegas, NV": {
+    "lat": 36.172082,
+    "lon": -115.122366,
+    "city": "Las Vegas",
+    "state": "NV"
+  },
+  "Lawrence, NY": {
+    "lat": 40.61396,
+    "lon": -73.732969,
+    "city": "Lawrence",
+    "state": "NY"
+  },
+  "Le Sueur, MN": {
+    "lat": 44.458154,
+    "lon": -93.885588,
+    "city": "Le Sueur",
+    "state": "MN"
+  },
+  "Lebanon, OH": {
+    "lat": 39.442047,
+    "lon": -84.218754,
+    "city": "Lebanon",
+    "state": "OH"
+  },
+  "Lebanon, OR": {
+    "lat": 44.531558,
+    "lon": -122.882064,
+    "city": "Lebanon",
+    "state": "OR"
+  },
+  "Lecompton, KS": {
+    "lat": 39.000125,
+    "lon": -95.402519,
+    "city": "Lecompton",
+    "state": "KS"
+  },
+  "Lenoir, NC": {
+    "lat": 35.913889,
+    "lon": -81.539167,
+    "city": "Lenoir",
+    "state": "NC"
+  },
+  "Lewistown, PA": {
+    "lat": 40.599439,
+    "lon": -77.57558,
+    "city": "Lewistown",
+    "state": "PA"
+  },
+  "Lexington, KY": {
+    "lat": 38.017394,
+    "lon": -84.485423,
+    "city": "Lexington",
+    "state": "KY"
+  },
+  "Lexington, MI": {
+    "lat": 43.24348,
+    "lon": -82.530103,
+    "city": "Lexington",
+    "state": "MI"
+  },
+  "Lexington, NC": {
+    "lat": 35.82306,
+    "lon": -80.262049,
+    "city": "Lexington",
+    "state": "NC"
+  },
+  "Lincolnton, NC": {
+    "lat": 35.482138,
+    "lon": -81.228039,
+    "city": "Lincolnton",
+    "state": "NC"
+  },
+  "Linden, NJ": {
+    "lat": 40.635366,
+    "lon": -74.255567,
+    "city": "Linden",
+    "state": "NJ"
+  },
+  "Lithia Springs, GA": {
+    "lat": 33.793889,
+    "lon": -84.660556,
+    "city": "Lithia Springs",
+    "state": "GA"
+  },
+  "Lithonia, GA": {
+    "lat": 33.682311,
+    "lon": -84.160997,
+    "city": "Lithonia",
+    "state": "GA"
+  },
+  "Little Chute, WI": {
+    "lat": 44.284248,
+    "lon": -88.311989,
+    "city": "Little Chute",
+    "state": "WI"
+  },
+  "Little Rock, AR": {
+    "lat": 34.748342,
+    "lon": -92.281939,
+    "city": "Little Rock",
+    "state": "AR"
+  },
+  "Livonia, MI": {
+    "lat": 42.361503,
+    "lon": -83.36494,
+    "city": "Livonia",
+    "state": "MI"
+  },
+  "Lockbourne, OH": {
+    "lat": 39.814236,
+    "lon": -82.976369,
+    "city": "Lockbourne",
+    "state": "OH"
+  },
+  "Lockport, IL": {
+    "lat": 41.613481,
+    "lon": -88.025581,
+    "city": "Lockport",
+    "state": "IL"
+  },
+  "Lodi, CA": {
+    "lat": 38.123579,
+    "lon": -121.263034,
+    "city": "Lodi",
+    "state": "CA"
+  },
+  "Lodi, CA 95242": {
+    "lat": 38.123579,
+    "lon": -121.263034,
+    "city": "Lodi",
+    "state": "CA"
+  },
+  "London, OH": {
+    "lat": 39.900074,
+    "lon": -83.443899,
+    "city": "London",
+    "state": "OH"
+  },
+  "Loudon, TN": {
+    "lat": 35.729211,
+    "lon": -84.34362,
+    "city": "Loudon",
+    "state": "TN"
+  },
+  "Louisville, KY": {
+    "lat": 38.2435,
+    "lon": -85.7639,
+    "city": "Louisville",
+    "state": "KY"
+  },
+  "Louisville, OH": {
+    "lat": 40.847729,
+    "lon": -81.259464,
+    "city": "Louisville",
+    "state": "OH"
+  },
+  "Loxley, AL": {
+    "lat": 30.617964,
+    "lon": -87.75624,
+    "city": "Loxley",
+    "state": "AL"
+  },
+  "Lyndonville, NY": {
+    "lat": 43.323312,
+    "lon": -78.381057,
+    "city": "Lyndonville",
+    "state": "NY"
+  },
+  "Manawa, WI": {
+    "lat": 44.470148,
+    "lon": -88.916444,
+    "city": "Manawa",
+    "state": "WI"
+  },
+  "Manchester, PA": {
+    "lat": 40.069461,
+    "lon": -76.733245,
+    "city": "Manchester",
+    "state": "PA"
+  },
+  "Manchester, TN": {
+    "lat": 35.481667,
+    "lon": -86.088611,
+    "city": "Manchester",
+    "state": "TN"
+  },
+  "Manitowoc, WI": {
+    "lat": 44.097122,
+    "lon": -87.682303,
+    "city": "Manitowoc",
+    "state": "WI"
+  },
+  "Mankato, MN": {
+    "lat": 44.153809,
+    "lon": -93.996044,
+    "city": "Mankato",
+    "state": "MN"
+  },
+  "Manteno, IL": {
+    "lat": 41.251439,
+    "lon": -87.846761,
+    "city": "Manteno",
+    "state": "IL"
+  },
+  "Marion, IN": {
+    "lat": 40.574333,
+    "lon": -85.674127,
+    "city": "Marion",
+    "state": "IN"
+  },
+  "Marion, OH": {
+    "lat": 40.5886,
+    "lon": -83.1286,
+    "city": "Marion",
+    "state": "OH"
+  },
+  "Marshall, MO": {
+    "lat": 39.10983,
+    "lon": -93.196017,
+    "city": "Marshall",
+    "state": "MO"
+  },
+  "Marshfield, WI": {
+    "lat": 44.6688,
+    "lon": -90.1716,
+    "city": "Marshfield",
+    "state": "WI"
+  },
+  "Marshville, NC": {
+    "lat": 35.016684,
+    "lon": -80.378113,
+    "city": "Marshville",
+    "state": "NC"
+  },
+  "Martin, SC": {
+    "lat": 33.109286,
+    "lon": -81.500304,
+    "city": "Martin",
+    "state": "SC"
+  },
+  "Maryville, TN": {
+    "lat": 35.782449,
+    "lon": -83.914541,
+    "city": "Maryville",
+    "state": "TN"
+  },
+  "Mason, OH": {
+    "lat": 39.335741,
+    "lon": -84.314935,
+    "city": "Mason",
+    "state": "OH"
+  },
+  "Massillon, OH": {
+    "lat": 40.811605,
+    "lon": -81.497263,
+    "city": "Massillon",
+    "state": "OH"
+  },
+  "Maumee, OH": {
+    "lat": 41.581682,
+    "lon": -83.66283,
+    "city": "Maumee",
+    "state": "OH"
+  },
+  "Maxton, NC": {
+    "lat": 34.733435,
+    "lon": -79.309725,
+    "city": "Maxton",
+    "state": "NC"
+  },
+  "Mc Intyre, GA": {
+    "lat": 32.84679,
+    "lon": -83.203953,
+    "city": "Mc Intyre",
+    "state": "GA"
+  },
+  "Mcallen, TX": {
+    "lat": 26.21544,
+    "lon": -98.235871,
+    "city": "Mcallen",
+    "state": "TX"
+  },
+  "Mcclellan, CA": {
+    "lat": 38.655416,
+    "lon": -121.40311,
+    "city": "Mcclellan",
+    "state": "CA"
+  },
+  "Mcdonough, GA": {
+    "lat": 33.450556,
+    "lon": -84.158333,
+    "city": "Mcdonough",
+    "state": "GA"
+  },
+  "Mcpherson, KS": {
+    "lat": 38.373732,
+    "lon": -97.654989,
+    "city": "Mcpherson",
+    "state": "KS"
+  },
+  "Mechanicsburg, PA": {
+    "lat": 40.214167,
+    "lon": -77.008889,
+    "city": "Mechanicsburg",
+    "state": "PA"
+  },
+  "Memphis, TN": {
+    "lat": 35.0337,
+    "lon": -89.9343,
+    "city": "Memphis",
+    "state": "TN"
+  },
+  "Menasha, WI": {
+    "lat": 44.211164,
+    "lon": -88.417536,
+    "city": "Menasha",
+    "state": "WI"
+  },
+  "Mentor, OH": {
+    "lat": 41.689468,
+    "lon": -81.342133,
+    "city": "Mentor",
+    "state": "OH"
+  },
+  "Merrillville, IN": {
+    "lat": 41.4957,
+    "lon": -87.350932,
+    "city": "Merrillville",
+    "state": "IN"
+  },
+  "Mertztown, PA": {
+    "lat": 40.499183,
+    "lon": -75.687202,
+    "city": "Mertztown",
+    "state": "PA"
+  },
+  "Mesa, AZ": {
+    "lat": 33.43174,
+    "lon": -111.846931,
+    "city": "Mesa",
+    "state": "AZ"
+  },
+  "Mexico, MO": {
+    "lat": 39.171233,
+    "lon": -91.889473,
+    "city": "Mexico",
+    "state": "MO"
+  },
+  "Miami, FL": {
+    "lat": 25.779,
+    "lon": -80.1982,
+    "city": "Miami",
+    "state": "FL"
+  },
+  "Miami, OK": {
+    "lat": 36.876377,
+    "lon": -94.87186,
+    "city": "Miami",
+    "state": "OK"
+  },
+  "Middleburg, FL": {
+    "lat": 30.068611,
+    "lon": -81.860556,
+    "city": "Middleburg",
+    "state": "FL"
+  },
+  "Middleton, WI": {
+    "lat": 43.105196,
+    "lon": -89.507258,
+    "city": "Middleton",
+    "state": "WI"
+  },
+  "Middletown, PA": {
+    "lat": 40.204086,
+    "lon": -76.733127,
+    "city": "Middletown",
+    "state": "PA"
+  },
+  "Midlothian, TX": {
+    "lat": 32.475743,
+    "lon": -96.993551,
+    "city": "Midlothian",
+    "state": "TX"
+  },
+  "Milford, IA": {
+    "lat": 43.31964,
+    "lon": -95.161534,
+    "city": "Milford",
+    "state": "IA"
+  },
+  "Millstone Township, NJ": {
+    "lat": 40.199751,
+    "lon": -74.434387,
+    "city": "Millstone Township",
+    "state": "NJ"
+  },
+  "Millville, NJ": {
+    "lat": 39.367313,
+    "lon": -75.029311,
+    "city": "Millville",
+    "state": "NJ"
+  },
+  "Milton, WI": {
+    "lat": 42.779087,
+    "lon": -88.953087,
+    "city": "Milton",
+    "state": "WI"
+  },
+  "Milwaukee, WI": {
+    "lat": 43.0343,
+    "lon": -87.9151,
+    "city": "Milwaukee",
+    "state": "WI"
+  },
+  "Mineola, TX": {
+    "lat": 32.666059,
+    "lon": -95.487032,
+    "city": "Mineola",
+    "state": "TX"
+  },
+  "Minneapolis, MN": {
+    "lat": 45.049582,
+    "lon": -93.246095,
+    "city": "Minneapolis",
+    "state": "MN"
+  },
+  "Mitchell, SD": {
+    "lat": 43.710921,
+    "lon": -98.027026,
+    "city": "Mitchell",
+    "state": "SD"
+  },
+  "Mobile, AL": {
+    "lat": 30.6959,
+    "lon": -88.0434,
+    "city": "Mobile",
+    "state": "AL"
+  },
+  "Monee, IL": {
+    "lat": 41.419133,
+    "lon": -87.77484,
+    "city": "Monee",
+    "state": "IL"
+  },
+  "Monroe, LA": {
+    "lat": 32.528551,
+    "lon": -92.106104,
+    "city": "Monroe",
+    "state": "LA"
+  },
+  "Monterey, TN": {
+    "lat": 36.150862,
+    "lon": -85.254198,
+    "city": "Monterey",
+    "state": "TN"
+  },
+  "Montgomery, NY": {
+    "lat": 41.53332,
+    "lon": -74.253417,
+    "city": "Montgomery",
+    "state": "NY"
+  },
+  "Montgomeryville, PA": {
+    "lat": 40.251353,
+    "lon": -75.234643,
+    "city": "Montgomeryville",
+    "state": "PA"
+  },
+  "Montpelier, OH": {
+    "lat": 41.59821,
+    "lon": -84.614703,
+    "city": "Montpelier",
+    "state": "OH"
+  },
+  "Moreno Valley, CA": {
+    "lat": 33.8858,
+    "lon": -117.2211,
+    "city": "Moreno Valley",
+    "state": "CA"
+  },
+  "Morganton, NC": {
+    "lat": 35.73458,
+    "lon": -81.704216,
+    "city": "Morganton",
+    "state": "NC"
+  },
+  "Morgantown, WV": {
+    "lat": 39.6368,
+    "lon": -80.018,
+    "city": "Morgantown",
+    "state": "WV"
+  },
+  "Morris, IL": {
+    "lat": 41.367233,
+    "lon": -88.417769,
+    "city": "Morris",
+    "state": "IL"
+  },
+  "Morristown, TN": {
+    "lat": 36.195672,
+    "lon": -83.275519,
+    "city": "Morristown",
+    "state": "TN"
+  },
+  "Morrow, GA": {
+    "lat": 33.584934,
+    "lon": -84.324695,
+    "city": "Morrow",
+    "state": "GA"
+  },
+  "Morton, MS": {
+    "lat": 32.436105,
+    "lon": -89.551222,
+    "city": "Morton",
+    "state": "MS"
+  },
+  "Mosinee, WI": {
+    "lat": 44.799736,
+    "lon": -89.684491,
+    "city": "Mosinee",
+    "state": "WI"
+  },
+  "Mount Crawford, VA": {
+    "lat": 38.345656,
+    "lon": -78.895679,
+    "city": "Mount Crawford",
+    "state": "VA"
+  },
+  "Mount Juliet, TN": {
+    "lat": 36.2,
+    "lon": -86.518611,
+    "city": "Mount Juliet",
+    "state": "TN"
+  },
+  "Mount Pleasant, PA": {
+    "lat": 40.174179,
+    "lon": -79.513383,
+    "city": "Mount Pleasant",
+    "state": "PA"
+  },
+  "Mount Pleasant, TN": {
+    "lat": 35.530084,
+    "lon": -87.203678,
+    "city": "Mount Pleasant",
+    "state": "TN"
+  },
+  "Mount Vernon, IN": {
+    "lat": 37.950569,
+    "lon": -87.856887,
+    "city": "Mount Vernon",
+    "state": "IN"
+  },
+  "Mountain Top, PA": {
+    "lat": 41.134975,
+    "lon": -75.937642,
+    "city": "Mountain Top",
+    "state": "PA"
+  },
+  "Muncie, IN": {
+    "lat": 40.168414,
+    "lon": -85.380689,
+    "city": "Muncie",
+    "state": "IN"
+  },
+  "Murfreesboro, TN": {
+    "lat": 35.7913,
+    "lon": -86.357,
+    "city": "Murfreesboro",
+    "state": "TN"
+  },
+  "Muscoda, WI": {
+    "lat": 43.207375,
+    "lon": -90.456998,
+    "city": "Muscoda",
+    "state": "WI"
+  },
+  "Muskogee, OK": {
+    "lat": 35.730661,
+    "lon": -95.375491,
+    "city": "Muskogee",
+    "state": "OK"
+  },
+  "Myrtle Beach, SC": {
+    "lat": 33.758701,
+    "lon": -78.804448,
+    "city": "Myrtle Beach",
+    "state": "SC"
+  },
+  "Nampa, ID": {
+    "lat": 43.58342,
+    "lon": -116.584818,
+    "city": "Nampa",
+    "state": "ID"
+  },
+  "Naperville, IL": {
+    "lat": 41.766198,
+    "lon": -88.141038,
+    "city": "Naperville",
+    "state": "IL"
+  },
+  "Napoleon, OH": {
+    "lat": 41.390969,
+    "lon": -84.143271,
+    "city": "Napoleon",
+    "state": "OH"
+  },
+  "Nashville, TN": {
+    "lat": 36.167028,
+    "lon": -86.778441,
+    "city": "Nashville",
+    "state": "TN"
+  },
+  "Navarre, OH": {
+    "lat": 40.720405,
+    "lon": -81.533824,
+    "city": "Navarre",
+    "state": "OH"
+  },
+  "Nazareth, PA": {
+    "lat": 40.744962,
+    "lon": -75.319932,
+    "city": "Nazareth",
+    "state": "PA"
+  },
+  "Neenah, WI": {
+    "lat": 44.181094,
+    "lon": -88.479201,
+    "city": "Neenah",
+    "state": "WI"
+  },
+  "New Berlin, WI": {
+    "lat": 42.97397,
+    "lon": -88.155274,
+    "city": "New Berlin",
+    "state": "WI"
+  },
+  "New Bern, NC": {
+    "lat": 35.101941,
+    "lon": -77.031945,
+    "city": "New Bern",
+    "state": "NC"
+  },
+  "New Castle, DE": {
+    "lat": 39.67703,
+    "lon": -75.589938,
+    "city": "New Castle",
+    "state": "DE"
+  },
+  "New Century, KS": {
+    "lat": 38.850264,
+    "lon": -94.932263,
+    "city": "New Century",
+    "state": "KS"
+  },
+  "New Hampton, IA": {
+    "lat": 43.056015,
+    "lon": -92.313136,
+    "city": "New Hampton",
+    "state": "IA"
+  },
+  "New Hartford, NY": {
+    "lat": 43.065412,
+    "lon": -75.290551,
+    "city": "New Hartford",
+    "state": "NY"
+  },
+  "New Ulm, MN": {
+    "lat": 44.304378,
+    "lon": -94.464421,
+    "city": "New Ulm",
+    "state": "MN"
+  },
+  "New Wilmington, PA": {
+    "lat": 41.138155,
+    "lon": -80.324541,
+    "city": "New Wilmington",
+    "state": "PA"
+  },
+  "Newark, DE": {
+    "lat": 39.634869,
+    "lon": -75.699339,
+    "city": "Newark",
+    "state": "DE"
+  },
+  "Newbury, OH": {
+    "lat": 41.475022,
+    "lon": -81.23452,
+    "city": "Newbury",
+    "state": "OH"
+  },
+  "Newfield, NJ": {
+    "lat": 39.555257,
+    "lon": -75.027558,
+    "city": "Newfield",
+    "state": "NJ"
+  },
+  "Newington, CT": {
+    "lat": 41.686402,
+    "lon": -72.729747,
+    "city": "Newington",
+    "state": "CT"
+  },
+  "Newnan, GA": {
+    "lat": 33.389404,
+    "lon": -84.816952,
+    "city": "Newnan",
+    "state": "GA"
+  },
+  "Newport, AR": {
+    "lat": 35.598823,
+    "lon": -91.257064,
+    "city": "Newport",
+    "state": "AR"
+  },
+  "Niles, IL": {
+    "lat": 42.018889,
+    "lon": -87.802778,
+    "city": "Niles",
+    "state": "IL"
+  },
+  "Nitro, WV": {
+    "lat": 38.419323,
+    "lon": -81.829311,
+    "city": "Nitro",
+    "state": "WV"
+  },
+  "Nogales, AZ": {
+    "lat": 31.376969,
+    "lon": -110.943508,
+    "city": "Nogales",
+    "state": "AZ"
+  },
+  "Norcross, GA": {
+    "lat": 33.9392,
+    "lon": -84.2053,
+    "city": "Norcross",
+    "state": "GA"
+  },
+  "Norfolk, NE": {
+    "lat": 42.032914,
+    "lon": -97.422898,
+    "city": "Norfolk",
+    "state": "NE"
+  },
+  "Norfolk, VA": {
+    "lat": 36.8466,
+    "lon": -76.2855,
+    "city": "Norfolk",
+    "state": "VA"
+  },
+  "Norman, AR": {
+    "lat": 34.459633,
+    "lon": -93.674304,
+    "city": "Norman",
+    "state": "AR"
+  },
+  "North Aurora, IL": {
+    "lat": 41.808932,
+    "lon": -88.327424,
+    "city": "North Aurora",
+    "state": "IL"
+  },
+  "North Haven, CT": {
+    "lat": 41.382156,
+    "lon": -72.85852,
+    "city": "North Haven",
+    "state": "CT"
+  },
+  "North Jackson, OH": {
+    "lat": 41.088044,
+    "lon": -80.86225,
+    "city": "North Jackson",
+    "state": "OH"
+  },
+  "North Las Vegas, NV": {
+    "lat": 36.4475,
+    "lon": -114.851389,
+    "city": "North Las Vegas",
+    "state": "NV"
+  },
+  "North Lawrence, NY": {
+    "lat": 44.774982,
+    "lon": -74.665307,
+    "city": "North Lawrence",
+    "state": "NY"
+  },
+  "Oak Creek, WI": {
+    "lat": 42.88916,
+    "lon": -87.902661,
+    "city": "Oak Creek",
+    "state": "WI"
+  },
+  "Ocala, FL": {
+    "lat": 29.1981,
+    "lon": -82.0974,
+    "city": "Ocala",
+    "state": "FL"
+  },
+  "Ogden, UT": {
+    "lat": 41.2443,
+    "lon": -112.0072,
+    "city": "Ogden",
+    "state": "UT"
+  },
+  "Okeene, OK": {
+    "lat": 36.11646,
+    "lon": -98.325422,
+    "city": "Okeene",
+    "state": "OK"
+  },
+  "Oklahoma City, OK": {
+    "lat": 35.3337,
+    "lon": -97.4922,
+    "city": "Oklahoma City",
+    "state": "OK"
+  },
+  "Olathe, KS": {
+    "lat": 38.8822,
+    "lon": -94.8178,
+    "city": "Olathe",
+    "state": "KS"
+  },
+  "Ontario, CA": {
+    "lat": 34.0631,
+    "lon": -117.6197,
+    "city": "Ontario",
+    "state": "CA"
+  },
+  "Opelousas, LA": {
+    "lat": 30.51442,
+    "lon": -92.089668,
+    "city": "Opelousas",
+    "state": "LA"
+  },
+  "Orange, CT": {
+    "lat": 41.281527,
+    "lon": -73.028725,
+    "city": "Orange",
+    "state": "CT"
+  },
+  "Osceola, IA": {
+    "lat": 41.029503,
+    "lon": -93.771236,
+    "city": "Osceola",
+    "state": "IA"
+  },
+  "Oshkosh, WI": {
+    "lat": 44.021962,
+    "lon": -88.543635,
+    "city": "Oshkosh",
+    "state": "WI"
+  },
+  "Ottawa, IL": {
+    "lat": 41.352619,
+    "lon": -88.841589,
+    "city": "Ottawa",
+    "state": "IL"
+  },
+  "Owensboro, KY 42303": {
+    "lat": 37.751255,
+    "lon": -87.155394,
+    "city": "Owensboro",
+    "state": "KY"
+  },
+  "Owingsville, KY": {
+    "lat": 38.153196,
+    "lon": -83.756439,
+    "city": "Owingsville",
+    "state": "KY"
+  },
+  "Oxnard, CA": {
+    "lat": 34.214142,
+    "lon": -119.174952,
+    "city": "Oxnard",
+    "state": "CA"
+  },
+  "Palmyra, PA": {
+    "lat": 40.301055,
+    "lon": -76.58861,
+    "city": "Palmyra",
+    "state": "PA"
+  },
+  "Palmyra, WI": {
+    "lat": 42.879263,
+    "lon": -88.590255,
+    "city": "Palmyra",
+    "state": "WI"
+  },
+  "Papillion, NE": {
+    "lat": 41.152257,
+    "lon": -96.037052,
+    "city": "Papillion",
+    "state": "NE"
+  },
+  "Paris, IL": {
+    "lat": 39.613219,
+    "lon": -87.697631,
+    "city": "Paris",
+    "state": "IL"
+  },
+  "Parsons, TN": {
+    "lat": 35.66635,
+    "lon": -88.119532,
+    "city": "Parsons",
+    "state": "TN"
+  },
+  "Pasco, WA": {
+    "lat": 46.249183,
+    "lon": -119.104387,
+    "city": "Pasco",
+    "state": "WA"
+  },
+  "Pell City, AL": {
+    "lat": 33.597889,
+    "lon": -86.343151,
+    "city": "Pell City",
+    "state": "AL"
+  },
+  "Pendergrass, GA": {
+    "lat": 34.179634,
+    "lon": -83.663356,
+    "city": "Pendergrass",
+    "state": "GA"
+  },
+  "Perris, CA": {
+    "lat": 33.797535,
+    "lon": -117.280005,
+    "city": "Perris",
+    "state": "CA"
+  },
+  "Peru, IL": {
+    "lat": 41.333021,
+    "lon": -89.126478,
+    "city": "Peru",
+    "state": "IL"
+  },
+  "Petaluma, CA": {
+    "lat": 38.240349,
+    "lon": -122.677727,
+    "city": "Petaluma",
+    "state": "CA"
+  },
+  "Petersburg, WV": {
+    "lat": 38.976602,
+    "lon": -79.130701,
+    "city": "Petersburg",
+    "state": "WV"
+  },
+  "Philadelphia, PA": {
+    "lat": 39.864998,
+    "lon": -75.275196,
+    "city": "Philadelphia",
+    "state": "PA"
+  },
+  "Phillipsburg, NJ": {
+    "lat": 40.692819,
+    "lon": -75.1741,
+    "city": "Phillipsburg",
+    "state": "NJ"
+  },
+  "Phoenix, AZ": {
+    "lat": 33.451,
+    "lon": -112.0685,
+    "city": "Phoenix",
+    "state": "AZ"
+  },
+  "Phoenixville, PA": {
+    "lat": 40.126704,
+    "lon": -75.527192,
+    "city": "Phoenixville",
+    "state": "PA"
+  },
+  "Pine Bluff, AR": {
+    "lat": 34.215405,
+    "lon": -91.995812,
+    "city": "Pine Bluff",
+    "state": "AR"
+  },
+  "Pineville, NC": {
+    "lat": 35.070942,
+    "lon": -80.885852,
+    "city": "Pineville",
+    "state": "NC"
+  },
+  "Pittsburgh, PA": {
+    "lat": 40.474536,
+    "lon": -79.952524,
+    "city": "Pittsburgh",
+    "state": "PA"
+  },
+  "Plainfield, IN": {
+    "lat": 39.716036,
+    "lon": -86.395061,
+    "city": "Plainfield",
+    "state": "IN"
+  },
+  "Plant City, FL": {
+    "lat": 28.0168,
+    "lon": -82.1289,
+    "city": "Plant City",
+    "state": "FL"
+  },
+  "Plaquemine, LA": {
+    "lat": 30.268414,
+    "lon": -91.252361,
+    "city": "Plaquemine",
+    "state": "LA"
+  },
+  "Pompano Beach, FL": {
+    "lat": 26.231529,
+    "lon": -80.12346,
+    "city": "Pompano Beach",
+    "state": "FL"
+  },
+  "Ponchatoula, LA": {
+    "lat": 30.440644,
+    "lon": -90.442247,
+    "city": "Ponchatoula",
+    "state": "LA"
+  },
+  "Pooler, GA": {
+    "lat": 32.114931,
+    "lon": -81.251958,
+    "city": "Pooler",
+    "state": "GA"
+  },
+  "Port Edwards, WI": {
+    "lat": 44.349705,
+    "lon": -89.865246,
+    "city": "Port Edwards",
+    "state": "WI"
+  },
+  "Portage, IN": {
+    "lat": 41.567201,
+    "lon": -87.175689,
+    "city": "Portage",
+    "state": "IN"
+  },
+  "Portage, WI": {
+    "lat": 43.550145,
+    "lon": -89.47139,
+    "city": "Portage",
+    "state": "WI"
+  },
+  "Portland, IN": {
+    "lat": 40.430564,
+    "lon": -84.992825,
+    "city": "Portland",
+    "state": "IN"
+  },
+  "Portland, MI": {
+    "lat": 42.862414,
+    "lon": -84.913933,
+    "city": "Portland",
+    "state": "MI"
+  },
+  "Portland, OR": {
+    "lat": 45.442919,
+    "lon": -122.615092,
+    "city": "Portland",
+    "state": "OR"
+  },
+  "Portsmouth, VA": {
+    "lat": 36.808902,
+    "lon": -76.36714,
+    "city": "Portsmouth",
+    "state": "VA"
+  },
+  "Prescott, WA": {
+    "lat": 46.353879,
+    "lon": -118.409663,
+    "city": "Prescott",
+    "state": "WA"
+  },
+  "Princeton, KY": {
+    "lat": 37.115097,
+    "lon": -87.863226,
+    "city": "Princeton",
+    "state": "KY"
+  },
+  "Princeton, MN": {
+    "lat": 45.585115,
+    "lon": -93.596143,
+    "city": "Princeton",
+    "state": "MN"
+  },
+  "Pueblo, CO": {
+    "lat": 38.287876,
+    "lon": -104.584828,
+    "city": "Pueblo",
+    "state": "CO"
+  },
+  "Pulaski, VA": {
+    "lat": 37.056708,
+    "lon": -80.770961,
+    "city": "Pulaski",
+    "state": "VA"
+  },
+  "Quakertown, PA": {
+    "lat": 40.4411,
+    "lon": -75.350667,
+    "city": "Quakertown",
+    "state": "PA"
+  },
+  "Quincy, FL": {
+    "lat": 30.586675,
+    "lon": -84.60945,
+    "city": "Quincy",
+    "state": "FL"
+  },
+  "Quincy, IL": {
+    "lat": 39.930701,
+    "lon": -91.376284,
+    "city": "Quincy",
+    "state": "IL"
+  },
+  "Rancho Cucamonga, CA": {
+    "lat": 34.133922,
+    "lon": -117.599149,
+    "city": "Rancho Cucamonga",
+    "state": "CA"
+  },
+  "Random Lake, WI": {
+    "lat": 43.567206,
+    "lon": -87.981553,
+    "city": "Random Lake",
+    "state": "WI"
+  },
+  "Ravenswood, WV": {
+    "lat": 38.94675,
+    "lon": -81.752377,
+    "city": "Ravenswood",
+    "state": "WV"
+  },
+  "Reading, PA": {
+    "lat": 40.346621,
+    "lon": -75.935132,
+    "city": "Reading",
+    "state": "PA"
+  },
+  "Redlands, CA": {
+    "lat": 34.039659,
+    "lon": -117.180352,
+    "city": "Redlands",
+    "state": "CA"
+  },
+  "Redmond, UT": {
+    "lat": 39.006111,
+    "lon": -111.861111,
+    "city": "Redmond",
+    "state": "UT"
+  },
+  "Reno, NV": {
+    "lat": 39.526812,
+    "lon": -119.811275,
+    "city": "Reno",
+    "state": "NV"
+  },
+  "Reynolds, IN": {
+    "lat": 40.760608,
+    "lon": -86.86914,
+    "city": "Reynolds",
+    "state": "IN"
+  },
+  "Richardson, TX": {
+    "lat": 32.965986,
+    "lon": -96.745249,
+    "city": "Richardson",
+    "state": "TX"
+  },
+  "Richland Center, WI": {
+    "lat": 43.362714,
+    "lon": -90.391378,
+    "city": "Richland Center",
+    "state": "WI"
+  },
+  "Richmond, VA": {
+    "lat": 37.453158,
+    "lon": -77.469798,
+    "city": "Richmond",
+    "state": "VA"
+  },
+  "Richvale, CA": {
+    "lat": 39.493889,
+    "lon": -121.743611,
+    "city": "Richvale",
+    "state": "CA"
+  },
+  "Ridge Spring, SC": {
+    "lat": 33.871403,
+    "lon": -81.655949,
+    "city": "Ridge Spring",
+    "state": "SC"
+  },
+  "Ridgefield, WA": {
+    "lat": 45.784634,
+    "lon": -122.693354,
+    "city": "Ridgefield",
+    "state": "WA"
+  },
+  "River Falls, WI": {
+    "lat": 44.85501,
+    "lon": -92.631275,
+    "city": "River Falls",
+    "state": "WI"
+  },
+  "Riverside, CA": {
+    "lat": 33.9924,
+    "lon": -117.369421,
+    "city": "Riverside",
+    "state": "CA"
+  },
+  "Roanoke, TX": {
+    "lat": 32.98639,
+    "lon": -97.205346,
+    "city": "Roanoke",
+    "state": "TX"
+  },
+  "Rochelle, IL": {
+    "lat": 41.928156,
+    "lon": -89.071035,
+    "city": "Rochelle",
+    "state": "IL"
+  },
+  "Rock Hill, SC": {
+    "lat": 34.915068,
+    "lon": -81.012904,
+    "city": "Rock Hill",
+    "state": "SC"
+  },
+  "Rockaway, NJ": {
+    "lat": 40.922916,
+    "lon": -74.50937,
+    "city": "Rockaway",
+    "state": "NJ"
+  },
+  "Rocklin, CA": {
+    "lat": 38.791898,
+    "lon": -121.243406,
+    "city": "Rocklin",
+    "state": "CA"
+  },
+  "Rogers, AR": {
+    "lat": 36.336316,
+    "lon": -94.114784,
+    "city": "Rogers",
+    "state": "AR"
+  },
+  "Rome, GA": {
+    "lat": 34.250726,
+    "lon": -85.146501,
+    "city": "Rome",
+    "state": "GA"
+  },
+  "Rome, NY": {
+    "lat": 43.219349,
+    "lon": -75.449758,
+    "city": "Rome",
+    "state": "NY"
+  },
+  "Romeoville, IL": {
+    "lat": 41.6475,
+    "lon": -88.089444,
+    "city": "Romeoville",
+    "state": "IL"
+  },
+  "Romeoville, IL 60446": {
+    "lat": 41.6475,
+    "lon": -88.089444,
+    "city": "Romeoville",
+    "state": "IL"
+  },
+  "Ronkonkoma, NY": {
+    "lat": 40.820763,
+    "lon": -73.1208,
+    "city": "Ronkonkoma",
+    "state": "NY"
+  },
+  "Rupert, ID": {
+    "lat": 42.621467,
+    "lon": -113.66699,
+    "city": "Rupert",
+    "state": "ID"
+  },
+  "Saint Johns, MI": {
+    "lat": 43.005924,
+    "lon": -84.571934,
+    "city": "Saint Johns",
+    "state": "MI"
+  },
+  "Saint Joseph, MO": {
+    "lat": 39.768755,
+    "lon": -94.838488,
+    "city": "Saint Joseph",
+    "state": "MO"
+  },
+  "Saint Louis, MO": {
+    "lat": 38.642574,
+    "lon": -90.324189,
+    "city": "Saint Louis",
+    "state": "MO"
+  },
+  "Saint Petersburg, FL": {
+    "lat": 27.772318,
+    "lon": -82.638609,
+    "city": "Saint Petersburg",
+    "state": "FL"
+  },
+  "Salem, OR": {
+    "lat": 44.926039,
+    "lon": -122.979692,
+    "city": "Salem",
+    "state": "OR"
+  },
+  "Salem, SC 29676": {
+    "lat": 34.872836,
+    "lon": -82.960687,
+    "city": "Salem",
+    "state": "SC"
+  },
+  "Salisbury, NC": {
+    "lat": 35.651498,
+    "lon": -80.488945,
+    "city": "Salisbury",
+    "state": "NC"
+  },
+  "Salt Lake City, UT": {
+    "lat": 40.755851,
+    "lon": -111.896657,
+    "city": "Salt Lake City",
+    "state": "UT"
+  },
+  "Saltville, VA": {
+    "lat": 36.892699,
+    "lon": -81.740201,
+    "city": "Saltville",
+    "state": "VA"
+  },
+  "Saltville, VA 24370": {
+    "lat": 36.892699,
+    "lon": -81.740201,
+    "city": "Saltville",
+    "state": "VA"
+  },
+  "San Antonio, TX": {
+    "lat": 29.468525,
+    "lon": -98.526352,
+    "city": "San Antonio",
+    "state": "TX"
+  },
+  "San Benito, TX": {
+    "lat": 26.133659,
+    "lon": -97.644748,
+    "city": "San Benito",
+    "state": "TX"
+  },
+  "San Bernardino, CA": {
+    "lat": 34.110521,
+    "lon": -117.289753,
+    "city": "San Bernardino",
+    "state": "CA"
+  },
+  "Sandersville, GA": {
+    "lat": 32.986972,
+    "lon": -82.816934,
+    "city": "Sandersville",
+    "state": "GA"
+  },
+  "Sandusky, OH": {
+    "lat": 41.434878,
+    "lon": -82.70633,
+    "city": "Sandusky",
+    "state": "OH"
+  },
+  "Santa Fe Springs, CA": {
+    "lat": 33.946407,
+    "lon": -118.083801,
+    "city": "Santa Fe Springs",
+    "state": "CA"
+  },
+  "Santa Maria, CA": {
+    "lat": 34.954538,
+    "lon": -120.43245,
+    "city": "Santa Maria",
+    "state": "CA"
+  },
+  "Savannah, GA": {
+    "lat": 32.067631,
+    "lon": -81.102394,
+    "city": "Savannah",
+    "state": "GA"
+  },
+  "Searsport, ME": {
+    "lat": 44.487672,
+    "lon": -68.931125,
+    "city": "Searsport",
+    "state": "ME"
+  },
+  "Sebastopol, CA": {
+    "lat": 38.391543,
+    "lon": -122.838503,
+    "city": "Sebastopol",
+    "state": "CA"
+  },
+  "Sebring, FL": {
+    "lat": 27.492391,
+    "lon": -81.435712,
+    "city": "Sebring",
+    "state": "FL"
+  },
+  "Secaucus, NJ": {
+    "lat": 40.79101,
+    "lon": -74.063416,
+    "city": "Secaucus",
+    "state": "NJ"
+  },
+  "Severn, NC": {
+    "lat": 36.515,
+    "lon": -77.19,
+    "city": "Severn",
+    "state": "NC"
+  },
+  "Shakopee, MN": {
+    "lat": 44.7793,
+    "lon": -93.519748,
+    "city": "Shakopee",
+    "state": "MN"
+  },
+  "Shelby Township, MI": {
+    "lat": 43.607942,
+    "lon": -86.361503,
+    "city": "Shelby Township",
+    "state": "MI"
+  },
+  "Shelby, MI": {
+    "lat": 43.607942,
+    "lon": -86.361503,
+    "city": "Shelby",
+    "state": "MI"
+  },
+  "Shelby, NC": {
+    "lat": 35.347075,
+    "lon": -81.581573,
+    "city": "Shelby",
+    "state": "NC"
+  },
+  "Shelbyville, IL": {
+    "lat": 39.404873,
+    "lon": -88.804615,
+    "city": "Shelbyville",
+    "state": "IL"
+  },
+  "Shippensburg, PA": {
+    "lat": 40.051359,
+    "lon": -77.519477,
+    "city": "Shippensburg",
+    "state": "PA"
+  },
+  "Shoemakersville, PA": {
+    "lat": 40.495495,
+    "lon": -75.960313,
+    "city": "Shoemakersville",
+    "state": "PA"
+  },
+  "Sidney, OH": {
+    "lat": 40.287357,
+    "lon": -84.162223,
+    "city": "Sidney",
+    "state": "OH"
+  },
+  "Smyrna, GA": {
+    "lat": 33.879602,
+    "lon": -84.502284,
+    "city": "Smyrna",
+    "state": "GA"
+  },
+  "Somerset, NJ": {
+    "lat": 40.500743,
+    "lon": -74.50126,
+    "city": "Somerset",
+    "state": "NJ"
+  },
+  "South Boston, VA": {
+    "lat": 36.696335,
+    "lon": -78.918829,
+    "city": "South Boston",
+    "state": "VA"
+  },
+  "South Hackensack, NJ": {
+    "lat": 40.863391,
+    "lon": -74.045601,
+    "city": "South Hackensack",
+    "state": "NJ"
+  },
+  "South Holland, IL": {
+    "lat": 41.597916,
+    "lon": -87.593814,
+    "city": "South Holland",
+    "state": "IL"
+  },
+  "Southborough, MA": {
+    "lat": 42.293919,
+    "lon": -71.531997,
+    "city": "Southborough",
+    "state": "MA"
+  },
+  "Spartanburg, SC": {
+    "lat": 34.935211,
+    "lon": -81.965377,
+    "city": "Spartanburg",
+    "state": "SC"
+  },
+  "Spencer, WI": {
+    "lat": 44.739148,
+    "lon": -90.311406,
+    "city": "Spencer",
+    "state": "WI"
+  },
+  "Springdale, AR": {
+    "lat": 36.183521,
+    "lon": -94.176216,
+    "city": "Springdale",
+    "state": "AR"
+  },
+  "Springfield, MO": {
+    "lat": 37.2152,
+    "lon": -93.295,
+    "city": "Springfield",
+    "state": "MO"
+  },
+  "Springfield, OH": {
+    "lat": 39.924167,
+    "lon": -83.808889,
+    "city": "Springfield",
+    "state": "OH"
+  },
+  "Statesville, NC": {
+    "lat": 35.8381,
+    "lon": -80.8842,
+    "city": "Statesville",
+    "state": "NC"
+  },
+  "Stevens Point, WI": {
+    "lat": 44.521221,
+    "lon": -89.558764,
+    "city": "Stevens Point",
+    "state": "WI"
+  },
+  "Stockton, CA": {
+    "lat": 37.958,
+    "lon": -121.2876,
+    "city": "Stockton",
+    "state": "CA"
+  },
+  "Stone Mountain, GA": {
+    "lat": 33.794233,
+    "lon": -84.201754,
+    "city": "Stone Mountain",
+    "state": "GA"
+  },
+  "Stow, OH": {
+    "lat": 41.174808,
+    "lon": -81.438017,
+    "city": "Stow",
+    "state": "OH"
+  },
+  "Stratham, NH": {
+    "lat": 43.019432,
+    "lon": -70.899714,
+    "city": "Stratham",
+    "state": "NH"
+  },
+  "Sturbridge, MA": {
+    "lat": 42.112619,
+    "lon": -72.084233,
+    "city": "Sturbridge",
+    "state": "MA"
+  },
+  "Stuttgart, AR": {
+    "lat": 34.485358,
+    "lon": -91.548742,
+    "city": "Stuttgart",
+    "state": "AR"
+  },
+  "Sugar Land, TX": {
+    "lat": 29.634153,
+    "lon": -95.621856,
+    "city": "Sugar Land",
+    "state": "TX"
+  },
+  "Summerville, SC": {
+    "lat": 33.028045,
+    "lon": -80.173852,
+    "city": "Summerville",
+    "state": "SC"
+  },
+  "Sunnyvale, TX": {
+    "lat": 32.801922,
+    "lon": -96.567004,
+    "city": "Sunnyvale",
+    "state": "TX"
+  },
+  "Swedesboro, NJ": {
+    "lat": 39.752853,
+    "lon": -75.336202,
+    "city": "Swedesboro",
+    "state": "NJ"
+  },
+  "Sylvania, GA": {
+    "lat": 32.77627,
+    "lon": -81.633394,
+    "city": "Sylvania",
+    "state": "GA"
+  },
+  "Syracuse, NY": {
+    "lat": 43.0459,
+    "lon": -76.1528,
+    "city": "Syracuse",
+    "state": "NY"
+  },
+  "Tampa, FL": {
+    "lat": 28.0879,
+    "lon": -82.4593,
+    "city": "Tampa",
+    "state": "FL"
+  },
+  "Tar Heel, NC": {
+    "lat": 34.746541,
+    "lon": -78.81341,
+    "city": "Tar Heel",
+    "state": "NC"
+  },
+  "Tempe, AZ": {
+    "lat": 33.4273,
+    "lon": -111.9307,
+    "city": "Tempe",
+    "state": "AZ"
+  },
+  "Terrell, TX": {
+    "lat": 32.714292,
+    "lon": -96.251342,
+    "city": "Terrell",
+    "state": "TX"
+  },
+  "Texarkana, TX": {
+    "lat": 33.407371,
+    "lon": -94.118245,
+    "city": "Texarkana",
+    "state": "TX"
+  },
+  "Theodore, AL": {
+    "lat": 30.544374,
+    "lon": -88.180748,
+    "city": "Theodore",
+    "state": "AL"
+  },
+  "Thomson, GA": {
+    "lat": 33.477363,
+    "lon": -82.494204,
+    "city": "Thomson",
+    "state": "GA"
+  },
+  "Tinley Park, IL": {
+    "lat": 41.5963,
+    "lon": -87.8434,
+    "city": "Tinley Park",
+    "state": "IL"
+  },
+  "Toledo, OH": {
+    "lat": 41.642,
+    "lon": -83.5438,
+    "city": "Toledo",
+    "state": "OH"
+  },
+  "Tonawanda, NY": {
+    "lat": 43.002837,
+    "lon": -78.85472,
+    "city": "Tonawanda",
+    "state": "NY"
+  },
+  "Topeka, KS": {
+    "lat": 39.0541,
+    "lon": -95.6719,
+    "city": "Topeka",
+    "state": "KS"
+  },
+  "Tracy, CA": {
+    "lat": 37.754444,
+    "lon": -121.369722,
+    "city": "Tracy",
+    "state": "CA"
+  },
+  "Tremonton, UT": {
+    "lat": 41.701564,
+    "lon": -112.181293,
+    "city": "Tremonton",
+    "state": "UT"
+  },
+  "Trenton, MO": {
+    "lat": 40.082335,
+    "lon": -93.608634,
+    "city": "Trenton",
+    "state": "MO"
+  },
+  "Trenton, OH": {
+    "lat": 39.479937,
+    "lon": -84.459769,
+    "city": "Trenton",
+    "state": "OH"
+  },
+  "Trenton, SC": {
+    "lat": 33.693757,
+    "lon": -81.853392,
+    "city": "Trenton",
+    "state": "SC"
+  },
+  "Tucker, GA": {
+    "lat": 33.856986,
+    "lon": -84.21602,
+    "city": "Tucker",
+    "state": "GA"
+  },
+  "Tulare, CA": {
+    "lat": 36.202155,
+    "lon": -119.33802,
+    "city": "Tulare",
+    "state": "CA"
+  },
+  "Tulsa, OK": {
+    "lat": 36.05566,
+    "lon": -96.060229,
+    "city": "Tulsa",
+    "state": "OK"
+  },
+  "Turlock, CA": {
+    "lat": 37.503605,
+    "lon": -120.850511,
+    "city": "Turlock",
+    "state": "CA"
+  },
+  "Tuscola, IL": {
+    "lat": 39.799509,
+    "lon": -88.281585,
+    "city": "Tuscola",
+    "state": "IL"
+  },
+  "Twin Falls, ID": {
+    "lat": 42.556495,
+    "lon": -114.469265,
+    "city": "Twin Falls",
+    "state": "ID"
+  },
+  "Tyrone, PA": {
+    "lat": 40.661905,
+    "lon": -78.241905,
+    "city": "Tyrone",
+    "state": "PA"
+  },
+  "Union City, GA": {
+    "lat": 33.583155,
+    "lon": -84.549853,
+    "city": "Union City",
+    "state": "GA"
+  },
+  "Upper Darby, PA": {
+    "lat": 39.95785,
+    "lon": -75.268128,
+    "city": "Upper Darby",
+    "state": "PA"
+  },
+  "Van Buren, AR": {
+    "lat": 35.453989,
+    "lon": -94.327762,
+    "city": "Van Buren",
+    "state": "AR"
+  },
+  "Vineland, NJ": {
+    "lat": 39.48177,
+    "lon": -75.009087,
+    "city": "Vineland",
+    "state": "NJ"
+  },
+  "Visalia, CA": {
+    "lat": 36.311379,
+    "lon": -119.306471,
+    "city": "Visalia",
+    "state": "CA"
+  },
+  "Waddell, AZ": {
+    "lat": 33.567285,
+    "lon": -112.43869,
+    "city": "Waddell",
+    "state": "AZ"
+  },
+  "Walton, KY": {
+    "lat": 38.887491,
+    "lon": -84.63277,
+    "city": "Walton",
+    "state": "KY"
+  },
+  "Walworth, WI": {
+    "lat": 42.535005,
+    "lon": -88.602738,
+    "city": "Walworth",
+    "state": "WI"
+  },
+  "Warden, WA": {
+    "lat": 46.97697,
+    "lon": -119.053932,
+    "city": "Warden",
+    "state": "WA"
+  },
+  "Warner Robins, GA": {
+    "lat": 32.593365,
+    "lon": -83.641578,
+    "city": "Warner Robins",
+    "state": "GA"
+  },
+  "Warren, OH": {
+    "lat": 41.172426,
+    "lon": -80.871806,
+    "city": "Warren",
+    "state": "OH"
+  },
+  "Warsaw, KY": {
+    "lat": 38.780704,
+    "lon": -84.849584,
+    "city": "Warsaw",
+    "state": "KY"
+  },
+  "Warwick, RI": {
+    "lat": 41.702601,
+    "lon": -71.447591,
+    "city": "Warwick",
+    "state": "RI"
+  },
+  "Watertown, CT": {
+    "lat": 41.605654,
+    "lon": -73.122122,
+    "city": "Watertown",
+    "state": "CT"
+  },
+  "Watkins Glen, NY": {
+    "lat": 42.377121,
+    "lon": -76.90215,
+    "city": "Watkins Glen",
+    "state": "NY"
+  },
+  "Watsonville, CA": {
+    "lat": 36.920515,
+    "lon": -121.763437,
+    "city": "Watsonville",
+    "state": "CA"
+  },
+  "Waukegan, IL": {
+    "lat": 42.363611,
+    "lon": -87.844722,
+    "city": "Waukegan",
+    "state": "IL"
+  },
+  "Waukesha, WI": {
+    "lat": 42.999304,
+    "lon": -88.219559,
+    "city": "Waukesha",
+    "state": "WI"
+  },
+  "Waupaca, WI": {
+    "lat": 44.348101,
+    "lon": -89.110143,
+    "city": "Waupaca",
+    "state": "WI"
+  },
+  "Wayland, NY": {
+    "lat": 42.559274,
+    "lon": -77.590613,
+    "city": "Wayland",
+    "state": "NY"
+  },
+  "Waynesboro, GA": {
+    "lat": 33.101254,
+    "lon": -81.990797,
+    "city": "Waynesboro",
+    "state": "GA"
+  },
+  "Waynesboro, MS": {
+    "lat": 31.675447,
+    "lon": -88.678221,
+    "city": "Waynesboro",
+    "state": "MS"
+  },
+  "Webb City, MO": {
+    "lat": 37.144,
+    "lon": -94.472683,
+    "city": "Webb City",
+    "state": "MO"
+  },
+  "West Chester, OH": {
+    "lat": 39.340243,
+    "lon": -84.399786,
+    "city": "West Chester",
+    "state": "OH"
+  },
+  "West Chester, PA": {
+    "lat": 39.984458,
+    "lon": -75.596231,
+    "city": "West Chester",
+    "state": "PA"
+  },
+  "West Chicago, IL": {
+    "lat": 41.888558,
+    "lon": -88.202168,
+    "city": "West Chicago",
+    "state": "IL"
+  },
+  "West Jordan, UT": {
+    "lat": 40.625429,
+    "lon": -111.967662,
+    "city": "West Jordan",
+    "state": "UT"
+  },
+  "West Plains, MO": {
+    "lat": 36.728418,
+    "lon": -91.871681,
+    "city": "West Plains",
+    "state": "MO"
+  },
+  "Westbury, NY": {
+    "lat": 40.755749,
+    "lon": -73.57226,
+    "city": "Westbury",
+    "state": "NY"
+  },
+  "Westfield, MA 01085": {
+    "lat": 42.129484,
+    "lon": -72.754318,
+    "city": "Westfield",
+    "state": "MA"
+  },
+  "Westminster, MD": {
+    "lat": 39.555654,
+    "lon": -76.99404,
+    "city": "Westminster",
+    "state": "MD"
+  },
+  "Weyauwega, WI": {
+    "lat": 44.320973,
+    "lon": -88.941047,
+    "city": "Weyauwega",
+    "state": "WI"
+  },
+  "Whiteland, IN": {
+    "lat": 39.555313,
+    "lon": -86.093476,
+    "city": "Whiteland",
+    "state": "IN"
+  },
+  "Wichita, KS": {
+    "lat": 37.6898,
+    "lon": -97.3415,
+    "city": "Wichita",
+    "state": "KS"
+  },
+  "Willard, OH": {
+    "lat": 41.053056,
+    "lon": -82.726389,
+    "city": "Willard",
+    "state": "OH"
+  },
+  "Wilmington, DE": {
+    "lat": 39.737752,
+    "lon": -75.549658,
+    "city": "Wilmington",
+    "state": "DE"
+  },
+  "Wilmington, IL": {
+    "lat": 41.298063,
+    "lon": -88.130083,
+    "city": "Wilmington",
+    "state": "IL"
+  },
+  "Wilmington, NC": {
+    "lat": 34.225304,
+    "lon": -77.937856,
+    "city": "Wilmington",
+    "state": "NC"
+  },
+  "Wilson, NC": {
+    "lat": 35.727022,
+    "lon": -77.922733,
+    "city": "Wilson",
+    "state": "NC"
+  },
+  "Wilsonville, OR": {
+    "lat": 45.298646,
+    "lon": -122.769886,
+    "city": "Wilsonville",
+    "state": "OR"
+  },
+  "Winfield, KS": {
+    "lat": 37.241621,
+    "lon": -96.979987,
+    "city": "Winfield",
+    "state": "KS"
+  },
+  "Winona, MN": {
+    "lat": 44.039132,
+    "lon": -91.653348,
+    "city": "Winona",
+    "state": "MN"
+  },
+  "Winston Salem, NC": {
+    "lat": 36.10237,
+    "lon": -80.222798,
+    "city": "Winston Salem",
+    "state": "NC"
+  },
+  "Wisconsin Rapids, WI": {
+    "lat": 44.375803,
+    "lon": -89.806229,
+    "city": "Wisconsin Rapids",
+    "state": "WI"
+  },
+  "Wolcott, IN": {
+    "lat": 40.751613,
+    "lon": -87.028997,
+    "city": "Wolcott",
+    "state": "IN"
+  },
+  "Wood Dale, IL": {
+    "lat": 41.960171,
+    "lon": -87.980971,
+    "city": "Wood Dale",
+    "state": "IL"
+  },
+  "Woodland, WA": {
+    "lat": 45.921859,
+    "lon": -122.71256,
+    "city": "Woodland",
+    "state": "WA"
+  },
+  "Worcester, MA": {
+    "lat": 42.2621,
+    "lon": -71.8034,
+    "city": "Worcester",
+    "state": "MA"
+  },
+  "Wyandanch, NY": {
+    "lat": 40.753258,
+    "lon": -73.36596,
+    "city": "Wyandanch",
+    "state": "NY"
+  },
+  "Yadkinville, NC": {
+    "lat": 36.127694,
+    "lon": -80.65302,
+    "city": "Yadkinville",
+    "state": "NC"
+  },
+  "Yakima, WA": {
+    "lat": 46.606991,
+    "lon": -120.477336,
+    "city": "Yakima",
+    "state": "WA"
+  },
+  "York, PA": {
+    "lat": 39.963539,
+    "lon": -76.726887,
+    "city": "York",
+    "state": "PA"
+  },
+  "Yorktown, IN": {
+    "lat": 40.183581,
+    "lon": -85.495995,
+    "city": "Yorktown",
+    "state": "IN"
+  },
+  "Youngstown, OH": {
+    "lat": 41.0986,
+    "lon": -80.6474,
+    "city": "Youngstown",
+    "state": "OH"
+  },
+  "Zeeland, MI": {
+    "lat": 42.825586,
+    "lon": -86.010408,
+    "city": "Zeeland",
+    "state": "MI"
+  }
+}

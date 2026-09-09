@@ -1,0 +1,2924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unified Load Board - Zygis V</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-2: #243044;
+      --border: #2d3a4f;
+      --text: #e8eef7;
+      --muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-soft: rgba(59,130,246,.18);
+      --arrive: #22c55e;
+      --rxo: #f59e0b;
+      --arcbest: #a78bfa;
+      --echo: #38bdf8;
+      --warn-bg: #422006;
+      --warn-border: #b45309;
+      --warn-text: #fcd34d;
+      --empty: #64748b;
+      --row-hover: #1e2a3d;
+      --input-bg: #121a26;
+      --shadow: 0 1px 3px rgba(0,0,0,.35);
+      --pop-shadow: 0 8px 28px rgba(0,0,0,.45);
+      --radius: 8px;
+      --chip-radius: 999px;
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.45;
+      padding: 1.25rem 1.5rem 2.5rem;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    h1 span {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.95rem;
+      margin-left: 0.4rem;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .meta strong { color: var(--text); font-weight: 550; }
+
+    .meta-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .btn-refresh {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--chip-radius);
+      cursor: pointer;
+    }
+    .btn-refresh:hover { background: var(--border); border-color: var(--muted); }
+    .btn-refresh:disabled { opacity: 0.6; cursor: wait; }
+
+    .broker-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem 0.65rem;
+      margin: -0.35rem 0 1rem;
+      padding: 0.55rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .broker-bar .broker-help {
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin-right: 0.25rem;
+    }
+    .broker-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      text-decoration: none;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--chip-radius);
+      padding: 0.28rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .broker-link:hover { border-color: var(--accent); color: var(--accent); }
+    .broker-link .blabel { color: var(--muted); font-weight: 500; margin-right: 0.15rem; }
+    .broker-link.Arrive:hover { border-color: var(--arrive); color: var(--arrive); }
+    .broker-link.RXO:hover { border-color: var(--rxo); color: var(--rxo); }
+    .broker-link.ArcBest:hover { border-color: var(--arcbest); color: var(--arcbest); }
+    .broker-link.MoLo:hover { border-color: #f472b6; color: #f472b6; }
+    .broker-link.Echo:hover { border-color: var(--echo); color: var(--echo); }
+
+    .remote-note {
+      display: none;
+      background: rgba(59,130,246,.12);
+      border: 1px solid rgba(59,130,246,.35);
+      color: #bfdbfe;
+      padding: 0.55rem 0.85rem;
+      border-radius: var(--radius);
+      margin: -0.5rem 0 0.85rem;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+    .remote-note.visible { display: block; }
+    .remote-note code { font-size: 0.75rem; }
+
+    .settings-panel {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 0.9rem;
+      margin: -0.35rem 0 1rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .settings-panel.open { display: flex; }
+    .settings-panel label { font-size: 0.78rem; color: var(--muted); }
+    .settings-panel input {
+      flex: 1 1 220px;
+      min-width: 180px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--chip-radius);
+      padding: 0.35rem 0.7rem;
+      font-size: 0.82rem;
+    }
+    .settings-panel .btn-settings-save,
+    .btn-settings {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--chip-radius);
+      padding: 0.28rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .settings-panel .btn-settings-save:hover,
+    .btn-settings:hover { border-color: var(--accent); color: var(--accent); }
+    .api-base-pill {
+      font-size: 0.72rem;
+      color: var(--muted);
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+
+    .banner {
+      display: none;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      color: var(--warn-text);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      font-weight: 550;
+    }
+
+    .banner.visible { display: block; }
+
+    /* ---- Top search toolbar ---- */
+    .search-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: flex-end;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 0.65rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .field.grow { flex: 1 1 10rem; min-width: 9rem; }
+
+    input, select, button {
+      font-family: inherit;
+    }
+
+    input[type="text"], input[type="search"], input[type="number"], input[type="date"], select {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0.5rem 0.7rem;
+      font-size: 0.9rem;
+      outline: none;
+      min-width: 0;
+      width: 100%;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59,130,246,.25);
+    }
+
+    .origin-combo {
+      display: flex;
+      gap: 0.35rem;
+      align-items: stretch;
+    }
+    .origin-combo input { flex: 1 1 auto; }
+    .origin-combo select {
+      flex: 0 0 6.2rem;
+      width: auto;
+    }
+
+    .date-range {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .date-range input[type="date"] {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0.45rem 0.5rem;
+      font-size: 0.85rem;
+      min-width: 0;
+      width: 9.2rem;
+    }
+    .date-range .date-sep {
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 500;
+    }
+
+    .btn-search {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      align-self: flex-end;
+      height: 2.35rem;
+      min-width: 5.5rem;
+    }
+
+    .btn-search:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    /* ---- Location tabs ---- */
+    .location-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.55rem;
+      padding: 0.35rem 0.4rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .loc-tabs-list {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .loc-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--chip-radius);
+      padding: 0.28rem 0.55rem 0.28rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      max-width: 14rem;
+      height: 1.85rem;
+      box-sizing: border-box;
+    }
+    .loc-tab:hover { border-color: var(--muted); }
+    .loc-tab.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 1px rgba(59,130,246,.35);
+    }
+    .loc-tab-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      outline: none;
+      min-width: 1.5rem;
+      max-width: 11rem;
+    }
+    .loc-tab-label[contenteditable="true"] {
+      background: var(--input-bg);
+      border-radius: 4px;
+      padding: 0 0.25rem;
+      cursor: text;
+      user-select: text;
+    }
+    .loc-tab-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.15rem;
+      height: 1.15rem;
+      border-radius: 50%;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1;
+      flex: 0 0 auto;
+      cursor: pointer;
+    }
+    .loc-tab-close:hover {
+      background: rgba(248,113,113,.18);
+      color: #f87171;
+    }
+    .loc-tab-add {
+      appearance: none;
+      border: 1px dashed var(--border);
+      background: transparent;
+      color: var(--muted);
+      border-radius: var(--chip-radius);
+      width: 1.85rem;
+      height: 1.85rem;
+      font-size: 1.1rem;
+      font-weight: 650;
+      cursor: pointer;
+      flex: 0 0 auto;
+      line-height: 1;
+      padding: 0;
+    }
+    .loc-tab-add:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    /* ---- Chips row ---- */
+    .chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.55rem 0.75rem;
+      margin-bottom: 0.85rem;
+      position: relative;
+      overflow: visible;
+      padding: 0.15rem 0 0.35rem;
+      min-height: 2.2rem;
+    }
+    .chips-row .chips-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .chips-row .chips-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.65rem;
+      margin-left: auto;
+      flex: 0 0 auto;
+    }
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0.25rem 0.1rem;
+      white-space: nowrap;
+    }
+    .link-btn:hover { text-decoration: underline; color: var(--accent-hover); }
+    .saved-select {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.8rem;
+      min-width: 9rem;
+      max-width: 14rem;
+    }
+
+    .chip-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+    }
+
+    .chip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--chip-radius);
+      padding: 0.4rem 0.85rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      height: 2rem;
+      box-sizing: border-box;
+    }
+
+    .chip:hover { border-color: var(--accent); }
+    .chip.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 1px rgba(59,130,246,.35);
+    }
+
+    .chip .chip-caret {
+      color: var(--muted);
+      font-size: 0.7rem;
+      margin-left: 0.1rem;
+    }
+
+    .chip-clear-all {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.82rem;
+      cursor: pointer;
+      padding: 0.35rem 0.5rem;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .chip-clear-all:hover { color: var(--accent-hover); }
+
+    .popover {
+      display: none !important;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 50;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.9rem 1rem 0.85rem;
+      min-width: 280px;
+      box-shadow: var(--pop-shadow);
+      white-space: normal;
+    }
+
+    .popover.open { display: block !important; }
+
+    .popover h4 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+      font-weight: 650;
+    }
+
+    .range-values {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 0.55rem;
+      color: var(--text);
+    }
+
+    .dual-range {
+      position: relative;
+      height: 28px;
+      margin: 0.2rem 0 0.75rem;
+    }
+
+    .dual-range input[type="range"] {
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 100%;
+      margin: 0;
+      pointer-events: none;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      height: 0;
+    }
+
+    .dual-range .track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 14px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .dual-range .track-fill {
+      position: absolute;
+      top: 14px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    .dual-range input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      pointer-events: auto;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--accent);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,.4);
+      position: relative;
+      z-index: 2;
+    }
+
+    .dual-range input[type="range"]::-moz-range-thumb {
+      pointer-events: auto;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--accent);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,.4);
+    }
+
+    .dual-range input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      background: transparent;
+    }
+
+    .dual-range input[type="range"]::-moz-range-track {
+      height: 4px;
+      background: transparent;
+    }
+
+    .range-inputs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .range-inputs label {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .pop-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.45rem;
+    }
+
+    .btn-sm {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .btn-sm:hover { background: var(--border); }
+
+    .btn-sm.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .btn-sm.primary:hover { background: var(--accent-hover); }
+
+    /* ---- Stats + sort ---- */
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .stats {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .sort-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .sort-wrap select {
+      min-width: 15rem;
+      width: auto;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      min-width: 1280px;
+    }
+
+    th, td {
+      padding: 0.7rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    th {
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.045em;
+      font-weight: 650;
+      cursor: pointer;
+      user-select: none;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th:hover { color: var(--text); }
+    th .sort-ind { opacity: 0.45; margin-left: 0.25rem; font-weight: 700; }
+    th.active .sort-ind { opacity: 1; color: var(--accent); }
+
+    tbody tr:hover { background: var(--row-hover); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    th.num { text-align: right; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+    }
+
+    .badge.Arrive { background: rgba(34,197,94,.15); color: var(--arrive); }
+    .badge.RXO { background: rgba(245,158,11,.15); color: var(--rxo); }
+    .badge.ArcBest { background: rgba(167,139,250,.15); color: var(--arcbest); }
+    .badge.MoLo { background: rgba(244,114,182,.15); color: #f472b6; }
+    .badge.Echo { background: rgba(56,189,248,.15); color: var(--echo); }
+
+    .link a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 550;
+    }
+    .link a:hover { text-decoration: underline; color: var(--accent-hover); }
+
+    .notes {
+      max-width: 160px;
+      white-space: normal;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .age {
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-weight: 550;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 3.5rem 1.5rem;
+      color: var(--empty);
+      font-size: 1.05rem;
+    }
+
+    .error {
+      color: #f87171;
+      background: #450a0a;
+      border: 1px solid #991b1b;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .error.visible { display: block; }
+
+    footer {
+      margin-top: 1.25rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 720px) {
+      body { padding: 1rem; }
+      .search-bar .field { flex: 1 1 45%; }
+      .sort-wrap { width: 100%; }
+      .sort-wrap select { width: 100%; min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Unified Load Board <span>Arrive / RXO / ArcBest / MoLo / Echo</span></h1>
+    </div>
+    <div class="meta-actions">
+      <div class="meta">Last updated: <strong id="updatedAt">-</strong></div>
+      <button type="button" class="btn-refresh" id="btnRefresh" title="Re-fetch loads.json now">Refresh</button>
+      <button type="button" class="btn-settings" id="btnSettings" title="Set remote API base URL">Settings</button>
+      <span class="api-base-pill" id="apiBasePill" title="Data API base"></span>
+    </div>
+  </header>
+
+  <div class="broker-bar" id="brokerBar" aria-label="Broker login links">
+    <span class="broker-help" id="brokerHelp">Live data comes from the work PC. Sign into brokers there once (scanner Chrome). Links below open the broker site for you — they do not feed the scraper.</span>
+    <a class="broker-link Arrive" href="https://carrier.arrivelogistics.com/find-loads" target="_blank" rel="noopener noreferrer"><span class="blabel">Login:</span> Arrive</a>
+    <a class="broker-link RXO" href="https://carrier.rxoconnect.rxo.com/loads/available-loads" target="_blank" rel="noopener noreferrer">RXO</a>
+    <a class="broker-link ArcBest" href="https://carriers.arcb.com/Shipments" target="_blank" rel="noopener noreferrer">ArcBest</a>
+    <a class="broker-link MoLo" href="https://carriers.arcb.com/Shipments" target="_blank" rel="noopener noreferrer">MoLo/ArcBest</a>
+    <a class="broker-link Echo" href="https://echodrive.echo.com/carrier/10261/availableLoads" target="_blank" rel="noopener noreferrer">Echo</a>
+  </div>
+
+  <div class="settings-panel" id="settingsPanel" aria-label="API settings">
+    <label for="apiBaseInput">API base URL (tunnel or work PC)</label>
+    <input type="url" id="apiBaseInput" placeholder="https://xxxx.trycloudflare.com" autocomplete="off" />
+    <button type="button" class="btn-settings-save" id="btnSaveApi">Save</button>
+    <button type="button" class="btn-settings-save" id="btnClearApi">Clear (same origin)</button>
+  </div>
+
+  <div id="remoteNote" class="remote-note" role="status">
+    Viewing from phone/elsewhere: live data is scraped on the work PC. Sign into brokers there once (scanner Chrome). Broker links on this page open the site for you but do not feed the scraper.
+  </div>
+
+  <div id="sampleBanner" class="banner" role="status">
+    Sample data - not live. Rows with EXAMPLE- IDs are placeholders for UI demo only.
+  </div>
+
+  <div id="errorBox" class="error" role="alert"></div>
+
+  <!-- Multi-location tabs (each tab keeps its own filter set) -->
+  <div class="location-tabs" id="locationTabs" role="tablist" aria-label="Location boards">
+    <div class="loc-tabs-list" id="locTabsList"></div>
+    <button type="button" class="loc-tab-add" id="locTabAdd" title="Add location tab" aria-label="Add location tab">+</button>
+  </div>
+
+  <!-- Top search row (Arrive-like) -->
+  <div class="search-bar" id="searchBar">
+    <label class="field grow">Origin
+      <div class="origin-combo">
+        <input type="text" id="filterOrigin" placeholder="Origin city or state" autocomplete="off" aria-label="Origin city or state" />
+        <select id="filterRadius" aria-label="Origin radius" title="Origin radius">
+          <option value="50">50 mi</option>
+          <option value="100" selected>100 mi</option>
+          <option value="150">150 mi</option>
+          <option value="250">250 mi</option>
+          <option value="any">Any</option>
+        </select>
+      </div>
+    </label>
+    <label class="field grow">Destination
+      <input type="text" id="filterDest" placeholder="City OR states like SC,NC,GA" autocomplete="off" aria-label="Destination city or states (e.g. SC, NC, GA)" title="Enter a city, or multiple US state codes: SC,NC,GA or SC NC GA" />
+    </label>
+    <label class="field">Pickup date
+      <div class="date-range" role="group" aria-label="Pickup date range">
+        <input type="date" id="filterPuFrom" aria-label="Pickup from date" />
+        <span class="date-sep">to</span>
+        <input type="date" id="filterPuTo" aria-label="Pickup to date" />
+      </div>
+    </label>
+    <label class="field">Equipment
+      <select id="filterEquipment" aria-label="Filter by equipment">
+        <option value="">All</option>
+      </select>
+    </label>
+    <label class="field">Source
+      <select id="filterSource" aria-label="Filter by source">
+        <option value="">All sources</option>
+        <option value="Arrive">Arrive</option>
+        <option value="RXO">RXO</option>
+        <option value="ArcBest">ArcBest</option>
+        <option value="MoLo">MoLo</option>
+        <option value="Echo">Echo</option>
+      </select>
+    </label>
+    <button type="button" class="btn-search" id="btnSearch">Apply</button>
+  </div>
+
+  <!-- Filter chips with popovers (popover MUST NOT live inside <button>) -->
+  <div class="chips-row" id="chipsRow">
+    <div class="chips-left">
+      <div class="chip-wrap" id="wrapWeight">
+        <button type="button" class="chip" id="chipWeight" data-chip="weight" aria-haspopup="true" aria-expanded="false">
+          <span class="chip-label">Weight</span><span class="chip-caret">v</span>
+        </button>
+        <div class="popover" id="popWeight" role="dialog" aria-label="Weight filter">
+          <h4>Weight (lbs)</h4>
+          <div class="range-values">
+            <span id="weightMinLabel">0</span>
+            <span id="weightMaxLabel">0</span>
+          </div>
+          <div class="dual-range" id="weightDual">
+            <div class="track"></div>
+            <div class="track-fill" id="weightFill"></div>
+            <input type="range" id="weightMinRange" aria-label="Min weight" />
+            <input type="range" id="weightMaxRange" aria-label="Max weight" />
+          </div>
+          <div class="range-inputs">
+            <label>Min <input type="number" id="weightMinNum" /></label>
+            <label>Max <input type="number" id="weightMaxNum" /></label>
+          </div>
+          <div class="pop-actions">
+            <button type="button" class="btn-sm" data-clear="weight">Clear</button>
+            <button type="button" class="btn-sm primary" data-done="weight">Done</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="chip-wrap" id="wrapMiles">
+        <button type="button" class="chip" id="chipMiles" data-chip="miles" aria-haspopup="true" aria-expanded="false">
+          <span class="chip-label">Miles</span><span class="chip-caret">v</span>
+        </button>
+        <div class="popover" id="popMiles" role="dialog" aria-label="Miles filter">
+          <h4>Miles</h4>
+          <div class="range-values">
+            <span id="milesMinLabel">0</span>
+            <span id="milesMaxLabel">0</span>
+          </div>
+          <div class="dual-range" id="milesDual">
+            <div class="track"></div>
+            <div class="track-fill" id="milesFill"></div>
+            <input type="range" id="milesMinRange" aria-label="Min miles" />
+            <input type="range" id="milesMaxRange" aria-label="Max miles" />
+          </div>
+          <div class="range-inputs">
+            <label>Min <input type="number" id="milesMinNum" /></label>
+            <label>Max <input type="number" id="milesMaxNum" /></label>
+          </div>
+          <div class="pop-actions">
+            <button type="button" class="btn-sm" data-clear="miles">Clear</button>
+            <button type="button" class="btn-sm primary" data-done="miles">Done</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="chip-wrap" id="wrapRate">
+        <button type="button" class="chip" id="chipRate" data-chip="rate" aria-haspopup="true" aria-expanded="false">
+          <span class="chip-label">Rate</span><span class="chip-caret">v</span>
+        </button>
+        <div class="popover" id="popRate" role="dialog" aria-label="Rate filter">
+          <h4>Rate ($)</h4>
+          <div class="range-values">
+            <span id="rateMinLabel">0</span>
+            <span id="rateMaxLabel">0</span>
+          </div>
+          <div class="dual-range" id="rateDual">
+            <div class="track"></div>
+            <div class="track-fill" id="rateFill"></div>
+            <input type="range" id="rateMinRange" aria-label="Min rate" />
+            <input type="range" id="rateMaxRange" aria-label="Max rate" />
+          </div>
+          <div class="range-inputs">
+            <label>Min <input type="number" id="rateMinNum" /></label>
+            <label>Max <input type="number" id="rateMaxNum" /></label>
+          </div>
+          <div class="pop-actions">
+            <button type="button" class="btn-sm" data-clear="rate">Clear</button>
+            <button type="button" class="btn-sm primary" data-done="rate">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chips-actions">
+      <button type="button" class="link-btn" id="clearAll">Clear All</button>
+      <button type="button" class="link-btn" id="btnSaveSearch">Save Search</button>
+      <select id="savedSearches" class="saved-select" aria-label="Saved searches">
+        <option value="">Saved searches…</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stats-left" style="display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;">
+      <div class="stats" id="stats">Showing 0 loads</div>
+      <button type="button" class="btn-refresh" id="btnRefreshStats" title="Re-fetch loads.json now">Refresh</button>
+    </div>
+    <div class="sort-wrap">
+      <label for="sortPreset">Sort By</label>
+      <select id="sortPreset" aria-label="Sort By">
+        <option value="pu_miles_weight">PU City, then Miles, then Weight</option>
+        <option value="miles_asc">Closest miles (low-high)</option>
+        <option value="miles_desc">Farthest miles</option>
+        <option value="weight_desc">Heaviest weight</option>
+        <option value="weight_asc">Lightest weight</option>
+        <option value="rate_desc">Highest rate</option>
+        <option value="rate_asc">Lowest rate</option>
+        <option value="newest">Newest on board</option>
+        <option value="column">Column header (manual)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table id="loadsTable" aria-label="Consolidated loads">
+      <thead>
+        <tr>
+          <th data-key="source">Source <span class="sort-ind">*</span></th>
+          <th data-key="id">Load # <span class="sort-ind">*</span></th>
+          <th data-key="pickup_city">PU City <span class="sort-ind">*</span></th>
+          <th data-key="pickup_date">PU Date <span class="sort-ind">*</span></th>
+          <th data-key="pickup_time">PU Time <span class="sort-ind">*</span></th>
+          <th data-key="delivery_city">Del City <span class="sort-ind">*</span></th>
+          <th data-key="delivery_date">Del Date <span class="sort-ind">*</span></th>
+          <th data-key="delivery_time">Del Time <span class="sort-ind">*</span></th>
+          <th class="num" data-key="weight">Weight <span class="sort-ind">*</span></th>
+          <th class="num" data-key="pallets">Pallets <span class="sort-ind">*</span></th>
+          <th data-key="equipment">Equip <span class="sort-ind">*</span></th>
+          <th class="num" data-key="miles">Miles <span class="sort-ind">*</span></th>
+          <th class="num" data-key="rate">Rate <span class="sort-ind">*</span></th>
+          <th class="num" data-key="rpm">RPM <span class="sort-ind">*</span></th>
+          <th data-key="seen_age">On board <span class="sort-ind">*</span></th>
+          <th data-key="notes">Notes <span class="sort-ind">*</span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="emptyState" class="empty" hidden>No loads yet - waiting for first scan</div>
+  </div>
+
+  <footer>
+    Live board: auto-refreshes from <code>loads.json</code> every 20s. Live data comes from the work PC — sign into brokers there once (scanner Chrome). Optional: <code>?api=https://…</code> or Settings.
+  </footer>
+
+  <script src="config.js"></script>
+  <script>
+    (function () {
+      const EMPTY = "-";
+      const API_LS_KEY = "ulb_api_base";
+
+      function resolveApiBase() {
+        try {
+          const q = new URLSearchParams(location.search).get("api");
+          if (q && String(q).trim()) return String(q).trim().replace(/\/+$/, "");
+        } catch (_) {}
+        try {
+          const ls = localStorage.getItem(API_LS_KEY);
+          if (ls && String(ls).trim()) return String(ls).trim().replace(/\/+$/, "");
+        } catch (_) {}
+        try {
+          if (typeof window.ULB_API_BASE === "string" && window.ULB_API_BASE.trim()) {
+            return window.ULB_API_BASE.trim().replace(/\/+$/, "");
+          }
+        } catch (_) {}
+        return "";
+      }
+
+      let API_BASE = resolveApiBase();
+
+      function apiUrl(path) {
+        const p = String(path || "").replace(/^\/+/, "");
+        if (!API_BASE) return p;
+        return API_BASE.replace(/\/+$/, "") + "/" + p;
+      }
+
+      function refreshApiUi() {
+        const pill = document.getElementById("apiBasePill");
+        const note = document.getElementById("remoteNote");
+        const help = document.getElementById("brokerHelp");
+        const input = document.getElementById("apiBaseInput");
+        if (pill) {
+          pill.textContent = API_BASE ? ("API: " + API_BASE) : "API: same origin";
+          pill.title = API_BASE || location.origin || "same origin";
+        }
+        if (input && document.activeElement !== input) input.value = API_BASE || "";
+        const remote = !!API_BASE || (location.hostname && location.hostname !== "localhost" && location.hostname !== "127.0.0.1");
+        if (note) {
+          if (remote) note.classList.add("visible");
+          else note.classList.remove("visible");
+        }
+        if (help) {
+          help.textContent = remote
+            ? "Live data comes from the work PC. Sign into brokers there once (scanner Chrome). Links open the broker site for you — they do not feed the scraper."
+            : "Local board: keep scanner Chrome signed in on this PC. Broker links open login pages (use the scanner Chrome profile for scraping).";
+        }
+      }
+
+      const state = {
+        loads: [],
+        updatedAt: null,
+        sortPreset: "pu_miles_weight",
+        sortKey: "pickup_city",
+        sortDir: "asc",
+        dataSource: null,
+        pickupFrom: "",
+        pickupTo: "",
+        // Applied filter snapshot (Search/Apply copies UI into these)
+        applied: null,
+        // Applied range filters (null = full / inactive)
+        weightMin: null,
+        weightMax: null,
+        milesMin: null,
+        milesMax: null,
+        rateMin: null,
+        rateMax: null,
+        // Data-derived bounds
+        bounds: {
+          weight: { min: 0, max: 0 },
+          miles: { min: 0, max: 0 },
+          rate: { min: 0, max: 0 },
+        },
+        cityCoords: {},
+        originIndex: {},
+        zipCoords: {},
+      };
+
+      const el = {
+        tbody: document.getElementById("tbody"),
+        empty: document.getElementById("emptyState"),
+        updatedAt: document.getElementById("updatedAt"),
+        banner: document.getElementById("sampleBanner"),
+        error: document.getElementById("errorBox"),
+        stats: document.getElementById("stats"),
+        origin: document.getElementById("filterOrigin"),
+        radius: document.getElementById("filterRadius"),
+        dest: document.getElementById("filterDest"),
+        equipment: document.getElementById("filterEquipment"),
+        source: document.getElementById("filterSource"),
+        puFrom: document.getElementById("filterPuFrom"),
+        puTo: document.getElementById("filterPuTo"),
+        sortPreset: document.getElementById("sortPreset"),
+        btnSearch: document.getElementById("btnSearch"),
+        locTabsList: document.getElementById("locTabsList"),
+        locTabAdd: document.getElementById("locTabAdd"),
+        clearAll: document.getElementById("clearAll"),
+        btnSaveSearch: document.getElementById("btnSaveSearch"),
+        btnRefresh: document.getElementById("btnRefresh"),
+        btnRefreshStats: document.getElementById("btnRefreshStats"),
+        savedSearches: document.getElementById("savedSearches"),
+        table: document.getElementById("loadsTable"),
+        chipWeight: document.getElementById("chipWeight"),
+        chipMiles: document.getElementById("chipMiles"),
+        chipRate: document.getElementById("chipRate"),
+      };
+
+      function rpm(load) {
+        if (load.rate == null || load.miles == null || Number(load.miles) === 0) return null;
+        return Number(load.rate) / Number(load.miles);
+      }
+
+      /**
+       * parseWeight(val): number from "43290", "43,290 LBS", "30.1".
+       * If string clearly contains "ton"/"tons", treat as tons*2000.
+       * Arrive-style small decimals like 30.1 with no tons marker are kept as-is
+       * (filter on the numeric value; do not auto-scale to pounds).
+       */
+      function parseWeight(val) {
+        if (val == null || val === "") return null;
+        if (typeof val === "number" && !Number.isNaN(val)) return val;
+        const s = String(val).trim();
+        const cleaned = s.replace(/,/g, "");
+        const m = cleaned.match(/(\d+(?:\.\d+)?)/);
+        if (!m) return null;
+        let n = parseFloat(m[1]);
+        if (Number.isNaN(n)) return null;
+        if (/\btons?\b/i.test(s)) n = n * 2000;
+        return n;
+      }
+
+      /** parseMiles(val): number from miles field */
+      function parseMiles(val) {
+        if (val == null || val === "") return null;
+        if (typeof val === "number" && !Number.isNaN(val)) return val;
+        const cleaned = String(val).replace(/,/g, "");
+        const m = cleaned.match(/(\d+(?:\.\d+)?)/);
+        if (!m) return null;
+        const n = parseFloat(m[1]);
+        return Number.isNaN(n) ? null : n;
+      }
+
+      /** cityMatch(hay, needle): case-insensitive includes */
+      function cityMatch(hay, needle) {
+        if (!needle) return true;
+        return String(hay || "").toLowerCase().includes(String(needle).toLowerCase());
+      }
+
+      /** US state / DC codes for dest multi-state filter */
+      const US_STATE_CODES = {
+        AL:1,AK:1,AZ:1,AR:1,CA:1,CO:1,CT:1,DE:1,FL:1,GA:1,HI:1,ID:1,IL:1,IN:1,IA:1,KS:1,
+        KY:1,LA:1,ME:1,MD:1,MA:1,MI:1,MN:1,MS:1,MO:1,MT:1,NE:1,NV:1,NH:1,NJ:1,NM:1,NY:1,
+        NC:1,ND:1,OH:1,OK:1,OR:1,PA:1,RI:1,SC:1,SD:1,TN:1,TX:1,UT:1,VT:1,VA:1,WA:1,WV:1,
+        WI:1,WY:1,DC:1
+      };
+
+      /**
+       * If dest looks like a list of 2-letter US state codes (2+ codes, or a single
+       * valid state alone), return uppercase codes[]; else null (use cityMatch).
+       * Accepts: "SC, NC, GA" | "SC NC GA" | "SC/NC/GA" | "SC"
+       */
+      function parseDestStateList(destQ) {
+        const raw = String(destQ || "").trim();
+        if (!raw) return null;
+        // City strings like "Hartsville, SC" or "Dallas, TX 75201" are NOT state lists
+        if (/,/.test(raw) && /[A-Za-z]{3,}/.test(raw)) return null;
+        const parts = raw.split(/[,\/|\s]+/).map((p) => p.trim()).filter(Boolean);
+        if (!parts.length) return null;
+        const codes = [];
+        for (const p of parts) {
+          if (!/^[A-Za-z]{2}$/.test(p)) return null;
+          const up = p.toUpperCase();
+          if (!US_STATE_CODES[up]) return null;
+          if (codes.indexOf(up) < 0) codes.push(up);
+        }
+        if (codes.length >= 2) return codes;
+        if (codes.length === 1) return codes; // single 2-letter state alone
+        return null;
+      }
+
+      /** Parse delivery state from delivery_city / destination blobs. */
+      function parseDeliveryState(load) {
+        const hay = String(
+          (load && (load.delivery_city || load.destination || load.delivery || "")) || ""
+        ).replace(/\s+/g, " ").trim();
+        if (!hay) return "";
+        // "City, SC 29550" | "Hartsville, SC" | "SC 29550" | "PA 16881" | "... SC"
+        let m = hay.match(/,\s*([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?\s*$/);
+        if (m && US_STATE_CODES[m[1].toUpperCase()]) return m[1].toUpperCase();
+        m = hay.match(/^([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?\s*$/);
+        if (m && US_STATE_CODES[m[1].toUpperCase()]) return m[1].toUpperCase();
+        m = hay.match(/\b([A-Za-z]{2})\s+\d{5}(?:-\d{4})?\b/);
+        if (m && US_STATE_CODES[m[1].toUpperCase()]) return m[1].toUpperCase();
+        m = hay.match(/\b([A-Za-z]{2})\s*$/);
+        if (m && US_STATE_CODES[m[1].toUpperCase()]) return m[1].toUpperCase();
+        return "";
+      }
+
+      function parseCityState(s) {
+        s = String(s || "").replace(/\s+/g, " ").trim();
+        s = s.replace(/\s+\d{5}(-\d{4})?$/, "");
+        const m = s.match(/^(.+),\s*([A-Za-z]{2})$/);
+        if (m) return { city: m[1].trim(), state: m[2].toUpperCase() };
+        return { city: s, state: "" };
+      }
+
+      function haversineMiles(lat1, lon1, lat2, lon2) {
+        const R = 3958.7613;
+        const toRad = (d) => (d * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+      }
+
+      function lookupOriginCoords(query) {
+        const q = String(query || "").trim();
+        if (!q) return null;
+        const parsed = parseCityState(q);
+        if (parsed.city && parsed.state) {
+          const key = parsed.city.toLowerCase() + ", " + parsed.state.toLowerCase();
+          const hit = state.originIndex[key];
+          if (hit) return { lat: hit[0], lon: hit[1], key: key };
+        }
+        if (state.cityCoords[q]) {
+          const c = state.cityCoords[q];
+          return { lat: c.lat, lon: c.lon, key: q };
+        }
+        const needle = q.toLowerCase();
+        let best = null;
+        for (const [k, v] of Object.entries(state.originIndex)) {
+          if (k === needle) return { lat: v[0], lon: v[1], key: k };
+          if (!best && (k.includes(needle) || needle.includes(k.split(",")[0].trim()))) {
+            best = { lat: v[0], lon: v[1], key: k };
+          }
+        }
+        return best;
+      }
+
+      function lookupZip(zip) {
+        if (!zip) return null;
+        const z = String(zip).replace(/\D/g, "").slice(0, 5);
+        if (z.length !== 5) return null;
+        const rec = state.zipCoords[z];
+        if (!rec) return null;
+        if (rec.lat != null && rec.lon != null) return { lat: rec.lat, lon: rec.lon, label: rec.label || "" };
+        if (rec.label) {
+          const key = String(rec.label).toLowerCase();
+          const hit = state.originIndex[key];
+          if (hit) return { lat: hit[0], lon: hit[1], label: rec.label };
+        }
+        return rec.label ? { label: rec.label } : null;
+      }
+
+      function coordsForLoadCity(rawCity) {
+        if (!rawCity) return null;
+        if (state.cityCoords[rawCity]) {
+          const c = state.cityCoords[rawCity];
+          return { lat: c.lat, lon: c.lon };
+        }
+        const s = String(rawCity).trim();
+        // RXO-style "IL 60410" or bare zip
+        let m = s.match(/^([A-Za-z]{2})\s+(\d{5})(?:-\d{4})?$/);
+        if (m) {
+          const z = lookupZip(m[2]);
+          if (z && z.lat != null) return { lat: z.lat, lon: z.lon };
+        }
+        m = s.match(/\b(\d{5})(?:-\d{4})?\b/);
+        if (m) {
+          const z = lookupZip(m[1]);
+          if (z && z.lat != null) return { lat: z.lat, lon: z.lon };
+        }
+        const parsed = parseCityState(rawCity);
+        if (parsed.city && parsed.state) {
+          const key = parsed.city.toLowerCase() + ", " + parsed.state.toLowerCase();
+          const hit = state.originIndex[key];
+          if (hit) return { lat: hit[0], lon: hit[1] };
+        }
+        return null;
+      }
+
+      function displayCity(rawCity) {
+        const s = String(rawCity || "").trim();
+        if (!s) return "";
+        let m = s.match(/^([A-Za-z]{2})\s+(\d{5})(?:-\d{4})?$/);
+        if (m) {
+          const z = lookupZip(m[2]);
+          if (z && z.label) return z.label + " " + m[2];
+        }
+        return s;
+      }
+
+      function originRadiusMiles() {
+        if (el.radius.value === "any") return Infinity;
+        const v = parseInt(el.radius.value, 10);
+        return Number.isFinite(v) ? v : 100;
+      }
+
+      function parsePallets(val) {
+        if (val == null || val === "") return null;
+        if (typeof val === "number" && !Number.isNaN(val)) return val;
+        const cleaned = String(val).replace(/,/g, "");
+        const m = cleaned.match(/(\d+(?:\.\d+)?)/);
+        if (!m) return null;
+        const n = parseFloat(m[1]);
+        return Number.isNaN(n) ? null : n;
+      }
+
+      function parseRate(val) {
+        if (val == null || val === "") return null;
+        if (typeof val === "number" && !Number.isNaN(val)) return val;
+        const cleaned = String(val).replace(/[$,]/g, "");
+        const m = cleaned.match(/(\d+(?:\.\d+)?)/);
+        if (!m) return null;
+        const n = parseFloat(m[1]);
+        return Number.isNaN(n) ? null : n;
+      }
+
+      function formatWeight(val) {
+        if (val == null || val === "") return EMPTY;
+        if (typeof val === "number" && !Number.isNaN(val)) {
+          return val.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        }
+        const s = String(val).trim();
+        return s || EMPTY;
+      }
+
+      function formatPallets(val) {
+        if (val == null || val === "") return EMPTY;
+        if (typeof val === "number" && !Number.isNaN(val)) return String(val);
+        const s = String(val).trim();
+        return s || EMPTY;
+      }
+
+      function formatMoney(n) {
+        if (n == null || n === "") return EMPTY;
+        return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      }
+
+      function formatRpm(n) {
+        if (n == null || Number.isNaN(n)) return EMPTY;
+        return "$" + n.toFixed(2);
+      }
+
+      function formatNum(n) {
+        if (n == null || n === "") return EMPTY;
+        return Number(n).toLocaleString();
+      }
+
+      function formatCell(v) {
+        if (v == null || v === "") return EMPTY;
+        return String(v);
+      }
+
+      function formatUpdated(iso) {
+        if (!iso) return EMPTY;
+        try {
+          const dt = new Date(iso);
+          if (Number.isNaN(dt.getTime())) return iso;
+          return dt.toLocaleString(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short",
+          });
+        } catch (_) {
+          return iso;
+        }
+      }
+
+      function asciiDashes(s) {
+        return String(s == null ? "" : s)
+          .replace(/[\u2013\u2014\u2012\u2015]/g, "-")
+          .replace(/\u2026/g, "...")
+          .replace(/[\u2190-\u21FF]/g, "-")
+          .replace(/\u00B7/g, "|");
+      }
+
+      function normalizeCityKey(s) {
+        return String(s || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, " ")
+          .trim();
+      }
+
+      function displayNotes(load) {
+        const pu = load.pickup_city || load.origin || "";
+        const de = load.delivery_city || load.destination || "";
+        const parts = [];
+        if (load.status) parts.push(String(load.status));
+        if (load.notes) parts.push(String(load.notes));
+        let raw = asciiDashes(parts.filter(Boolean).join(" | ")).trim();
+        if (!raw) return "";
+
+        const norm = normalizeCityKey(raw);
+        const puKey = normalizeCityKey(pu);
+        const deKey = normalizeCityKey(de);
+        if (puKey && deKey) {
+          const onlyCities =
+            norm === puKey + " " + deKey ||
+            norm === deKey + " " + puKey ||
+            norm === puKey + " " + puKey ||
+            (norm === puKey && norm === deKey);
+          if (onlyCities) return "";
+        }
+        if (puKey && !deKey && norm === puKey) return "";
+        if (deKey && !puKey && norm === deKey) return "";
+
+        const laneLike = asciiDashes(raw)
+          .split(/\s*[|/]\s*|\s+-\s+/)
+          .map(normalizeCityKey)
+          .filter(Boolean);
+        if (
+          laneLike.length >= 1 &&
+          laneLike.length <= 2 &&
+          laneLike.every((c) => c === puKey || c === deKey)
+        ) {
+          return "";
+        }
+
+        return raw;
+      }
+
+      function hasExampleRows(loads) {
+        return loads.some(
+          (l) =>
+            String(l.id || "").toUpperCase().startsWith("EXAMPLE-") ||
+            String(l.notes || "").toUpperCase().includes("EXAMPLE")
+        );
+      }
+
+      function populateEquipmentOptions(loads) {
+        const current = el.equipment.value;
+        el.equipment.innerHTML = "";
+        const opts = [
+          { value: "", label: "All" },
+          { value: "Dry Van", label: "Dry Van" },
+          { value: "Reefer", label: "Reefer" },
+        ];
+        opts.forEach((o) => {
+          const opt = document.createElement("option");
+          opt.value = o.value;
+          opt.textContent = o.label;
+          el.equipment.appendChild(opt);
+        });
+        if (current === "Dry Van" || current === "Reefer" || current === "") {
+          el.equipment.value = current;
+        } else if (/reefer/i.test(current)) {
+          el.equipment.value = "Reefer";
+        } else if (/van/i.test(current)) {
+          el.equipment.value = "Dry Van";
+        } else {
+          el.equipment.value = "";
+        }
+      }
+
+      function pickupCity(l) {
+        return displayCity(l.pickup_city || l.origin || "");
+      }
+
+      function deliveryCity(l) {
+        return displayCity(l.delivery_city || l.destination || "");
+      }
+
+      /** Best-effort pickup date parse; returns Date at local midnight or null */
+      function parsePickupDate(val) {
+        if (val == null || val === "") return null;
+        const s = String(val).trim();
+        const yearNow = new Date().getFullYear();
+        // ISO / YYYY-MM-DD
+        let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m) {
+          const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+          return Number.isNaN(d.getTime()) ? null : d;
+        }
+        // MM-DD-YYYY or MM/DD/YYYY (ArcBest)
+        m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+        if (m) {
+          let y = Number(m[3]);
+          if (y < 100) y += 2000;
+          const d = new Date(y, Number(m[1]) - 1, Number(m[2]));
+          return Number.isNaN(d.getTime()) ? null : d;
+        }
+        // "Fri Sep 11" / "Sep 11" / "SEP 04" (Arrive / Echo) — assume current year
+        m = s.match(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)?\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2})(?:,?\s*(\d{4}))?/i);
+        if (m) {
+          const months = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+          const mo = months[m[1].slice(0,3).toLowerCase()];
+          const day = Number(m[2]);
+          const y = m[3] ? Number(m[3]) : yearNow;
+          const d = new Date(y, mo, day);
+          return Number.isNaN(d.getTime()) ? null : d;
+        }
+        const tryDate = new Date(s);
+        if (!Number.isNaN(tryDate.getTime())) {
+          return new Date(tryDate.getFullYear(), tryDate.getMonth(), tryDate.getDate());
+        }
+        return null;
+      }
+
+      function equipmentFamily(s) {
+        const t = String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        if (!t) return "";
+        // Reefer wins if mentioned (Echo can list Van + Reefer on one load)
+        if (/reefer|refrigerat/.test(t)) return "reefer";
+        if (/van|dry\s*van|\bv\b|\bvr\b/.test(t)) return "van";
+        if (/flat|\bfd\b/.test(t)) return "flatbed";
+        return t;
+      }
+
+      function equipmentMatch(loadEquip, filterEquip) {
+        if (!filterEquip) return true;
+        const a = String(loadEquip || "").toLowerCase().trim();
+        const b = String(filterEquip || "").toLowerCase().trim();
+        if (!a) return true; // unknown equip kept
+        const fa = equipmentFamily(a);
+        const fb = equipmentFamily(b);
+        // Dual "Van or Reefer" / "Van/Reefer" should match Dry Van AND Reefer filters
+        if (fb === "van") return fa === "van" || /\bvan\b|dry\s*van/.test(a);
+        if (fb === "reefer") return fa === "reefer" || /reefer|refrigerat/.test(a);
+        if (a === b || a.includes(b) || b.includes(a)) return true;
+        return fa && fb && fa === fb;
+      }
+
+      function isoDate(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return y + "-" + m + "-" + day;
+      }
+
+      function initDateInputs() {
+        const today = startOfToday();
+        const max = addDays(today, 30);
+        el.puFrom.min = isoDate(today);
+        el.puTo.min = isoDate(today);
+        el.puFrom.max = isoDate(max);
+        el.puTo.max = isoDate(max);
+        if (!el.puFrom.value) el.puFrom.value = "";
+        if (!el.puTo.value) el.puTo.value = "";
+      }
+
+      function startOfToday() {
+        const n = new Date();
+        return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+      }
+
+      function addDays(d, n) {
+        const x = new Date(d.getTime());
+        x.setDate(x.getDate() + n);
+        return x;
+      }
+
+      function nullsLastCmp(av, bv, dir) {
+        const aNull = av == null || av === "";
+        const bNull = bv == null || bv === "";
+        if (aNull && bNull) return 0;
+        if (aNull) return 1;
+        if (bNull) return -1;
+        if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+        return String(av).localeCompare(String(bv), undefined, {
+          numeric: true,
+          sensitivity: "base",
+        }) * dir;
+      }
+
+      function sortRows(rows) {
+        const preset = state.sortPreset;
+        const copy = rows.slice();
+
+        if (preset === "pu_miles_weight") {
+          copy.sort((a, b) => {
+            let c = nullsLastCmp(
+              String(pickupCity(a)).toLowerCase(),
+              String(pickupCity(b)).toLowerCase(),
+              1
+            );
+            if (c !== 0) return c;
+            c = nullsLastCmp(parseMiles(a.miles), parseMiles(b.miles), 1);
+            if (c !== 0) return c;
+            return nullsLastCmp(parseWeight(a.weight), parseWeight(b.weight), -1);
+          });
+          return copy;
+        }
+
+        if (preset === "miles_asc" || preset === "miles_desc") {
+          const dir = preset === "miles_asc" ? 1 : -1;
+          copy.sort((a, b) =>
+            nullsLastCmp(parseMiles(a.miles), parseMiles(b.miles), dir)
+          );
+          return copy;
+        }
+
+        if (preset === "weight_desc" || preset === "weight_asc") {
+          const dir = preset === "weight_asc" ? 1 : -1;
+          copy.sort((a, b) =>
+            nullsLastCmp(parseWeight(a.weight), parseWeight(b.weight), dir)
+          );
+          return copy;
+        }
+
+        if (preset === "rate_desc" || preset === "rate_asc") {
+          const dir = preset === "rate_asc" ? 1 : -1;
+          copy.sort((a, b) =>
+            nullsLastCmp(parseRate(a.rate), parseRate(b.rate), dir)
+          );
+          return copy;
+        }
+
+        if (preset === "newest") {
+          copy.sort((a, b) =>
+            nullsLastCmp(a.first_seen_at || "", b.first_seen_at || "", -1)
+          );
+          return copy;
+        }
+
+        // column header mode
+        const key = state.sortKey;
+        const dir = state.sortDir === "asc" ? 1 : -1;
+        copy.sort((a, b) => {
+          let av, bv;
+          if (key === "rpm") {
+            av = rpm(a);
+            bv = rpm(b);
+          } else if (key === "seen_age") {
+            av = a.first_seen_at || "";
+            bv = b.first_seen_at || "";
+          } else if (key === "pickup_city") {
+            av = pickupCity(a);
+            bv = pickupCity(b);
+          } else if (key === "delivery_city") {
+            av = deliveryCity(a);
+            bv = deliveryCity(b);
+          } else if (key === "weight") {
+            av = parseWeight(a.weight);
+            bv = parseWeight(b.weight);
+          } else if (key === "pallets") {
+            av = parsePallets(a.pallets);
+            bv = parsePallets(b.pallets);
+          } else if (key === "miles") {
+            av = parseMiles(a.miles);
+            bv = parseMiles(b.miles);
+          } else if (key === "rate") {
+            av = parseRate(a.rate);
+            bv = parseRate(b.rate);
+          } else if (key === "notes") {
+            av = displayNotes(a);
+            bv = displayNotes(b);
+          } else {
+            av = a[key];
+            bv = b[key];
+          }
+          return nullsLastCmp(av, bv, dir);
+        });
+        return copy;
+      }
+
+      function matchesPickupDateRange(l, fromStr, toStr) {
+        if (!fromStr && !toStr) return true;
+        const d = parsePickupDate(l.pickup_date || l.pickup);
+        if (!d) return true; // keep unparsable
+        if (fromStr) {
+          const from = parsePickupDate(fromStr);
+          if (from && d.getTime() < from.getTime()) return false;
+        }
+        if (toStr) {
+          const to = parsePickupDate(toStr);
+          if (to && d.getTime() > to.getTime()) return false;
+        }
+        return true;
+      }
+
+      function readUiFilters() {
+        return {
+          origin: el.origin.value.trim(),
+          radius: el.radius.value,
+          dest: el.dest.value.trim(),
+          equipment: el.equipment.value,
+          source: el.source.value,
+          pickupFrom: el.puFrom.value || "",
+          pickupTo: el.puTo.value || "",
+          weightMin: state.weightMin,
+          weightMax: state.weightMax,
+          milesMin: state.milesMin,
+          milesMax: state.milesMax,
+          rateMin: state.rateMin,
+          rateMax: state.rateMax,
+        };
+      }
+
+      function applyUiFilters() {
+        // Pull current chip draft ranges into state, then snapshot
+        ["weight", "miles", "rate"].forEach((name) => {
+          const minR = document.getElementById(name + "MinRange");
+          const maxR = document.getElementById(name + "MaxRange");
+          if (!minR || !maxR) return;
+          let a = Number(minR.value);
+          let b = Number(maxR.value);
+          if (a > b) { const t = a; a = b; b = t; }
+          state[name + "Min"] = a;
+          state[name + "Max"] = b;
+        });
+        state.applied = readUiFilters();
+        state.pickupFrom = state.applied.pickupFrom;
+        state.pickupTo = state.applied.pickupTo;
+        persistActiveTabFilters(state.applied);
+        closeAllPopovers();
+        render();
+      }
+
+      function filteredLoads() {
+        const f = state.applied || readUiFilters();
+        const originQ = f.origin || "";
+        const destQ = f.dest || "";
+        const equipment = f.equipment || "";
+        const source = f.source || "";
+
+        let rows = state.loads.slice();
+
+        if (source) rows = rows.filter((l) => l.source === source);
+        if (equipment) rows = rows.filter((l) => equipmentMatch(l.equipment, equipment));
+
+        if (originQ) {
+          const originCoords = lookupOriginCoords(originQ);
+          const radiusVal = f.radius != null ? f.radius : el.radius.value;
+          const radiusMi = radiusVal === "any" ? Infinity : (parseInt(radiusVal, 10) || 100);
+          rows = rows.filter((l) => {
+            // Use RAW city for coords (RXO "IL 60440"); displayCity is only for UI text
+            const rawCity = String(l.pickup_city || l.origin || "").trim();
+            const hay = (pickupCity(l) + " " + rawCity).trim();
+            if (cityMatch(hay, originQ)) return true;
+            if (!originCoords) return false;
+            // radius "any" => no distance limit
+            if (!Number.isFinite(radiusMi)) return true;
+            const cc = coordsForLoadCity(rawCity) || coordsForLoadCity(pickupCity(l));
+            if (!cc) return false;
+            const dist = haversineMiles(originCoords.lat, originCoords.lon, cc.lat, cc.lon);
+            return dist <= radiusMi;
+          });
+        }
+
+        if (destQ) {
+          const destStates = parseDestStateList(destQ);
+          if (destStates && destStates.length) {
+            const want = {};
+            destStates.forEach((s) => { want[s] = true; });
+            rows = rows.filter((l) => {
+              const st = parseDeliveryState(l);
+              if (st && want[st]) return true;
+              // Also allow cityMatch against raw hay for "ST ZIP" edge cases
+              const hay = (deliveryCity(l) + " " + (l.delivery_city || "") + " " + (l.destination || "")).trim();
+              return destStates.some((s) => cityMatch(hay, s) || new RegExp("\\b" + s + "\\b", "i").test(hay));
+            });
+          } else {
+            rows = rows.filter((l) => {
+              const hay = (deliveryCity(l) + " " + (l.destination || "")).trim();
+              return cityMatch(hay, destQ);
+            });
+          }
+        }
+
+        rows = rows.filter((l) => matchesPickupDateRange(l, f.pickupFrom || "", f.pickupTo || ""));
+
+        const wMin = f.weightMin != null ? f.weightMin : state.weightMin;
+        const wMax = f.weightMax != null ? f.weightMax : state.weightMax;
+        const weightActive =
+          wMin != null &&
+          wMax != null &&
+          (wMin > state.bounds.weight.min || wMax < state.bounds.weight.max);
+        if (weightActive) {
+          rows = rows.filter((l) => {
+            const w = parseWeight(l.weight);
+            if (w == null) return true;
+            return w >= wMin && w <= wMax;
+          });
+        }
+
+        const mMin = f.milesMin != null ? f.milesMin : state.milesMin;
+        const mMax = f.milesMax != null ? f.milesMax : state.milesMax;
+        const milesActive =
+          mMin != null &&
+          mMax != null &&
+          (mMin > state.bounds.miles.min || mMax < state.bounds.miles.max);
+        if (milesActive) {
+          rows = rows.filter((l) => {
+            const m = parseMiles(l.miles);
+            if (m == null) return true;
+            return m >= mMin && m <= mMax;
+          });
+        }
+
+        const rMin = f.rateMin != null ? f.rateMin : state.rateMin;
+        const rMax = f.rateMax != null ? f.rateMax : state.rateMax;
+        const rateActive =
+          rMin != null &&
+          rMax != null &&
+          (rMin > state.bounds.rate.min || rMax < state.bounds.rate.max);
+        if (rateActive) {
+          rows = rows.filter((l) => {
+            const r = parseRate(l.rate);
+            if (r == null) return true;
+            return r >= rMin && r <= rMax;
+          });
+        }
+
+        return sortRows(rows);
+      }
+
+      function activeHeaderKey() {
+        if (state.sortPreset === "column") return state.sortKey;
+        if (state.sortPreset === "pu_miles_weight") return "pickup_city";
+        if (state.sortPreset === "miles_asc" || state.sortPreset === "miles_desc") return "miles";
+        if (state.sortPreset === "weight_desc" || state.sortPreset === "weight_asc") return "weight";
+        if (state.sortPreset === "rate_desc" || state.sortPreset === "rate_asc") return "rate";
+        if (state.sortPreset === "newest") return "seen_age";
+        return null;
+      }
+
+      function activeHeaderDir() {
+        if (state.sortPreset === "column") return state.sortDir;
+        if (
+          state.sortPreset === "miles_desc" ||
+          state.sortPreset === "weight_desc" ||
+          state.sortPreset === "rate_desc" ||
+          state.sortPreset === "newest"
+        ) {
+          return "desc";
+        }
+        return "asc";
+      }
+
+      function fmtChipNum(n) {
+        return Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      }
+
+      function updateChipLabels() {
+        const bw = state.bounds.weight;
+        const bm = state.bounds.miles;
+        const br = state.bounds.rate;
+
+        const wActive =
+          state.weightMin != null &&
+          state.weightMax != null &&
+          (state.weightMin > bw.min || state.weightMax < bw.max);
+        const mActive =
+          state.milesMin != null &&
+          state.milesMax != null &&
+          (state.milesMin > bm.min || state.milesMax < bm.max);
+        const rActive =
+          state.rateMin != null &&
+          state.rateMax != null &&
+          (state.rateMin > br.min || state.rateMax < br.max);
+
+        el.chipWeight.classList.toggle("active", wActive);
+        el.chipMiles.classList.toggle("active", mActive);
+        el.chipRate.classList.toggle("active", rActive);
+
+        el.chipWeight.querySelector(".chip-label").textContent = wActive
+          ? fmtChipNum(state.weightMin) + " to " + fmtChipNum(state.weightMax) + " lbs"
+          : "Weight";
+        el.chipMiles.querySelector(".chip-label").textContent = mActive
+          ? fmtChipNum(state.milesMin) + " to " + fmtChipNum(state.milesMax) + " miles"
+          : "Miles";
+        el.chipRate.querySelector(".chip-label").textContent = rActive
+          ? "$" + fmtChipNum(state.rateMin) + " to $" + fmtChipNum(state.rateMax)
+          : "Rate";
+      }
+
+      function render() {
+        const rows = filteredLoads();
+        el.updatedAt.textContent = formatUpdated(state.updatedAt);
+        el.banner.classList.toggle("visible", hasExampleRows(state.loads));
+        if (el.sortPreset.value !== state.sortPreset) {
+          el.sortPreset.value = state.sortPreset;
+        }
+        updateChipLabels();
+
+        const activeKey = activeHeaderKey();
+        const activeDir = activeHeaderDir();
+        document.querySelectorAll("th[data-key]").forEach((th) => {
+          const active = th.dataset.key === activeKey;
+          th.classList.toggle("active", active);
+          const ind = th.querySelector(".sort-ind");
+          if (ind) {
+            if (!active) ind.textContent = "*";
+            else ind.textContent = activeDir === "asc" ? "^" : "v";
+          }
+        });
+
+        if (!state.loads.length) {
+          el.tbody.innerHTML = "";
+          el.empty.hidden = false;
+          el.empty.textContent = "No loads yet - waiting for first scan";
+          el.stats.textContent = "Showing 0 loads";
+          el.table.querySelector("thead").style.display = "none";
+          return;
+        }
+
+        el.table.querySelector("thead").style.display = "";
+
+        if (!rows.length) {
+          el.tbody.innerHTML = "";
+          el.empty.hidden = false;
+          el.empty.textContent = "No loads match the current filters";
+          el.stats.textContent = "0 match filters · " + state.loads.length + " total";
+          return;
+        }
+
+        el.empty.hidden = true;
+        const bySrc = {};
+        rows.forEach(function (l) {
+          const s = l.source || "?";
+          bySrc[s] = (bySrc[s] || 0) + 1;
+        });
+        const srcBits = ["Arrive", "RXO", "ArcBest", "MoLo", "Echo"]
+          .filter(function (s) { return bySrc[s]; })
+          .map(function (s) { return s + " " + bySrc[s]; });
+        const srcTxt = srcBits.length ? " (" + srcBits.join(" · ") + ")" : "";
+        el.stats.textContent =
+          rows.length === state.loads.length
+            ? "Showing " + rows.length + " loads" + srcTxt
+            : rows.length + " match filters · " + state.loads.length + " total" + srcTxt;
+
+        el.tbody.innerHTML = rows
+          .map((l) => {
+            const r = rpm(l);
+            const puCity = pickupCity(l);
+            const deCity = deliveryCity(l);
+            const notes = displayNotes(l);
+            const weight = formatWeight(l.weight);
+            const pallets = formatPallets(l.pallets);
+            const loadCell =
+              l.url && String(l.url).trim()
+                ? '<a href="' +
+                  escapeAttr(l.url) +
+                  '" target="_blank" rel="noopener noreferrer">' +
+                  escapeHtml(l.id || EMPTY) +
+                  "</a>"
+                : escapeHtml(l.id || EMPTY);
+            const badgeClass = escapeAttr(l.source || "");
+            return (
+              "<tr>" +
+              '<td><span class="badge ' +
+              badgeClass +
+              '">' +
+              escapeHtml(l.source || EMPTY) +
+              "</span></td>" +
+              '<td class="link">' +
+              loadCell +
+              "</td>" +
+              "<td>" +
+              escapeHtml(formatCell(puCity)) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(formatCell(l.pickup_date)) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(formatCell(l.pickup_time)) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(formatCell(deCity)) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(formatCell(l.delivery_date)) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(formatCell(l.delivery_time)) +
+              "</td>" +
+              '<td class="num">' +
+              escapeHtml(weight) +
+              "</td>" +
+              '<td class="num">' +
+              escapeHtml(pallets) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(formatCell(l.equipment)) +
+              "</td>" +
+              '<td class="num">' +
+              escapeHtml(formatNum(l.miles)) +
+              "</td>" +
+              '<td class="num">' +
+              escapeHtml(formatMoney(l.rate)) +
+              "</td>" +
+              '<td class="num">' +
+              escapeHtml(formatRpm(r)) +
+              "</td>" +
+              '<td class="age">' +
+              escapeHtml(formatCell(l.seen_age)) +
+              "</td>" +
+              '<td class="notes">' +
+              escapeHtml(notes || EMPTY) +
+              "</td>" +
+              "</tr>"
+            );
+          })
+          .join("");
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function escapeAttr(s) {
+        return escapeHtml(s).replace(/'/g, "&#39;");
+      }
+
+      /* ---- Dual range helpers ---- */
+      function syncDualFill(prefix) {
+        const minEl = document.getElementById(prefix + "MinRange");
+        const maxEl = document.getElementById(prefix + "MaxRange");
+        const fill = document.getElementById(prefix + "Fill");
+        if (!minEl || !maxEl || !fill) return;
+        const lo = Number(minEl.min);
+        const hi = Number(minEl.max);
+        const span = hi - lo || 1;
+        const a = Number(minEl.value);
+        const b = Number(maxEl.value);
+        const left = ((Math.min(a, b) - lo) / span) * 100;
+        const right = ((Math.max(a, b) - lo) / span) * 100;
+        fill.style.left = left + "%";
+        fill.style.width = Math.max(0, right - left) + "%";
+      }
+
+      function setDualLabels(prefix, minV, maxV, money) {
+        const minL = document.getElementById(prefix + "MinLabel");
+        const maxL = document.getElementById(prefix + "MaxLabel");
+        if (money) {
+          minL.textContent = "$" + fmtChipNum(minV);
+          maxL.textContent = "$" + fmtChipNum(maxV);
+        } else {
+          minL.textContent = fmtChipNum(minV);
+          maxL.textContent = fmtChipNum(maxV);
+        }
+      }
+
+      function wireDual(prefix, money) {
+        const minR = document.getElementById(prefix + "MinRange");
+        const maxR = document.getElementById(prefix + "MaxRange");
+        const minN = document.getElementById(prefix + "MinNum");
+        const maxN = document.getElementById(prefix + "MaxNum");
+
+        function fromRanges() {
+          let a = Number(minR.value);
+          let b = Number(maxR.value);
+          if (a > b) {
+            // swap values while dragging past
+            const t = a;
+            a = b;
+            b = t;
+            minR.value = a;
+            maxR.value = b;
+          }
+          minN.value = a;
+          maxN.value = b;
+          setDualLabels(prefix, a, b, money);
+          syncDualFill(prefix);
+        }
+
+        function fromNums() {
+          let a = Number(minN.value);
+          let b = Number(maxN.value);
+          const lo = Number(minR.min);
+          const hi = Number(minR.max);
+          if (Number.isNaN(a)) a = lo;
+          if (Number.isNaN(b)) b = hi;
+          a = Math.max(lo, Math.min(hi, a));
+          b = Math.max(lo, Math.min(hi, b));
+          if (a > b) {
+            const t = a;
+            a = b;
+            b = t;
+          }
+          minR.value = a;
+          maxR.value = b;
+          minN.value = a;
+          maxN.value = b;
+          setDualLabels(prefix, a, b, money);
+          syncDualFill(prefix);
+        }
+
+        minR.addEventListener("input", fromRanges);
+        maxR.addEventListener("input", fromRanges);
+        minN.addEventListener("change", fromNums);
+        maxN.addEventListener("change", fromNums);
+      }
+
+      function initDualBounds(prefix, min, max, money) {
+        const minR = document.getElementById(prefix + "MinRange");
+        const maxR = document.getElementById(prefix + "MaxRange");
+        const minN = document.getElementById(prefix + "MinNum");
+        const maxN = document.getElementById(prefix + "MaxNum");
+        if (min > max) {
+          const t = min;
+          min = max;
+          max = t;
+        }
+        // Ensure range inputs have a usable span
+        if (min === max) max = min + 1;
+        [minR, maxR].forEach((r) => {
+          r.min = String(min);
+          r.max = String(max);
+          r.step = "1";
+        });
+        minR.value = String(min);
+        maxR.value = String(max);
+        minN.min = String(min);
+        minN.max = String(max);
+        maxN.min = String(min);
+        maxN.max = String(max);
+        minN.value = String(min);
+        maxN.value = String(max);
+        setDualLabels(prefix, min, max, money);
+        syncDualFill(prefix);
+      }
+
+      function computeBounds(loads) {
+        let wMin = Infinity, wMax = -Infinity;
+        let mMin = Infinity, mMax = -Infinity;
+        let rMin = Infinity, rMax = -Infinity;
+        loads.forEach((l) => {
+          const w = parseWeight(l.weight);
+          const m = parseMiles(l.miles);
+          const r = parseRate(l.rate);
+          if (w != null) {
+            wMin = Math.min(wMin, w);
+            wMax = Math.max(wMax, w);
+          }
+          if (m != null) {
+            mMin = Math.min(mMin, m);
+            mMax = Math.max(mMax, m);
+          }
+          if (r != null) {
+            rMin = Math.min(rMin, r);
+            rMax = Math.max(rMax, r);
+          }
+        });
+        if (!Number.isFinite(wMin)) { wMin = 0; wMax = 50000; }
+        if (!Number.isFinite(mMin)) { mMin = 0; mMax = 3000; }
+        if (!Number.isFinite(rMin)) { rMin = 0; rMax = 5000; }
+        // Floor/ceil to nicer ints
+        wMin = Math.floor(wMin);
+        wMax = Math.ceil(wMax);
+        mMin = Math.floor(mMin);
+        mMax = Math.ceil(mMax);
+        rMin = Math.floor(rMin);
+        rMax = Math.ceil(rMax);
+        state.bounds = {
+          weight: { min: wMin, max: wMax },
+          miles: { min: mMin, max: mMax },
+          rate: { min: rMin, max: rMax },
+        };
+        initDualBounds("weight", wMin, wMax, false);
+        initDualBounds("miles", mMin, mMax, false);
+        initDualBounds("rate", rMin, rMax, true);
+        // Reset applied ranges to full
+        state.weightMin = wMin;
+        state.weightMax = wMax;
+        state.milesMin = mMin;
+        state.milesMax = mMax;
+        state.rateMin = rMin;
+        state.rateMax = rMax;
+      }
+
+      function closeAllPopovers(except) {
+        ["weight", "miles", "rate"].forEach((name) => {
+          const chip = document.getElementById(
+            "chip" + name.charAt(0).toUpperCase() + name.slice(1)
+          );
+          const pop = document.getElementById(
+            "pop" + name.charAt(0).toUpperCase() + name.slice(1)
+          );
+          if (except && name === except) return;
+          if (pop) pop.classList.remove("open");
+          if (chip) chip.setAttribute("aria-expanded", "false");
+        });
+      }
+
+      function togglePopover(name) {
+        const chip = document.getElementById(
+          "chip" + name.charAt(0).toUpperCase() + name.slice(1)
+        );
+        const pop = document.getElementById(
+          "pop" + name.charAt(0).toUpperCase() + name.slice(1)
+        );
+        const wasOpen = pop.classList.contains("open");
+        closeAllPopovers();
+        if (!wasOpen) {
+          // sync draft values from applied state
+          const minV = state[name + "Min"];
+          const maxV = state[name + "Max"];
+          const minR = document.getElementById(name + "MinRange");
+          const maxR = document.getElementById(name + "MaxRange");
+          const minN = document.getElementById(name + "MinNum");
+          const maxN = document.getElementById(name + "MaxNum");
+          if (minV != null && maxV != null) {
+            minR.value = String(minV);
+            maxR.value = String(maxV);
+            minN.value = String(minV);
+            maxN.value = String(maxV);
+            setDualLabels(name, minV, maxV, name === "rate");
+            syncDualFill(name);
+          }
+          pop.classList.add("open");
+          chip.setAttribute("aria-expanded", "true");
+        }
+      }
+
+      function applyRange(name) {
+        let a = Number(document.getElementById(name + "MinRange").value);
+        let b = Number(document.getElementById(name + "MaxRange").value);
+        if (a > b) {
+          const t = a;
+          a = b;
+          b = t;
+        }
+        state[name + "Min"] = a;
+        state[name + "Max"] = b;
+        closeAllPopovers();
+        render();
+      }
+
+      function clearRange(name) {
+        const b = state.bounds[name];
+        state[name + "Min"] = b.min;
+        state[name + "Max"] = b.max;
+        initDualBounds(name, b.min, b.max, name === "rate");
+        closeAllPopovers();
+        updateChipLabels();
+      }
+
+      function readEmbeddedLoads() {
+        const node = document.getElementById("embedded-loads");
+        if (!node) return null;
+        try {
+          return JSON.parse(node.textContent);
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function applyData(data, fromFetch) {
+        state.updatedAt = (data && data.updatedAt) || null;
+        state.loads = data && Array.isArray(data.loads) ? data.loads : [];
+        state.dataSource = fromFetch ? "loads.json" : "embedded";
+        populateEquipmentOptions(state.loads);
+        computeBounds(state.loads);
+        initDateInputs();
+        if (!state.applied) state.applied = readUiFilters();
+        render();
+      }
+
+      async function loadGeoData() {
+        try {
+          const [cRes, oRes, zRes] = await Promise.all([
+            fetch(apiUrl("city_coords.json"), { cache: "no-store" }),
+            fetch(apiUrl("us_city_index.json"), { cache: "no-store" }),
+            fetch(apiUrl("zip_coords.json"), { cache: "no-store" }),
+          ]);
+          if (cRes.ok) state.cityCoords = await cRes.json();
+          if (oRes.ok) state.originIndex = await oRes.json();
+          if (zRes.ok) state.zipCoords = await zRes.json();
+        } catch (err) {
+          console.warn("geo data load failed", err);
+        }
+      }
+
+      async function loadDataQuiet() {
+        try {
+          const res = await fetch(apiUrl("loads.json"), { cache: "no-store" });
+          if (!res.ok) return;
+          const data = await res.json();
+          const nextUpdated = (data && data.updatedAt) || null;
+          if (nextUpdated && nextUpdated === state.updatedAt) return; // no change
+          const prevApplied = state.applied;
+          applyData(data, true);
+          // keep current filters after live refresh
+          if (prevApplied) state.applied = prevApplied;
+          render();
+        } catch (_) {
+          /* quiet poll failures */
+        }
+      }
+
+      /** Manual Refresh: always re-fetch loads.json and update table + last-updated. */
+      async function refreshNow() {
+        const buttons = [el.btnRefresh, el.btnRefreshStats].filter(Boolean);
+        buttons.forEach(function (b) { b.disabled = true; b.textContent = "Refreshing…"; });
+        try {
+          const prevApplied = state.applied;
+          const res = await fetch(apiUrl("loads.json"), { cache: "no-store" });
+          if (!res.ok) throw new Error("Could not load loads.json (" + res.status + ")");
+          const data = await res.json();
+          applyData(data, true);
+          if (prevApplied) state.applied = prevApplied;
+          render();
+          el.error.classList.remove("visible");
+        } catch (err) {
+          el.error.textContent =
+            "Refresh failed: " +
+            (err && err.message ? err.message : String(err));
+          el.error.classList.add("visible");
+        } finally {
+          buttons.forEach(function (b) { b.disabled = false; b.textContent = "Refresh"; });
+        }
+      }
+
+      async function loadData() {
+        el.error.classList.remove("visible");
+        try {
+          const res = await fetch(apiUrl("loads.json"), { cache: "no-store" });
+          if (!res.ok) throw new Error("Could not load loads.json (" + res.status + ")");
+          const data = await res.json();
+          applyData(data, true);
+          return;
+        } catch (err) {
+          const embedded = readEmbeddedLoads();
+          if (embedded) {
+            applyData(embedded, false);
+            el.error.textContent =
+              "Using embedded data (could not fetch loads.json). " +
+              "Set API base in Settings (or ?api=) / ensure work PC serve_board is running. " +
+              (err && err.message ? "(" + err.message + ")" : "");
+            el.error.classList.add("visible");
+            return;
+          }
+          el.error.textContent =
+            "Failed to load data: " +
+            (err && err.message ? err.message : String(err)) +
+            ". Use Settings to paste the tunnel/API URL, or open via the work PC board server.";
+          el.error.classList.add("visible");
+          state.loads = [];
+          state.updatedAt = null;
+          render();
+        }
+      }
+
+      const SAVED_KEY = "ulb_saved_searches_v1";
+
+      function loadSavedList() {
+        try {
+          return JSON.parse(localStorage.getItem(SAVED_KEY) || "[]");
+        } catch (_) {
+          return [];
+        }
+      }
+
+      function refreshSavedSelect() {
+        const list = loadSavedList();
+        const cur = el.savedSearches.value;
+        el.savedSearches.innerHTML = '<option value="">Saved searches…</option>';
+        list.forEach((item, i) => {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = item.name;
+          el.savedSearches.appendChild(opt);
+        });
+        if (cur && Number(cur) < list.length) el.savedSearches.value = cur;
+      }
+
+      function writeFiltersToUi(f) {
+        if (!f) return;
+        el.origin.value = f.origin || "";
+        el.radius.value = f.radius || "100";
+        el.dest.value = f.dest || "";
+        el.equipment.value = f.equipment || "";
+        el.source.value = f.source || "";
+        el.puFrom.value = f.pickupFrom || "";
+        el.puTo.value = f.pickupTo || "";
+        ["weight", "miles", "rate"].forEach((name) => {
+          const minV = f[name + "Min"];
+          const maxV = f[name + "Max"];
+          if (minV == null || maxV == null) return;
+          state[name + "Min"] = minV;
+          state[name + "Max"] = maxV;
+          const minR = document.getElementById(name + "MinRange");
+          const maxR = document.getElementById(name + "MaxRange");
+          const minN = document.getElementById(name + "MinNum");
+          const maxN = document.getElementById(name + "MaxNum");
+          if (minR) minR.value = String(minV);
+          if (maxR) maxR.value = String(maxV);
+          if (minN) minN.value = String(minV);
+          if (maxN) maxN.value = String(maxV);
+          setDualLabels(name, minV, maxV, name === "rate");
+          syncDualFill(name);
+        });
+      }
+
+      // ---- Multi-location tabs (localStorage: ulb_location_tabs_v1) ----
+      const TABS_KEY = "ulb_location_tabs_v1";
+      const locTabsState = {
+        activeId: null,
+        tabs: [],
+      };
+
+      function newTabId() {
+        return "loc_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7);
+      }
+
+      function cloneFilters(f) {
+        return f ? JSON.parse(JSON.stringify(f)) : readUiFilters();
+      }
+
+      function shortOriginName(origin) {
+        const o = String(origin || "").trim();
+        if (!o) return "";
+        return o.split(",")[0].trim() || o;
+      }
+
+      function defaultTabName(filters, forBoard) {
+        const short = shortOriginName(filters && filters.origin);
+        if (short) return short;
+        if (forBoard) return "Board";
+        const used = new Set(locTabsState.tabs.map((t) => t.name));
+        let n = 1;
+        while (used.has("Location " + n)) n += 1;
+        return "Location " + n;
+      }
+
+      function loadTabsFromStorage() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(TABS_KEY) || "null");
+          if (!raw || !Array.isArray(raw.tabs) || !raw.tabs.length) return null;
+          const tabs = raw.tabs
+            .filter((t) => t && t.id && t.filters)
+            .map((t) => ({
+              id: String(t.id),
+              name: String(t.name || "Board"),
+              nameAuto: t.nameAuto !== false && (
+                t.nameAuto === true ||
+                !t.name ||
+                t.name === "Board" ||
+                t.name === shortOriginName(t.filters && t.filters.origin) ||
+                /^Location \d+$/.test(String(t.name))
+              ),
+              filters: cloneFilters(t.filters),
+            }));
+          if (!tabs.length) return null;
+          let activeId = raw.activeId;
+          if (!tabs.some((t) => t.id === activeId)) activeId = tabs[0].id;
+          return { activeId, tabs };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function saveTabsToStorage() {
+        try {
+          localStorage.setItem(
+            TABS_KEY,
+            JSON.stringify({
+              activeId: locTabsState.activeId,
+              tabs: locTabsState.tabs.map((t) => ({
+                id: t.id,
+                name: t.name,
+                nameAuto: !!t.nameAuto,
+                filters: cloneFilters(t.filters),
+              })),
+            })
+          );
+        } catch (_) { /* ignore quota */ }
+      }
+
+      function getActiveTab() {
+        return locTabsState.tabs.find((t) => t.id === locTabsState.activeId) || null;
+      }
+
+      function persistActiveTabFilters(filters) {
+        const tab = getActiveTab();
+        if (!tab) return;
+        tab.filters = cloneFilters(filters);
+        if (tab.nameAuto) {
+          tab.name = defaultTabName(tab.filters, true);
+        }
+        saveTabsToStorage();
+        renderLocationTabs();
+      }
+
+      function renderLocationTabs() {
+        if (!el.locTabsList) return;
+        el.locTabsList.innerHTML = "";
+        locTabsState.tabs.forEach((tab) => {
+          const wrap = document.createElement("div");
+          wrap.className = "loc-tab" + (tab.id === locTabsState.activeId ? " active" : "");
+          wrap.setAttribute("role", "tab");
+          wrap.setAttribute("aria-selected", tab.id === locTabsState.activeId ? "true" : "false");
+          wrap.dataset.id = tab.id;
+          wrap.title = tab.name + " (double-click to rename)";
+
+          const label = document.createElement("span");
+          label.className = "loc-tab-label";
+          label.textContent = tab.name;
+          label.spellcheck = false;
+
+          const close = document.createElement("span");
+          close.className = "loc-tab-close";
+          close.setAttribute("role", "button");
+          close.setAttribute("aria-label", "Close " + tab.name);
+          close.title = "Close tab";
+          close.textContent = "×";
+
+          wrap.appendChild(label);
+          wrap.appendChild(close);
+          el.locTabsList.appendChild(wrap);
+        });
+      }
+
+      function activateTab(id, opts) {
+        const tab = locTabsState.tabs.find((t) => t.id === id);
+        if (!tab) return;
+        const focusOrigin = opts && opts.focusOrigin;
+        locTabsState.activeId = tab.id;
+        writeFiltersToUi(tab.filters);
+        // Apply without re-writing nameAuto from empty draft
+        ["weight", "miles", "rate"].forEach((name) => {
+          const minR = document.getElementById(name + "MinRange");
+          const maxR = document.getElementById(name + "MaxRange");
+          if (!minR || !maxR) return;
+          let a = Number(minR.value);
+          let b = Number(maxR.value);
+          if (a > b) { const t = a; a = b; b = t; }
+          state[name + "Min"] = a;
+          state[name + "Max"] = b;
+        });
+        state.applied = readUiFilters();
+        // Prefer stored chip ranges if UI bounds not ready yet
+        const f = tab.filters;
+        ["weight", "miles", "rate"].forEach((name) => {
+          if (f[name + "Min"] != null) state[name + "Min"] = f[name + "Min"];
+          if (f[name + "Max"] != null) state[name + "Max"] = f[name + "Max"];
+        });
+        state.applied = Object.assign({}, state.applied, {
+          weightMin: state.weightMin,
+          weightMax: state.weightMax,
+          milesMin: state.milesMin,
+          milesMax: state.milesMax,
+          rateMin: state.rateMin,
+          rateMax: state.rateMax,
+        });
+        state.pickupFrom = state.applied.pickupFrom;
+        state.pickupTo = state.applied.pickupTo;
+        saveTabsToStorage();
+        renderLocationTabs();
+        closeAllPopovers();
+        updateChipLabels();
+        render();
+        if (focusOrigin && el.origin) {
+          el.origin.focus();
+          el.origin.select();
+        }
+      }
+
+      function addLocationTab() {
+        const filters = cloneFilters(readUiFilters());
+        const tab = {
+          id: newTabId(),
+          name: defaultTabName(filters, false),
+          nameAuto: true,
+          filters: filters,
+        };
+        locTabsState.tabs.push(tab);
+        locTabsState.activeId = tab.id;
+        saveTabsToStorage();
+        renderLocationTabs();
+        writeFiltersToUi(tab.filters);
+        state.applied = cloneFilters(tab.filters);
+        state.pickupFrom = state.applied.pickupFrom || "";
+        state.pickupTo = state.applied.pickupTo || "";
+        ["weight", "miles", "rate"].forEach((name) => {
+          if (tab.filters[name + "Min"] != null) state[name + "Min"] = tab.filters[name + "Min"];
+          if (tab.filters[name + "Max"] != null) state[name + "Max"] = tab.filters[name + "Max"];
+        });
+        closeAllPopovers();
+        updateChipLabels();
+        render();
+        if (el.origin) {
+          el.origin.focus();
+          el.origin.select();
+        }
+      }
+
+      function closeLocationTab(id) {
+        if (locTabsState.tabs.length <= 1) {
+          window.alert("Keep at least one location tab.");
+          return;
+        }
+        const idx = locTabsState.tabs.findIndex((t) => t.id === id);
+        if (idx < 0) return;
+        const wasActive = locTabsState.activeId === id;
+        locTabsState.tabs.splice(idx, 1);
+        if (wasActive) {
+          const next = locTabsState.tabs[Math.max(0, idx - 1)] || locTabsState.tabs[0];
+          activateTab(next.id);
+        } else {
+          saveTabsToStorage();
+          renderLocationTabs();
+        }
+      }
+
+      function beginRenameTab(labelEl, tab) {
+        if (!labelEl || !tab) return;
+        labelEl.contentEditable = "true";
+        labelEl.focus();
+        const range = document.createRange();
+        range.selectNodeContents(labelEl);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+
+        const finish = (commit) => {
+          labelEl.contentEditable = "false";
+          labelEl.removeEventListener("blur", onBlur);
+          labelEl.removeEventListener("keydown", onKey);
+          if (commit) {
+            const next = labelEl.textContent.replace(/\s+/g, " ").trim();
+            if (next) {
+              tab.name = next;
+              tab.nameAuto = false;
+              saveTabsToStorage();
+            }
+          }
+          renderLocationTabs();
+        };
+        const onBlur = () => finish(true);
+        const onKey = (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            finish(true);
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            finish(false);
+          }
+        };
+        labelEl.addEventListener("blur", onBlur);
+        labelEl.addEventListener("keydown", onKey);
+      }
+
+      function initLocationTabs() {
+        const stored = loadTabsFromStorage();
+        if (stored) {
+          locTabsState.tabs = stored.tabs;
+          locTabsState.activeId = stored.activeId;
+        } else {
+          const filters = readUiFilters();
+          const tab = {
+            id: newTabId(),
+            name: defaultTabName(filters, true),
+            nameAuto: true,
+            filters: cloneFilters(filters),
+          };
+          locTabsState.tabs = [tab];
+          locTabsState.activeId = tab.id;
+          saveTabsToStorage();
+        }
+        renderLocationTabs();
+        const active = getActiveTab();
+        if (active) {
+          writeFiltersToUi(active.filters);
+          state.applied = cloneFilters(active.filters);
+          state.pickupFrom = state.applied.pickupFrom || "";
+          state.pickupTo = state.applied.pickupTo || "";
+          ["weight", "miles", "rate"].forEach((name) => {
+            if (active.filters[name + "Min"] != null) state[name + "Min"] = active.filters[name + "Min"];
+            if (active.filters[name + "Max"] != null) state[name + "Max"] = active.filters[name + "Max"];
+          });
+        }
+      }
+
+      if (el.locTabsList) {
+        el.locTabsList.addEventListener("click", (e) => {
+          const closeBtn = e.target.closest(".loc-tab-close");
+          if (closeBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const tabEl = closeBtn.closest(".loc-tab");
+            if (tabEl) closeLocationTab(tabEl.dataset.id);
+            return;
+          }
+          const tabEl = e.target.closest(".loc-tab");
+          if (!tabEl) return;
+          // Ignore clicks while renaming
+          if (e.target.closest('.loc-tab-label[contenteditable="true"]')) return;
+          if (tabEl.dataset.id !== locTabsState.activeId) {
+            activateTab(tabEl.dataset.id);
+          }
+        });
+
+        el.locTabsList.addEventListener("dblclick", (e) => {
+          const label = e.target.closest(".loc-tab-label");
+          if (!label) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const tabEl = label.closest(".loc-tab");
+          const tab = locTabsState.tabs.find((t) => t.id === tabEl.dataset.id);
+          beginRenameTab(label, tab);
+        });
+      }
+
+      if (el.locTabAdd) {
+        el.locTabAdd.addEventListener("click", () => addLocationTab());
+      }
+
+
+      // Chip open / done / clear
+      ["weight", "miles", "rate"].forEach((name) => {
+        const chip = document.getElementById(
+          "chip" + name.charAt(0).toUpperCase() + name.slice(1)
+        );
+        chip.addEventListener("click", (e) => {
+          if (e.target.closest(".popover")) return;
+          e.stopPropagation();
+          togglePopover(name);
+        });
+      });
+
+      document.querySelectorAll("[data-done]").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const name = btn.getAttribute("data-done");
+          // stash draft into state for chip label; Apply still required for table
+          let a = Number(document.getElementById(name + "MinRange").value);
+          let b = Number(document.getElementById(name + "MaxRange").value);
+          if (a > b) { const t = a; a = b; b = t; }
+          state[name + "Min"] = a;
+          state[name + "Max"] = b;
+          updateChipLabels();
+          closeAllPopovers();
+        });
+      });
+
+      document.querySelectorAll("[data-clear]").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          clearRange(btn.getAttribute("data-clear"));
+        });
+      });
+
+      document.querySelectorAll(".popover").forEach((pop) => {
+        pop.addEventListener("click", (e) => e.stopPropagation());
+      });
+
+      document.addEventListener("click", (e) => {
+        if (e.target.closest(".chip-wrap")) return;
+        closeAllPopovers();
+      });
+
+      wireDual("weight", false);
+      wireDual("miles", false);
+      wireDual("rate", true);
+
+      el.btnSearch.addEventListener("click", () => applyUiFilters());
+
+      // Enter in origin/dest triggers Apply
+      [el.origin, el.dest].forEach((inp) => {
+        inp.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") applyUiFilters();
+        });
+      });
+
+      el.sortPreset.addEventListener("change", () => {
+        state.sortPreset = el.sortPreset.value;
+        render();
+      });
+
+      el.clearAll.addEventListener("click", () => {
+        el.origin.value = "";
+        el.dest.value = "";
+        el.radius.value = "100";
+        el.equipment.value = "";
+        el.source.value = "";
+        el.puFrom.value = "";
+        el.puTo.value = "";
+        clearRange("weight");
+        clearRange("miles");
+        clearRange("rate");
+        state.sortPreset = "pu_miles_weight";
+        el.sortPreset.value = "pu_miles_weight";
+        state.sortKey = "pickup_city";
+        state.sortDir = "asc";
+        state.applied = readUiFilters();
+        state.pickupFrom = "";
+        state.pickupTo = "";
+        persistActiveTabFilters(state.applied);
+        closeAllPopovers();
+        render();
+      });
+
+      el.btnSaveSearch.addEventListener("click", () => {
+        const f = readUiFilters();
+        const defaultName = (f.origin || "Any origin") +
+          (f.radius && f.radius !== "any" ? " " + f.radius + "mi" : "") +
+          (f.dest ? " → " + f.dest : "") +
+          (f.equipment ? " · " + f.equipment : "");
+        const name = window.prompt("Name this search", defaultName);
+        if (!name || !name.trim()) return;
+        const list = loadSavedList();
+        list.unshift({ name: name.trim(), filters: f, savedAt: new Date().toISOString() });
+        localStorage.setItem(SAVED_KEY, JSON.stringify(list.slice(0, 20)));
+        refreshSavedSelect();
+        el.savedSearches.value = "0";
+      });
+
+      el.savedSearches.addEventListener("change", () => {
+        const list = loadSavedList();
+        const i = Number(el.savedSearches.value);
+        if (!Number.isFinite(i) || i < 0 || i >= list.length) return;
+        writeFiltersToUi(list[i].filters);
+        applyUiFilters();
+      });
+
+      initDateInputs();
+      refreshSavedSelect();
+      initLocationTabs();
+
+      document.querySelectorAll("th[data-key]").forEach((th) => {
+        th.addEventListener("click", () => {
+          const key = th.dataset.key;
+          if (!key) return;
+          if (state.sortPreset === "column" && state.sortKey === key) {
+            state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+          } else {
+            state.sortKey = key;
+            state.sortDir = ["rate", "rpm", "miles", "weight", "pallets", "seen_age"].includes(key)
+              ? "desc"
+              : "asc";
+          }
+          state.sortPreset = "column";
+          el.sortPreset.value = "column";
+          render();
+        });
+      });
+
+      if (el.btnRefresh) el.btnRefresh.addEventListener("click", function () { refreshNow(); });
+      if (el.btnRefreshStats) el.btnRefreshStats.addEventListener("click", function () { refreshNow(); });
+
+      (function wireSettings() {
+        const btn = document.getElementById("btnSettings");
+        const panel = document.getElementById("settingsPanel");
+        const save = document.getElementById("btnSaveApi");
+        const clear = document.getElementById("btnClearApi");
+        const input = document.getElementById("apiBaseInput");
+        if (btn && panel) {
+          btn.addEventListener("click", function () {
+            panel.classList.toggle("open");
+            if (input) input.focus();
+          });
+        }
+        function persistAndReload(next) {
+          API_BASE = (next || "").replace(/\/+$/, "");
+          try {
+            if (API_BASE) localStorage.setItem(API_LS_KEY, API_BASE);
+            else localStorage.removeItem(API_LS_KEY);
+          } catch (_) {}
+          refreshApiUi();
+          loadGeoData().then(function () { return refreshNow(); });
+        }
+        if (save && input) {
+          save.addEventListener("click", function () {
+            persistAndReload(String(input.value || "").trim());
+          });
+        }
+        if (clear) {
+          clear.addEventListener("click", function () {
+            if (input) input.value = "";
+            persistAndReload("");
+          });
+        }
+        refreshApiUi();
+      })();
+
+      loadGeoData().then(function () { return loadData(); }).then(function () {
+        // Live poll — pick up add/remove from scanner without manual refresh
+        setInterval(function () {
+          loadDataQuiet();
+        }, 20000);
+      });
+    })();
+  </script>
+
+<script type="application/json" id="embedded-loads">
+{
+  "updatedAt": "2026-09-04T00:00:00-05:00",
+  "loads": []
+}
+</script>
+</body>
+</html>
