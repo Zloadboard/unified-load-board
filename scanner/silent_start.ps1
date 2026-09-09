@@ -17,6 +17,15 @@ function Test-PortListen([int]$Port) {
   return [bool]$c
 }
 
+function Find-Python {
+  $w = Find-Pythonw
+  if ($w -and ($w -match 'pythonw\.exe$')) {
+    $exe = $w -replace 'pythonw\.exe$', 'python.exe'
+    if (Test-Path $exe) { return $exe }
+  }
+  return $w
+}
+
 function Find-Pythonw {
   $candidates = @(
     "$env:LOCALAPPDATA\Python\pythoncore-3.14-64\pythonw.exe",
@@ -94,14 +103,15 @@ function Start-BoardServer {
     Write-Log "Port 8765 already listening - skip serve_board"
     return
   }
-  $pyw = Find-Pythonw
-  if (-not $pyw) {
-    Write-Log "ERROR: pythonw/python not found"
+  # Use python.exe (hidden) so /api/scanner/* subprocess stdout works reliably.
+  $py = Find-Python
+  if (-not $py) {
+    Write-Log "ERROR: python not found"
     return
   }
   $scriptPath = Join-Path $Scanner "serve_board.py"
-  Write-Log "Starting serve_board.py with $pyw"
-  Start-Process -FilePath $pyw -ArgumentList "`"$scriptPath`"" -WorkingDirectory $Root -WindowStyle Hidden
+  Write-Log "Starting serve_board.py with $py (hidden)"
+  Start-Process -FilePath $py -ArgumentList "`"$scriptPath`"" -WorkingDirectory $Root -WindowStyle Hidden
 }
 
 function Start-CdpAttach {

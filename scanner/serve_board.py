@@ -35,8 +35,16 @@ def _json_bytes(obj: dict) -> bytes:
 
 
 def _find_python() -> str:
-    # Prefer the interpreter running this server; fall back to pythonw/python
-    return sys.executable or "python"
+    # Prefer python.exe for the Win32 helper so stdout is captured.
+    # When serve_board runs under pythonw, sys.executable is pythonw.exe and
+    # subprocess capture_output often returns empty stdout.
+    exe = sys.executable or "python"
+    low = exe.lower()
+    if low.endswith("pythonw.exe"):
+        cand = exe[: -len("pythonw.exe")] + "python.exe"
+        if os.path.isfile(cand):
+            return cand
+    return exe
 
 
 def _scanner_action(action: str) -> dict:
