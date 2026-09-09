@@ -40,7 +40,7 @@ SCHEMA_KEYS = (
 
 # Echo must stay listed — normalize_load drops unknown sources, which silently
 # emptied Echo rows when VALID_SOURCES lacked it (see _parse_api_items except).
-VALID_SOURCES = frozenset({"Arrive", "RXO", "ArcBest", "Echo", "MoLo"})
+VALID_SOURCES = frozenset({"Arrive", "RXO", "ArcBest", "Echo", "MoLo", "CHR"})
 
 # Keys that suggest a JSON object is a load / shipment row
 _ORIGIN_KEYS = ("origin", "originCity", "origin_city", "pickupCity", "pickup_city",

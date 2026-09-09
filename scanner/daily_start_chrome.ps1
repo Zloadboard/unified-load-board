@@ -15,7 +15,8 @@ $urls = @(
   "https://carrier.arrivelogistics.com/find-loads",
   "https://carrier.rxoconnect.rxo.com/loads/available-loads",
   "https://carriers.arcb.com/Shipments",
-  "https://echodrive.echo.com/carrier/10261/availableLoads"
+  "https://echodrive.echo.com/carrier/10261/availableLoads",
+  "https://www.navispherecarrier.com/"
 )
 
 $listening = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
@@ -33,4 +34,4 @@ if (-not $listening) {
   foreach ($u in $urls) { Start-Process $chrome $u }
 }
 
-Write-Host "Sign into ALL four tabs in THAT Chrome window. Leave it open all day."
+Write-Host "Sign into ALL five tabs in THAT Chrome window. Leave it open all day."

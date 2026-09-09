@@ -7,6 +7,7 @@ UNIFIED LOAD BOARD — EVERY MORNING (2 minutes)
      - RXO Connect
      - ArcBest
      - EchoDrive  → Available Loads → Romeoville 100mi → set pickup dates → Search
+     - CH Robinson / Navisphere Carrier (www.navispherecarrier.com) → Find Loads
 3. Leave THAT Chrome open all day (minimize OK, do not close)
 4. Open board: http://localhost:8765/  (Ctrl+F5 once)
 

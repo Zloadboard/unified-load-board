@@ -62,7 +62,8 @@ function Start-ScannerChrome {
     "https://carrier.arrivelogistics.com/find-loads",
     "https://carrier.rxoconnect.rxo.com/loads/available-loads",
     "https://carriers.arcb.com/Shipments",
-    "https://echodrive.echo.com/carrier/10261/availableLoads"
+    "https://echodrive.echo.com/carrier/10261/availableLoads",
+    "https://www.navispherecarrier.com/"
   )
   $chromeArgs = @(
     "--remote-debugging-port=$port",

@@ -5,7 +5,7 @@
 2. `pip install -r scanner\requirements.txt` (once).
 3. Run once: `powershell -NoProfile -ExecutionPolicy Bypass -File scanner\install_task.ps1`
 4. Double-click `SILENT_START.vbs` (or wait for Task Scheduler).
-5. Open scanner Chrome (minimized) and sign into Arrive / RXO / ArcBest / Echo once.
+5. Open scanner Chrome (minimized) and sign into Arrive / RXO / ArcBest / Echo / CHR (Navisphere) once.
 6. Board: http://localhost:8765/
 
 ## Every morning after (should be ~zero)

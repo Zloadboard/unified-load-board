@@ -44,7 +44,7 @@ def main() -> int:
     print("IMPORTANT: Use the Edge window THIS script opens.")
     print("Do NOT use your normal everyday Edge/Chrome window.")
     print()
-    print("1) Sign into Arrive, RXO, and ArcBest in that window.")
+    print("1) Sign into Arrive, RXO, ArcBest, Echo, and CHR (Navisphere) in that window.")
     print("2) When all three show load boards (not login pages), either:")
     print("     - Press Enter in THIS black window, OR")
     print("     - Create an empty file named LOGIN_DONE.txt in this folder")
@@ -67,10 +67,16 @@ def main() -> int:
             pages = [context.new_page()]
 
         urls = [
-            ("Arrive", sources.get("Arrive")),
-            ("RXO", sources.get("RXO")),
-            ("ArcBest", sources.get("ArcBest")),
+            (name, sources.get(name))
+            for name in ("Arrive", "RXO", "ArcBest", "Echo", "CHR")
+            if sources.get(name)
         ]
+        if not urls:
+            urls = [
+                ("Arrive", sources.get("Arrive")),
+                ("RXO", sources.get("RXO")),
+                ("ArcBest", sources.get("ArcBest")),
+            ]
 
         first = True
         for name, url in urls:

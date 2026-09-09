@@ -6,6 +6,7 @@
     "Arrive": "https://carrier.arrivelogistics.com/find-loads",
     "RXO": "https://carrier.rxoconnect.rxo.com/loads/available-loads",
     "ArcBest": "https://carriers.arcb.com/Shipments",
-    "Echo": "https://echodrive.echo.com/carrier/10261/availableLoads"
+    "Echo": "https://echodrive.echo.com/carrier/10261/availableLoads",
+    "CHR": "https://www.navispherecarrier.com/"
   }
 }

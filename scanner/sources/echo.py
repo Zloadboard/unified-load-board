@@ -256,7 +256,11 @@ def _parse_api_items(body: Any, url: str, price_by_id: dict | None = None) -> li
             "equipment": equip,
             "miles": miles,
             "rate": rate,
-            "url": url,
+            "url": (
+                f"https://echodrive.echo.com/carrier/10261/availableLoads?loadId={load_id}"
+                if load_id and str(load_id).isdigit()
+                else url
+            ),
             "notes": "",
         }
         try:

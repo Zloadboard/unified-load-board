@@ -19,6 +19,7 @@
       --rxo: #f59e0b;
       --arcbest: #a78bfa;
       --echo: #38bdf8;
+      --chr: #fb7185;
       --warn-bg: #422006;
       --warn-border: #b45309;
       --warn-text: #fcd34d;
@@ -129,6 +130,7 @@
     .broker-link.ArcBest:hover { border-color: var(--arcbest); color: var(--arcbest); }
     .broker-link.MoLo:hover { border-color: #f472b6; color: #f472b6; }
     .broker-link.Echo:hover { border-color: var(--echo); color: var(--echo); }
+    .broker-link.CHR:hover { border-color: var(--chr); color: var(--chr); }
 
     .remote-note {
       display: none;
@@ -500,6 +502,26 @@
 
     .chip-clear-all:hover { color: var(--accent-hover); }
 
+    .broker-checks {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin: 0.35rem 0 0.55rem;
+      max-height: 14rem;
+      overflow: auto;
+    }
+    .broker-checks label {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .broker-checks input { accent-color: var(--accent); }
+
+
     .popover {
       display: none !important;
       position: absolute;
@@ -742,6 +764,7 @@
     .badge.ArcBest { background: rgba(167,139,250,.15); color: var(--arcbest); }
     .badge.MoLo { background: rgba(244,114,182,.15); color: #f472b6; }
     .badge.Echo { background: rgba(56,189,248,.15); color: var(--echo); }
+    .badge.CHR { background: rgba(251,113,133,.15); color: var(--chr); }
 
     .link a {
       color: var(--accent);
@@ -749,13 +772,6 @@
       font-weight: 550;
     }
     .link a:hover { text-decoration: underline; color: var(--accent-hover); }
-
-    .notes {
-      max-width: 160px;
-      white-space: normal;
-      color: var(--muted);
-      font-size: 0.8rem;
-    }
 
     .age {
       font-variant-numeric: tabular-nums;
@@ -798,7 +814,7 @@
 <body>
   <header>
     <div>
-      <h1>Unified Load Board <span>Arrive / RXO / ArcBest / MoLo / Echo</span></h1>
+      <h1>Unified Load Board <span>Arrive / RXO / ArcBest / MoLo / Echo / CHR</span></h1>
     </div>
     <div class="meta-actions">
       <div class="meta">Last updated: <strong id="updatedAt">-</strong></div>
@@ -815,6 +831,7 @@
     <a class="broker-link ArcBest" href="https://carriers.arcb.com/Shipments" target="_blank" rel="noopener noreferrer">ArcBest</a>
     <a class="broker-link MoLo" href="https://carriers.arcb.com/Shipments" target="_blank" rel="noopener noreferrer">MoLo/ArcBest</a>
     <a class="broker-link Echo" href="https://echodrive.echo.com/carrier/10261/availableLoads" target="_blank" rel="noopener noreferrer">Echo</a>
+    <a class="broker-link CHR" href="https://www.navispherecarrier.com/" target="_blank" rel="noopener noreferrer">CHR</a>
   </div>
 
   <div class="settings-panel" id="settingsPanel" aria-label="API settings">
@@ -869,22 +886,26 @@
         <option value="">All</option>
       </select>
     </label>
-    <label class="field">Source
-      <select id="filterSource" aria-label="Filter by source">
-        <option value="">All sources</option>
-        <option value="Arrive">Arrive</option>
-        <option value="RXO">RXO</option>
-        <option value="ArcBest">ArcBest</option>
-        <option value="MoLo">MoLo</option>
-        <option value="Echo">Echo</option>
-      </select>
-    </label>
     <button type="button" class="btn-search" id="btnSearch">Apply</button>
   </div>
 
   <!-- Filter chips with popovers (popover MUST NOT live inside <button>) -->
   <div class="chips-row" id="chipsRow">
     <div class="chips-left">
+      <div class="chip-wrap" id="wrapBrokers">
+        <button type="button" class="chip" id="chipBrokers" data-chip="brokers" aria-haspopup="true" aria-expanded="false">
+          <span class="chip-label">Brokers</span><span class="chip-caret">v</span>
+        </button>
+        <div class="popover" id="popBrokers" role="dialog" aria-label="Broker filter">
+          <h4>Brokers</h4>
+          <div class="broker-checks" id="brokerChecks"></div>
+          <div class="pop-actions">
+            <button type="button" class="btn-sm" data-clear="brokers">All</button>
+            <button type="button" class="btn-sm primary" data-done="brokers">Done</button>
+          </div>
+        </div>
+      </div>
+
       <div class="chip-wrap" id="wrapWeight">
         <button type="button" class="chip" id="chipWeight" data-chip="weight" aria-haspopup="true" aria-expanded="false">
           <span class="chip-label">Weight</span><span class="chip-caret">v</span>
@@ -1015,7 +1036,6 @@
           <th class="num" data-key="rate">Rate <span class="sort-ind">*</span></th>
           <th class="num" data-key="rpm">RPM <span class="sort-ind">*</span></th>
           <th data-key="seen_age">On board <span class="sort-ind">*</span></th>
-          <th data-key="notes">Notes <span class="sort-ind">*</span></th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -1120,7 +1140,6 @@
         radius: document.getElementById("filterRadius"),
         dest: document.getElementById("filterDest"),
         equipment: document.getElementById("filterEquipment"),
-        source: document.getElementById("filterSource"),
         puFrom: document.getElementById("filterPuFrom"),
         puTo: document.getElementById("filterPuTo"),
         sortPreset: document.getElementById("sortPreset"),
@@ -1136,7 +1155,87 @@
         chipWeight: document.getElementById("chipWeight"),
         chipMiles: document.getElementById("chipMiles"),
         chipRate: document.getElementById("chipRate"),
+        chipBrokers: document.getElementById("chipBrokers"),
       };
+
+      const ALL_BROKERS = ["Arrive", "RXO", "ArcBest", "MoLo", "Echo", "CHR"];
+      const BROKER_BOARD_URLS = {
+        Arrive: "https://carrier.arrivelogistics.com/find-loads",
+        RXO: "https://carrier.rxoconnect.rxo.com/loads/available-loads",
+        ArcBest: "https://carriers.arcb.com/Shipments",
+        MoLo: "https://carriers.arcb.com/Shipments",
+        Echo: "https://echodrive.echo.com/carrier/10261/availableLoads",
+        CHR: "https://www.navispherecarrier.com/",
+      };
+
+      function normalizeSourcesList(f) {
+        if (f && Array.isArray(f.sources) && f.sources.length) {
+          const want = {};
+          f.sources.forEach((s) => { if (s) want[String(s)] = true; });
+          const picked = ALL_BROKERS.filter((s) => want[s]);
+          return picked.length ? picked : ALL_BROKERS.slice();
+        }
+        // Migrate legacy single-select `source` (and drop it going forward)
+        if (f && f.source) {
+          const s = String(f.source);
+          if (ALL_BROKERS.indexOf(s) >= 0) return [s];
+        }
+        return ALL_BROKERS.slice();
+      }
+
+      function sourcesAreAll(list) {
+        const s = list || [];
+        return s.length === 0 || s.length >= ALL_BROKERS.length;
+      }
+
+      function isUsefulLoadUrl(url, id) {
+        const u = String(url || "").trim();
+        if (!u || !/^https?:\/\//i.test(u)) return false;
+        if (/^tel:/i.test(u)) return false;
+        const bare = u.replace(/\/$/, "");
+        const boards = Object.keys(BROKER_BOARD_URLS).map((k) =>
+          String(BROKER_BOARD_URLS[k]).replace(/\/$/, "")
+        );
+        if (boards.indexOf(bare) >= 0) return false;
+        // Generic board path with only query-less board URL variants
+        for (let i = 0; i < boards.length; i++) {
+          if (bare === boards[i]) return false;
+        }
+        if (id && u.indexOf(String(id)) >= 0) return true;
+        // Non-board http(s) link (detail / filtered / deep) counts as useful
+        return true;
+      }
+
+      function loadDetailUrl(load) {
+        const id = String((load && load.id) || "").trim();
+        const src = String((load && load.source) || "").trim();
+        const raw = String((load && load.url) || "").trim();
+        if (isUsefulLoadUrl(raw, id)) return raw;
+        const board = BROKER_BOARD_URLS[src] || "";
+        const synthetic =
+          !id ||
+          /^(ARR-|ARC-|ECHO-|CHR-|EXAMPLE-)/i.test(id) ||
+          id.indexOf(",") >= 0;
+        if (synthetic) return board || raw || "";
+        const enc = encodeURIComponent(id);
+        if (src === "Arrive") {
+          return "https://carrier.arrivelogistics.com/find-loads?loadBoardId=" + enc;
+        }
+        if (src === "RXO") {
+          // RXO ids often look like "2-21508696"
+          return "https://carrier.rxoconnect.rxo.com/loads/" + enc;
+        }
+        if (src === "ArcBest" || src === "MoLo") {
+          return "https://carriers.arcb.com/Shipments?shipmentId=" + enc;
+        }
+        if (src === "Echo") {
+          return "https://echodrive.echo.com/carrier/10261/availableLoads?loadId=" + enc;
+        }
+        if (src === "CHR") {
+          return "https://www.navispherecarrier.com/?loadId=" + enc;
+        }
+        return board || raw || "";
+      }
 
       function rpm(load) {
         if (load.rate == null || load.miles == null || Number(load.miles) === 0) return null;
@@ -1677,9 +1776,6 @@
           } else if (key === "rate") {
             av = parseRate(a.rate);
             bv = parseRate(b.rate);
-          } else if (key === "notes") {
-            av = displayNotes(a);
-            bv = displayNotes(b);
           } else {
             av = a[key];
             bv = b[key];
@@ -1704,13 +1800,45 @@
         return true;
       }
 
+      function readBrokerChecks() {
+        const box = document.getElementById("brokerChecks");
+        if (!box) return ALL_BROKERS.slice();
+        const picked = [];
+        box.querySelectorAll('input[type="checkbox"][data-broker]').forEach((inp) => {
+          if (inp.checked) picked.push(inp.getAttribute("data-broker"));
+        });
+        return picked.length ? picked : ALL_BROKERS.slice();
+      }
+
+      function writeBrokerChecks(list) {
+        const box = document.getElementById("brokerChecks");
+        if (!box) return;
+        const norm = normalizeSourcesList({ sources: list });
+        const allOn = sourcesAreAll(norm);
+        const want = {};
+        norm.forEach((s) => { want[s] = true; });
+        box.innerHTML = ALL_BROKERS.map((s) => {
+          const on = allOn || want[s] ? " checked" : "";
+          return (
+            '<label><input type="checkbox" data-broker="' +
+            s +
+            '"' +
+            on +
+            " /> " +
+            s +
+            "</label>"
+          );
+        }).join("");
+      }
+
       function readUiFilters() {
+        const sources = normalizeSourcesList({ sources: readBrokerChecks() });
         return {
           origin: el.origin.value.trim(),
           radius: el.radius.value,
           dest: el.dest.value.trim(),
           equipment: el.equipment.value,
-          source: el.source.value,
+          sources: sources,
           pickupFrom: el.puFrom.value || "",
           pickupTo: el.puTo.value || "",
           weightMin: state.weightMin,
@@ -1747,11 +1875,15 @@
         const originQ = f.origin || "";
         const destQ = f.dest || "";
         const equipment = f.equipment || "";
-        const source = f.source || "";
+        const sources = normalizeSourcesList(f);
 
         let rows = state.loads.slice();
 
-        if (source) rows = rows.filter((l) => l.source === source);
+        if (!sourcesAreAll(sources)) {
+          const want = {};
+          sources.forEach((s) => { want[s] = true; });
+          rows = rows.filter((l) => want[l.source]);
+        }
         if (equipment) rows = rows.filter((l) => equipmentMatch(l.equipment, equipment));
 
         if (originQ) {
@@ -1889,6 +2021,15 @@
         el.chipMiles.classList.toggle("active", mActive);
         el.chipRate.classList.toggle("active", rActive);
 
+        const srcList = normalizeSourcesList(state.applied || readUiFilters());
+        const bActive = !sourcesAreAll(srcList);
+        if (el.chipBrokers) {
+          el.chipBrokers.classList.toggle("active", bActive);
+          el.chipBrokers.querySelector(".chip-label").textContent = bActive
+            ? ("Brokers " + srcList.length + "/" + ALL_BROKERS.length)
+            : "Brokers";
+        }
+
         el.chipWeight.querySelector(".chip-label").textContent = wActive
           ? fmtChipNum(state.weightMin) + " to " + fmtChipNum(state.weightMax) + " lbs"
           : "Weight";
@@ -1946,7 +2087,7 @@
           const s = l.source || "?";
           bySrc[s] = (bySrc[s] || 0) + 1;
         });
-        const srcBits = ["Arrive", "RXO", "ArcBest", "MoLo", "Echo"]
+        const srcBits = ALL_BROKERS
           .filter(function (s) { return bySrc[s]; })
           .map(function (s) { return s + " " + bySrc[s]; });
         const srcTxt = srcBits.length ? " (" + srcBits.join(" · ") + ")" : "";
@@ -1960,17 +2101,16 @@
             const r = rpm(l);
             const puCity = pickupCity(l);
             const deCity = deliveryCity(l);
-            const notes = displayNotes(l);
             const weight = formatWeight(l.weight);
             const pallets = formatPallets(l.pallets);
-            const loadCell =
-              l.url && String(l.url).trim()
-                ? '<a href="' +
-                  escapeAttr(l.url) +
-                  '" target="_blank" rel="noopener noreferrer">' +
-                  escapeHtml(l.id || EMPTY) +
-                  "</a>"
-                : escapeHtml(l.id || EMPTY);
+            const href = loadDetailUrl(l);
+            const loadCell = href
+              ? '<a href="' +
+                escapeAttr(href) +
+                '" target="_blank" rel="noopener noreferrer" title="Open on broker site">' +
+                escapeHtml(l.id || EMPTY) +
+                "</a>"
+              : escapeHtml(l.id || EMPTY);
             const badgeClass = escapeAttr(l.source || "");
             return (
               "<tr>" +
@@ -2020,9 +2160,6 @@
               "</td>" +
               '<td class="age">' +
               escapeHtml(formatCell(l.seen_age)) +
-              "</td>" +
-              '<td class="notes">' +
-              escapeHtml(notes || EMPTY) +
               "</td>" +
               "</tr>"
             );
@@ -2200,7 +2337,7 @@
       }
 
       function closeAllPopovers(except) {
-        ["weight", "miles", "rate"].forEach((name) => {
+        ["brokers", "weight", "miles", "rate"].forEach((name) => {
           const chip = document.getElementById(
             "chip" + name.charAt(0).toUpperCase() + name.slice(1)
           );
@@ -2220,23 +2357,28 @@
         const pop = document.getElementById(
           "pop" + name.charAt(0).toUpperCase() + name.slice(1)
         );
+        if (!chip || !pop) return;
         const wasOpen = pop.classList.contains("open");
         closeAllPopovers();
         if (!wasOpen) {
-          // sync draft values from applied state
-          const minV = state[name + "Min"];
-          const maxV = state[name + "Max"];
-          const minR = document.getElementById(name + "MinRange");
-          const maxR = document.getElementById(name + "MaxRange");
-          const minN = document.getElementById(name + "MinNum");
-          const maxN = document.getElementById(name + "MaxNum");
-          if (minV != null && maxV != null) {
-            minR.value = String(minV);
-            maxR.value = String(maxV);
-            minN.value = String(minV);
-            maxN.value = String(maxV);
-            setDualLabels(name, minV, maxV, name === "rate");
-            syncDualFill(name);
+          if (name === "brokers") {
+            writeBrokerChecks(normalizeSourcesList(state.applied || readUiFilters()));
+          } else {
+            // sync draft values from applied state
+            const minV = state[name + "Min"];
+            const maxV = state[name + "Max"];
+            const minR = document.getElementById(name + "MinRange");
+            const maxR = document.getElementById(name + "MaxRange");
+            const minN = document.getElementById(name + "MinNum");
+            const maxN = document.getElementById(name + "MaxNum");
+            if (minR && maxR && minN && maxN && minV != null && maxV != null) {
+              minR.value = String(minV);
+              maxR.value = String(maxV);
+              minN.value = String(minV);
+              maxN.value = String(maxV);
+              setDualLabels(name, minV, maxV, name === "rate");
+              syncDualFill(name);
+            }
           }
           pop.classList.add("open");
           chip.setAttribute("aria-expanded", "true");
@@ -2401,7 +2543,7 @@
         el.radius.value = f.radius || "100";
         el.dest.value = f.dest || "";
         el.equipment.value = f.equipment || "";
-        el.source.value = f.source || "";
+        writeBrokerChecks(normalizeSourcesList(f));
         el.puFrom.value = f.pickupFrom || "";
         el.puTo.value = f.pickupTo || "";
         ["weight", "miles", "rate"].forEach((name) => {
@@ -2435,7 +2577,10 @@
       }
 
       function cloneFilters(f) {
-        return f ? JSON.parse(JSON.stringify(f)) : readUiFilters();
+        const base = f ? JSON.parse(JSON.stringify(f)) : readUiFilters();
+        base.sources = normalizeSourcesList(base);
+        if ("source" in base) delete base.source;
+        return base;
       }
 
       function shortOriginName(origin) {
@@ -2739,10 +2884,11 @@
 
 
       // Chip open / done / clear
-      ["weight", "miles", "rate"].forEach((name) => {
+      ["brokers", "weight", "miles", "rate"].forEach((name) => {
         const chip = document.getElementById(
           "chip" + name.charAt(0).toUpperCase() + name.slice(1)
         );
+        if (!chip) return;
         chip.addEventListener("click", (e) => {
           if (e.target.closest(".popover")) return;
           e.stopPropagation();
@@ -2754,9 +2900,17 @@
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           const name = btn.getAttribute("data-done");
+          if (name === "brokers") {
+            // Apply broker selection immediately into tab filters
+            applyUiFilters();
+            return;
+          }
           // stash draft into state for chip label; Apply still required for table
-          let a = Number(document.getElementById(name + "MinRange").value);
-          let b = Number(document.getElementById(name + "MaxRange").value);
+          const minEl = document.getElementById(name + "MinRange");
+          const maxEl = document.getElementById(name + "MaxRange");
+          if (!minEl || !maxEl) return;
+          let a = Number(minEl.value);
+          let b = Number(maxEl.value);
           if (a > b) { const t = a; a = b; b = t; }
           state[name + "Min"] = a;
           state[name + "Max"] = b;
@@ -2768,7 +2922,13 @@
       document.querySelectorAll("[data-clear]").forEach((btn) => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
-          clearRange(btn.getAttribute("data-clear"));
+          const name = btn.getAttribute("data-clear");
+          if (name === "brokers") {
+            writeBrokerChecks(ALL_BROKERS.slice());
+            updateChipLabels();
+            return;
+          }
+          clearRange(name);
         });
       });
 
@@ -2804,7 +2964,7 @@
         el.dest.value = "";
         el.radius.value = "100";
         el.equipment.value = "";
-        el.source.value = "";
+        writeBrokerChecks(ALL_BROKERS.slice());
         el.puFrom.value = "";
         el.puTo.value = "";
         clearRange("weight");
@@ -2846,6 +3006,7 @@
       });
 
       initDateInputs();
+      writeBrokerChecks(ALL_BROKERS.slice());
       refreshSavedSelect();
       initLocationTabs();
 

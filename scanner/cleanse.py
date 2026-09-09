@@ -1,4 +1,4 @@
-"""Post-extract field cleansing for Arrive / ArcBest DOM scrapes."""
+"""Post-extract field cleansing for Arrive / ArcBest / RXO / CHR scrapes."""
 
 from __future__ import annotations
 
@@ -652,6 +652,45 @@ def cleanse_rxo(load: dict) -> Optional[dict]:
     if de_d or de_t:
         out["delivery"] = " ".join(x for x in (de_d, de_t) if x)
 
+    lid = str(out.get("id") or "").strip()
+    url = str(out.get("url") or "")
+    if lid and re.match(r"^[\w-]+$", lid) and (
+        not url
+        or url.rstrip("/") == "https://carrier.rxoconnect.rxo.com/loads/available-loads"
+    ):
+        out["url"] = f"https://carrier.rxoconnect.rxo.com/loads/{lid}"
+    return out
+
+
+
+def cleanse_chr(load: dict) -> dict | None:
+    """Light CHR / Navisphere pass: aliases + drop empty junk."""
+    if not isinstance(load, dict):
+        return None
+    out = dict(load)
+    out["source"] = "CHR"
+    origin = str(out.get("pickup_city") or out.get("origin") or "").strip()
+    dest = str(out.get("delivery_city") or out.get("destination") or "").strip()
+    if origin:
+        out["origin"] = origin
+        out["pickup_city"] = origin
+    if dest:
+        out["destination"] = dest
+        out["delivery_city"] = dest
+    if not origin and not dest and not out.get("rate"):
+        return None
+    url = str(out.get("url") or "")
+    if url.lower().startswith("tel:"):
+        out["url"] = "https://www.navispherecarrier.com/"
+    lid = str(out.get("id") or "").strip()
+    if lid and lid.isdigit():
+        out["url"] = f"https://www.navispherecarrier.com/?loadId={lid}"
+    elif lid and "loadId=" not in url and url.rstrip("/") in (
+        "https://www.navispherecarrier.com",
+        "https://www.navispherecarrier.com/",
+        "",
+    ):
+        out["url"] = f"https://www.navispherecarrier.com/?loadId={lid}"
     return out
 
 
@@ -669,6 +708,8 @@ def cleanse_loads(loads: list[dict]) -> list[dict]:
                 row = cleanse_arcbest(load)
             elif src == "RXO":
                 row = cleanse_rxo(load)
+            elif src == "CHR":
+                row = cleanse_chr(load)
             else:
                 row = dict(load)
         except Exception:

@@ -1,4 +1,4 @@
-"""Attach to the stay-open Edge/Chrome (CDP port 9222) and scrape RXO/Arrive/ArcBest/Echo."""
+"""Attach to the stay-open Edge/Chrome (CDP port 9222) and scrape RXO/Arrive/ArcBest/Echo/CHR."""
 from __future__ import annotations
 
 import argparse
@@ -15,7 +15,7 @@ BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
 
 from extract import load_config, merge_loads, now_iso_z, resolve_output_path, write_loads_json  # noqa: E402
-from sources import arrive, arcbest, echo, rxo  # noqa: E402
+from sources import arrive, arcbest, chr as chr_src, echo, rxo  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%H:%M:%S")
 log = logging.getLogger("scanner.cdp")
@@ -127,9 +127,9 @@ def _write_last_scan(debug_dir: Path, per_source: dict, kept: dict[str, bool]) -
 
 def run_once(context, sources, output_path, debug_dir: Path):
     debug_dir.mkdir(parents=True, exist_ok=True)
-    results = {"Arrive": [], "RXO": [], "ArcBest": [], "Echo": []}
-    hard_fail = {"Arrive": False, "RXO": False, "ArcBest": False, "Echo": False}
-    fetchers = {"Arrive": arrive, "RXO": rxo, "ArcBest": arcbest, "Echo": echo}
+    results = {"Arrive": [], "RXO": [], "ArcBest": [], "Echo": [], "CHR": []}
+    hard_fail = {"Arrive": False, "RXO": False, "ArcBest": False, "Echo": False, "CHR": False}
+    fetchers = {"Arrive": arrive, "RXO": rxo, "ArcBest": arcbest, "Echo": echo, "CHR": chr_src}
 
     prev_by_source, prev_updated = _load_previous_by_source(Path(output_path))
     prev_age = _parse_iso_age_sec(prev_updated)
@@ -181,7 +181,13 @@ def run_once(context, sources, output_path, debug_dir: Path):
 
     _write_last_scan(debug_dir, results, kept_prev)
 
-    merged = merge_loads(results["Arrive"], results["RXO"], results["ArcBest"], results.get("Echo", []))
+    merged = merge_loads(
+        results["Arrive"],
+        results["RXO"],
+        results["ArcBest"],
+        results.get("Echo", []),
+        results.get("CHR", []),
+    )
     try:
         from cleanse import cleanse_loads
 

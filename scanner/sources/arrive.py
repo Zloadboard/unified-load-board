@@ -213,7 +213,11 @@ def _from_arrive_api_item(item: dict, url: str) -> dict | None:
         "weight": weight if weight is not None else "",
         "equipment": eq,
         "rate": rate,
-        "url": url,
+        "url": (
+            f"https://carrier.arrivelogistics.com/find-loads?loadBoardId={lid_s}"
+            if lid_s.isdigit()
+            else url
+        ),
         "notes": "",
         "status": str(item.get("LoadStatus") or ""),
     }
