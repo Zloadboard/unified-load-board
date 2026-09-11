@@ -1,0 +1,110 @@
+{
+  "manifest_version": 3,
+  "name": "Unified Load Board Scanner",
+  "version": "1.0.0",
+  "description": "Fetches Arrive / RXO / ArcBest / Echo / CHR loads using your normal Chrome cookies and posts to localhost:8765.",
+  "permissions": [
+    "alarms",
+    "cookies",
+    "storage",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://carrier.arrivelogistics.com/*",
+    "https://*.arrivelogistics.com/*",
+    "https://carrier.rxoconnect.rxo.com/*",
+    "https://rxoconnect.rxo.com/*",
+    "https://*.rxoconnect.rxo.com/*",
+    "https://login.id.rxo.com/*",
+    "https://*.rxo.com/*",
+    "https://carriers.arcb.com/*",
+    "https://*.arcb.com/*",
+    "https://echodrive.echo.com/*",
+    "https://*.echo.com/*",
+    "https://www.navispherecarrier.com/*",
+    "https://*.navispherecarrier.com/*",
+    "https://*.navisphere.com/*",
+    "http://localhost:8765/*",
+    "http://127.0.0.1:8765/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Unified Load Board",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://carrier.arrivelogistics.com/*",
+        "https://*.arrivelogistics.com/*"
+      ],
+      "js": ["content/arrive.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://carrier.rxoconnect.rxo.com/*",
+        "https://*.rxoconnect.rxo.com/*",
+        "https://rxoconnect.rxo.com/*"
+      ],
+      "js": ["content/rxo.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://carriers.arcb.com/*",
+        "https://*.arcb.com/*"
+      ],
+      "js": ["content/arcbest.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://echodrive.echo.com/*",
+        "https://*.echo.com/*"
+      ],
+      "js": ["content/echo.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.navispherecarrier.com/*",
+        "https://*.navispherecarrier.com/*",
+        "https://*.navisphere.com/*"
+      ],
+      "js": ["content/chr.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content/injected_hook.js"],
+      "matches": [
+        "https://carrier.arrivelogistics.com/*",
+        "https://*.arrivelogistics.com/*",
+        "https://carrier.rxoconnect.rxo.com/*",
+        "https://*.rxoconnect.rxo.com/*",
+        "https://carriers.arcb.com/*",
+        "https://*.arcb.com/*",
+        "https://echodrive.echo.com/*",
+        "https://*.echo.com/*",
+        "https://www.navispherecarrier.com/*",
+        "https://*.navispherecarrier.com/*"
+      ]
+    }
+  ]
+}

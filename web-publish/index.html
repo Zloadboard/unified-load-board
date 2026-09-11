@@ -847,6 +847,21 @@
   </style>
 </head>
 <body>
+
+  <div class="ext-install" id="extInstallPanel" style="margin:1rem;padding:1rem;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#e2e8f0;font-family:system-ui,sans-serif">
+    <h2 style="margin:0 0 .4rem;font-size:1rem">Download / Install extension</h2>
+    <p style="margin:.25rem 0;font-size:.9rem;color:#cbd5e1">Chrome MV3 scanner — sign into brokers in normal Chrome. No CDP window.</p>
+    <p><a href="ulb-extension.zip" download style="display:inline-block;background:#0ea5e9;color:#0f172a;font-weight:700;padding:.45rem .85rem;border-radius:8px;text-decoration:none">Download ulb-extension.zip</a>
+       &nbsp; <a href="EXTENSION.md" style="color:#7dd3fc">Install notes</a></p>
+    <ol style="font-size:.85rem;color:#cbd5e1;line-height:1.4">
+      <li>Download and unzip (folder must contain <code>manifest.json</code>).</li>
+      <li>Chrome → <code>chrome://extensions</code> → Developer mode → <strong>Load unpacked</strong>.</li>
+      <li>Select the unzipped folder. Sign into Arrive / RXO / ArcBest / Echo / CHR once.</li>
+      <li>On the work PC keep <code>serve_board</code> on :8765 so the extension can POST loads.</li>
+    </ol>
+    <p style="font-size:.75rem;color:#94a3b8">Chrome Web Store not required for v1 (unpacked).</p>
+  </div>
+
   <header>
     <div>
       <h1>Unified Load Board <span>Arrive / RXO / ArcBest / MoLo / Echo / CHR</span></h1>

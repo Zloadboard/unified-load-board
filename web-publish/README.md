@@ -33,3 +33,7 @@ Open the board → Settings → paste the tunnel URL → Save (stored in this br
 - Broker login links on the board open the broker site for *you*; they do **not** feed the scraper.
 
 See `../PUBLIC_BOARD.md` for tunnel + Task Scheduler morning flow.
+
+## Chrome extension
+
+Download `ulb-extension.zip` from this folder (or the live board). See repo root `EXTENSION.md` for Load unpacked steps.

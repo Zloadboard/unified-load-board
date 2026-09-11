@@ -3,37 +3,36 @@
 ## What you get
 
 - One board URL from phone or any browser.
-- Work PC keeps scraping quietly (**one** scanner Chrome + `serve_board.py` + `cdp_attach.py`).
+- Work PC: **Chrome extension** + `serve_board.py` (+ optional tunnel). No CDP scanner Chrome required.
 - GitHub Pages can host the HTML; live data is fetched from the tunnel with CORS.
+- Extension zip: `docs/ulb-extension.zip` / `extension/ulb-extension.zip` for install on another PC.
 
-## Honest constraint (also shown in the UI)
+## Honest constraint
 
-> Broker sites block iframes. Sign into brokers on **http://localhost:8765/** using **Sign in Arrive / RXO / …** — that focuses the broker **tab in the same Chrome window** as the board (CDP profile).  
-> GitHub Pages cannot control Chrome. Load # links open a new **tab** (same window); they do **not** feed the scraper.
+> Broker sites block iframes. Sign into brokers in **normal Chrome** (where the extension is installed).  
+> GitHub Pages cannot install the extension or control Chrome. Load # links open the broker site; they do **not** feed the scanner by themselves.
 
-## Morning flow (should be ~zero clicks)
-
-After Task Scheduler is installed:
+## Morning flow (~zero clicks after setup)
 
 1. Log into Windows (or leave PC on / wake).
-2. Task **Unified Load Board** runs `SILENT_START.vbs` at logon and weekdays 7:45 AM.
-3. Open the board:
-   - Local: already tab 1 of scanner Chrome, or `http://localhost:8765/`
-   - Phone: tunnel URL from `tunnel_url.txt` (or GitHub Pages with `?api=…`)
-4. First time / after profile wipe: on **http://localhost:8765/** click **Sign in Arrive** (etc.), sign in, **Back to board**, then **Hide Chrome**.
+2. Task **Unified Load Board** runs `SILENT_START.vbs` → **serve_board** on :8765.
+3. Leave normal Chrome open (extension installed, brokers signed in).
+4. Open the board: `http://localhost:8765/` or phone via tunnel / Pages `?api=…`
 
-Optional tunnel each day (quick tunnels change URL):
+## Install extension (another computer)
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scanner\start_tunnel.ps1
-# reads public URL → tunnel_url.txt
-```
+1. Download `ulb-extension.zip` from the board Download panel, repo, or Pages.
+2. Unzip to a stable folder.
+3. `chrome://extensions` → Developer mode → Load unpacked → select that folder.
+4. Sign into the five brokers in that Chrome; keep `serve_board` reachable if posting locally (or point a future gist sync — v1 = localhost).
 
 ## Install Task Scheduler (once)
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scanner\install_task.ps1
 ```
+
+CDP Chrome is **not** started. To force legacy CDP: set env `ULB_ENABLE_CDP=1` before silent start.
 
 ## Named tunnel later (stable URL)
 
@@ -49,5 +48,3 @@ Quick tunnels (`trycloudflare.com`) get a **new random URL each run**. For a sta
 ```
 https://YOURUSER.github.io/unified-load-board/?api=https://random-words.trycloudflare.com
 ```
-
-Coords JSON (`city_coords.json`, etc.) are fetched from the same API base — keep them on the work PC / tunnel so the GitHub repo stays small.

@@ -1,8 +1,9 @@
-Unified Load Board — daily checklist
-====================================
-1. SILENT_START.vbs / Task Scheduler starts serve_board + ONE Chrome (board+brokers) + cdp_attach.
-2. Board is tab 1 of that Chrome (http://localhost:8765/) — or open it in your normal browser.
-3. Sign in: board → "Sign in Arrive/RXO/…" (focuses that tab in the SAME Chrome) → log in → "Back to board" → "Hide Chrome".
-4. Do NOT open a second scanner Chrome / profile. Scraping uses CDP on this one window.
-5. Load # opens a new TAB in the same Chrome window (target=_blank = tab, not a new window).
-6. GitHub Pages / phone: live data via tunnel; sign-in still on work PC board.
+Unified Load Board — daily checklist (extension mode)
+=====================================================
+1. SILENT_START / Task Scheduler starts serve_board.py only (NO CDP Chrome by default).
+2. Normal Chrome stays open with the Unified Load Board Scanner extension installed.
+3. One-time: sign into Arrive / RXO / ArcBest / Echo / CHR via extension popup → Open.
+4. Open board http://localhost:8765/ — banner shows “Extension mode” when data was POSTed by the extension.
+5. Empty / logged-out sources keep last-good loads; popup shows per-broker status.
+6. Download/install help is on the board (“Download / Install extension”) and EXTENSION.md.
+7. Legacy CDP: only if ULB_ENABLE_CDP=1 — not needed for daily use.

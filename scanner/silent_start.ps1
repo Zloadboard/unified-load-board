@@ -1,7 +1,7 @@
 # Unified Load Board - silent auto-start (no console spam).
-# ONE Chrome window: board tab + broker tabs (same CDP profile). Visible on primary
-# monitor at start (for sign-in); use board "Hide Chrome" to minimize afterward.
-# Never parks at -32000 (that caused taskbar-stuck hell).
+# DEFAULT (extension mode): start serve_board.py only (+ optional tunnel).
+# CDP scanner Chrome is OFF unless ULB_ENABLE_CDP=1 is set in the environment.
+# Daily path: install the Chrome extension, sign into brokers in normal Chrome, open board.
 # Called by SILENT_START.vbs / Task Scheduler. Safe to re-run (idempotent).
 $ErrorActionPreference = "SilentlyContinue"
 $Scanner = $PSScriptRoot
@@ -9,6 +9,7 @@ $Root = (Resolve-Path (Join-Path $Scanner "..")).Path
 $LogDir = Join-Path $Root "data"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 $Log = Join-Path $LogDir "silent_start.log"
+$EnableCdp = $env:ULB_ENABLE_CDP -eq "1"
 
 function Write-Log([string]$msg) {
   $line = "[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg
@@ -76,7 +77,7 @@ function Start-BoardServer {
     return
   }
   $scriptPath = Join-Path $Scanner "serve_board.py"
-  Write-Log "Starting serve_board.py with $py (hidden)"
+  Write-Log "Starting serve_board.py with $py (hidden) — extension POSTs to /api/loads"
   Start-Process -FilePath $py -ArgumentList "`"$scriptPath`"" -WorkingDirectory $Root -WindowStyle Hidden
 }
 
@@ -86,8 +87,9 @@ function Start-ScannerChrome {
   New-Item -ItemType Directory -Force -Path $profile | Out-Null
 
   if (Test-PortListen $port) {
-    Write-Log "CDP $port already listening - ensure tabs only (no new Chrome)"
+    Write-Log "CDP $port already listening - ensure+dedupe tabs only (no new Chrome)"
     Invoke-ChromeWindow "ensure-tabs"
+    Invoke-ChromeWindow "dedupe"
     return
   }
 
@@ -102,8 +104,6 @@ function Start-ScannerChrome {
     return
   }
 
-  # ONE visible window on primary monitor. First URL = board, then brokers.
-  # Do NOT use -32000 / WindowStyle Hidden (taskbar-stuck). User hides via board UI.
   $board = "http://localhost:8765/"
   $chromeArgs = @(
     "--remote-debugging-port=$port",
@@ -112,17 +112,13 @@ function Start-ScannerChrome {
     "--no-default-browser-check",
     "--window-position=60,40",
     "--window-size=1400,900",
-    $board,
-    "https://carrier.arrivelogistics.com/find-loads",
-    "https://carrier.rxoconnect.rxo.com/loads/available-loads",
-    "https://carriers.arcb.com/Shipments",
-    "https://echodrive.echo.com/carrier/10261/availableLoads",
-    "https://www.navispherecarrier.com/"
+    $board
   )
-  Write-Log "Starting ONE scanner Chrome VISIBLE on primary (CDP $port, board + brokers)"
+  Write-Log "LEGACY: Starting scanner Chrome VISIBLE (CDP $port) — set only when ULB_ENABLE_CDP=1"
   Start-Process -FilePath $chrome -ArgumentList $chromeArgs
   Start-Sleep -Seconds 5
   Invoke-ChromeWindow "ensure-tabs"
+  Invoke-ChromeWindow "dedupe"
   Invoke-ChromeWindow "show"
 }
 
@@ -139,15 +135,20 @@ function Start-CdpAttach {
     return
   }
   $scriptPath = Join-Path $Scanner "cdp_attach.py"
-  Write-Log "Starting cdp_attach.py with $pyw"
+  Write-Log "LEGACY: Starting cdp_attach.py with $pyw"
   Start-Process -FilePath $pyw -ArgumentList "`"$scriptPath`"" -WorkingDirectory $Scanner -WindowStyle Hidden
 }
 
-Write-Log "=== silent_start begin ==="
-# Board server first so Chrome's first tab can load the board
+Write-Log "=== silent_start begin (extension mode; CDP=$EnableCdp) ==="
 Start-BoardServer
 Start-Sleep -Seconds 2
-Start-ScannerChrome
-Start-Sleep -Seconds 3
-Start-CdpAttach
-Write-Log "=== silent_start done (Chrome visible; Hide from board when signed in) ==="
+if ($EnableCdp) {
+  Write-Log "ULB_ENABLE_CDP=1 — launching legacy CDP Chrome + cdp_attach"
+  Start-ScannerChrome
+  Start-Sleep -Seconds 3
+  Start-CdpAttach
+} else {
+  Write-Log "CDP Chrome NOT started (default). Use Chrome extension + normal broker tabs."
+  Write-Log "Board: http://localhost:8765/  Extension zip: http://localhost:8765/extension/ulb-extension.zip"
+}
+Write-Log "=== silent_start done ==="

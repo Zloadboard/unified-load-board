@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unified Load Board</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <h1>Unified Load Board</h1>
+    <p class="sub">Extension mode — uses this Chrome’s broker cookies</p>
+  </header>
+
+  <section class="actions">
+    <button type="button" id="btnScan" class="primary">Scan now</button>
+    <button type="button" id="btnBoard">Open board</button>
+  </section>
+
+  <section id="statusBox" class="status-box">
+    <div class="row"><span>Last scan</span><strong id="lastScan">—</strong></div>
+    <div class="row"><span>Total loads</span><strong id="total">—</strong></div>
+    <div class="row err" id="errRow" hidden><span>Board POST</span><strong id="lastErr"></strong></div>
+  </section>
+
+  <section class="brokers">
+    <h2>Brokers</h2>
+    <ul id="brokerList"></ul>
+  </section>
+
+  <section class="hint">
+    <p>Sign into each broker <strong>once</strong> in a normal tab (buttons below). Leave Chrome open; the extension scans about every 60s.</p>
+    <p class="muted">ArcBest / CHR need their board tab open (or recently used) so the extension can read live data.</p>
+  </section>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
