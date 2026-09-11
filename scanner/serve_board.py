@@ -5,15 +5,15 @@ Serves the project root (index.html, loads.json, city_coords.json, …)
 with Access-Control-Allow-Origin: * so GitHub Pages / phone browsers
 can fetch live data from this work-PC endpoint (via tunnel).
 
-Also exposes local scanner Chrome controls (work PC only):
+Scanner Chrome controls (work PC only) — ONE Chrome window with board + broker tabs:
   GET  /api/scanner/status
-  POST /api/scanner/show   — unhide CDP Chrome for broker sign-in
-  POST /api/scanner/hide   — hide CDP Chrome again (SW_HIDE)
+  GET  /api/scanner/tabs
+  POST /api/scanner/show        — restore Chrome on primary monitor
+  POST /api/scanner/hide        — minimize (not off-screen)
+  POST /api/scanner/focus-tab   — body {"broker":"arrive"|…|"board"} activate tab
+  POST /api/scanner/ensure-tabs — open missing board/broker tabs in same window
 
-These APIs require the work PC (localhost:8765). GitHub Pages cannot
-control scanner Chrome — sign-in from http://localhost:8765/ on the PC.
-
-Prefer launching with pythonw.exe (no console) via silent_start.ps1.
+Prefer launching with python.exe (hidden) via silent_start.ps1.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ import os
 import subprocess
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 PORT = int(os.environ.get("ULB_PORT", "8765"))
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,8 +36,6 @@ def _json_bytes(obj: dict) -> bytes:
 
 def _find_python() -> str:
     # Prefer python.exe for the Win32 helper so stdout is captured.
-    # When serve_board runs under pythonw, sys.executable is pythonw.exe and
-    # subprocess capture_output often returns empty stdout.
     exe = sys.executable or "python"
     low = exe.lower()
     if low.endswith("pythonw.exe"):
@@ -47,17 +45,18 @@ def _find_python() -> str:
     return exe
 
 
-def _scanner_action(action: str) -> dict:
+def _scanner_action(action: str, extra: str | None = None) -> dict:
     """Run chrome_window.py in a subprocess so Win32 never crashes the HTTP thread."""
     if not os.path.isfile(HELPER):
         return {"ok": False, "error": "chrome_window.py missing", "state": "error"}
     cmd = [_find_python(), HELPER, action]
+    if extra:
+        cmd.append(extra)
     try:
-        # Use CREATE_NO_WINDOW on Windows when possible
         kwargs = {
             "capture_output": True,
             "text": True,
-            "timeout": 45,
+            "timeout": 60,
             "cwd": SCANNER,
         }
         if sys.platform.startswith("win"):
@@ -102,31 +101,63 @@ class CORSRequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _handle_api(self) -> bool:
+    def _read_json_body(self) -> dict:
+        try:
+            length = int(self.headers.get("Content-Length") or "0")
+        except ValueError:
+            length = 0
+        if length <= 0:
+            return {}
+        try:
+            raw = self.rfile.read(min(length, 1_000_000))
+            return json.loads(raw.decode("utf-8", "ignore") or "{}")
+        except Exception:
+            return {}
+
+    def _handle_api(self, body: dict | None = None) -> bool:
         parsed = urlparse(self.path)
         path = (parsed.path or "").rstrip("/") or "/"
         if not path.startswith("/api/scanner"):
             return False
+        qs = parse_qs(parsed.query or "")
+        body = body if body is not None else {}
         try:
             action = "status"
+            extra = None
+            mutating = False
+
             if path.endswith("/show"):
-                action = "show"
+                action, mutating = "show", True
             elif path.endswith("/hide"):
-                action = "hide"
+                action, mutating = "hide", True
+            elif path.endswith("/ensure-tabs") or path.endswith("/ensure_tabs"):
+                action, mutating = "ensure-tabs", True
+            elif path.endswith("/focus-tab") or path.endswith("/focus_tab"):
+                action, mutating = "focus-tab", True
+                broker = (
+                    (body.get("broker") if isinstance(body, dict) else None)
+                    or (body.get("key") if isinstance(body, dict) else None)
+                    or (qs.get("broker") or [None])[0]
+                    or (qs.get("key") or [None])[0]
+                    or "board"
+                )
+                extra = str(broker).strip().lower() or "board"
+            elif path.endswith("/tabs") or path.endswith("/tab-status"):
+                action = "tab-status"
             elif path.endswith("/status") or path == "/api/scanner":
                 action = "status"
             else:
                 self._send_json(404, {"ok": False, "error": "unknown_endpoint", "path": path})
                 return True
 
-            if action in ("show", "hide") and self.command not in ("POST", "PUT"):
+            if mutating and self.command not in ("POST", "PUT"):
                 self._send_json(
                     405,
                     {"ok": False, "error": "method_not_allowed", "hint": f"Use POST {path}"},
                 )
                 return True
 
-            result = _scanner_action(action)
+            result = _scanner_action(action, extra)
             code = 200 if result.get("ok") else 500
             self._send_json(code, result)
         except Exception as exc:
@@ -142,16 +173,8 @@ class CORSRequestHandler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        try:
-            length = int(self.headers.get("Content-Length") or "0")
-        except ValueError:
-            length = 0
-        if length > 0:
-            try:
-                self.rfile.read(min(length, 1_000_000))
-            except Exception:
-                pass
-        if self._handle_api():
+        body = self._read_json_body()
+        if self._handle_api(body):
             return
         self.send_response(404)
         self.end_headers()

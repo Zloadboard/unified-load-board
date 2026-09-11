@@ -1,7 +1,7 @@
 ' Unified Load Board - hidden launcher (no console window).
-' Starts scanner Chrome HIDDEN, serve_board.py, cdp_attach.py via silent_start.ps1.
+' Starts serve_board.py, ONE scanner Chrome (board + broker tabs, on-screen), cdp_attach.py.
 ' Point Task Scheduler at this file. Double-click also works.
-' Sign into brokers from the board: http://localhost:8765/ → "Sign in brokers"
+' Sign into brokers from the board: http://localhost:8765/ → Sign in Arrive/RXO/… then Hide Chrome.
 Option Explicit
 Dim sh, fso, root, ps1
 Set fso = CreateObject("Scripting.FileSystemObject")

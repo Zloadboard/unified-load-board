@@ -1,4 +1,7 @@
-# Unified Load Board - silent auto-start (no console spam, no visible scanner Chrome, no pause).
+# Unified Load Board - silent auto-start (no console spam).
+# ONE Chrome window: board tab + broker tabs (same CDP profile). Visible on primary
+# monitor at start (for sign-in); use board "Hide Chrome" to minimize afterward.
+# Never parks at -32000 (that caused taskbar-stuck hell).
 # Called by SILENT_START.vbs / Task Scheduler. Safe to re-run (idempotent).
 $ErrorActionPreference = "SilentlyContinue"
 $Scanner = $PSScriptRoot
@@ -49,25 +52,45 @@ function Find-Pythonw {
   return $null
 }
 
-function Invoke-ChromeWindow([string]$Action) {
-  $pyw = Find-Pythonw
+function Invoke-ChromeWindow([string]$Action, [string]$Extra = $null) {
+  $py = Find-Python
+  if (-not $py) { $py = Find-Pythonw }
   $helper = Join-Path $Scanner "chrome_window.py"
-  if (-not $pyw -or -not (Test-Path $helper)) {
-    Write-Log "WARN: cannot $Action scanner chrome (pythonw/helper missing)"
+  if (-not $py -or -not (Test-Path $helper)) {
+    Write-Log "WARN: cannot $Action scanner chrome (python/helper missing)"
     return
   }
-  Start-Process -FilePath $pyw -ArgumentList "`"$helper`"","$Action" -WindowStyle Hidden -Wait | Out-Null
+  $args = @("`"$helper`"", $Action)
+  if ($Extra) { $args += $Extra }
+  Start-Process -FilePath $py -ArgumentList $args -WindowStyle Hidden -Wait | Out-Null
+}
+
+function Start-BoardServer {
+  if (Test-PortListen 8765) {
+    Write-Log "Port 8765 already listening - skip serve_board"
+    return
+  }
+  $py = Find-Python
+  if (-not $py) {
+    Write-Log "ERROR: python not found"
+    return
+  }
+  $scriptPath = Join-Path $Scanner "serve_board.py"
+  Write-Log "Starting serve_board.py with $py (hidden)"
+  Start-Process -FilePath $py -ArgumentList "`"$scriptPath`"" -WorkingDirectory $Root -WindowStyle Hidden
 }
 
 function Start-ScannerChrome {
   $port = 9222
-  if (Test-PortListen $port) {
-    Write-Log "CDP $port already listening - hide only (no new Chrome windows)"
-    Invoke-ChromeWindow "hide"
-    return
-  }
   $profile = Join-Path $Scanner "chrome_cdp_profile"
   New-Item -ItemType Directory -Force -Path $profile | Out-Null
+
+  if (Test-PortListen $port) {
+    Write-Log "CDP $port already listening - ensure tabs only (no new Chrome)"
+    Invoke-ChromeWindow "ensure-tabs"
+    return
+  }
+
   $candidates = @(
     "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
     "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
@@ -78,40 +101,29 @@ function Start-ScannerChrome {
     Write-Log "ERROR: Chrome not found"
     return
   }
-  # Hidden + off-screen. Prefer hidden over headless (broker logins break headless).
-  # Start about:blank only — ensure-tabs opens broker boards inside this CDP Chrome.
+
+  # ONE visible window on primary monitor. First URL = board, then brokers.
+  # Do NOT use -32000 / WindowStyle Hidden (taskbar-stuck). User hides via board UI.
+  $board = "http://localhost:8765/"
   $chromeArgs = @(
     "--remote-debugging-port=$port",
-    "--user-data-dir=$profile",
+    "--user-data-dir=`"$profile`"",
     "--no-first-run",
     "--no-default-browser-check",
-    "--window-position=-32000,-32000",
-    "--window-size=1280,900",
-    "about:blank"
+    "--window-position=60,40",
+    "--window-size=1400,900",
+    $board,
+    "https://carrier.arrivelogistics.com/find-loads",
+    "https://carrier.rxoconnect.rxo.com/loads/available-loads",
+    "https://carriers.arcb.com/Shipments",
+    "https://echodrive.echo.com/carrier/10261/availableLoads",
+    "https://www.navispherecarrier.com/"
   )
-  Write-Log "Starting scanner Chrome HIDDEN (CDP $port)"
-  Start-Process -FilePath $chrome -ArgumentList $chromeArgs -WindowStyle Hidden
-  Start-Sleep -Seconds 4
-  Invoke-ChromeWindow "hide"
+  Write-Log "Starting ONE scanner Chrome VISIBLE on primary (CDP $port, board + brokers)"
+  Start-Process -FilePath $chrome -ArgumentList $chromeArgs
+  Start-Sleep -Seconds 5
   Invoke-ChromeWindow "ensure-tabs"
-  Start-Sleep -Seconds 1
-  Invoke-ChromeWindow "hide"
-}
-
-function Start-BoardServer {
-  if (Test-PortListen 8765) {
-    Write-Log "Port 8765 already listening - skip serve_board"
-    return
-  }
-  # Use python.exe (hidden) so /api/scanner/* subprocess stdout works reliably.
-  $py = Find-Python
-  if (-not $py) {
-    Write-Log "ERROR: python not found"
-    return
-  }
-  $scriptPath = Join-Path $Scanner "serve_board.py"
-  Write-Log "Starting serve_board.py with $py (hidden)"
-  Start-Process -FilePath $py -ArgumentList "`"$scriptPath`"" -WorkingDirectory $Root -WindowStyle Hidden
+  Invoke-ChromeWindow "show"
 }
 
 function Start-CdpAttach {
@@ -132,11 +144,10 @@ function Start-CdpAttach {
 }
 
 Write-Log "=== silent_start begin ==="
-Start-ScannerChrome
-Start-Sleep -Seconds 4
+# Board server first so Chrome's first tab can load the board
 Start-BoardServer
 Start-Sleep -Seconds 2
+Start-ScannerChrome
+Start-Sleep -Seconds 3
 Start-CdpAttach
-# Final hide pass in case Chrome flashed
-Invoke-ChromeWindow "hide"
-Write-Log "=== silent_start done ==="
+Write-Log "=== silent_start done (Chrome visible; Hide from board when signed in) ==="

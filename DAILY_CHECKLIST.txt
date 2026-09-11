@@ -1,8 +1,8 @@
 Unified Load Board — daily checklist
 ====================================
-1. SILENT_START.vbs / Task Scheduler starts everything hidden.
-2. Open ONLY the board: http://localhost:8765/
-3. If a broker needs login: board → "Sign in brokers" → log in → "Hide scanner".
-4. Do NOT open extra Chrome windows for scraping.
-5. Load # opens the broker load in your current browser (OK).
+1. SILENT_START.vbs / Task Scheduler starts serve_board + ONE Chrome (board+brokers) + cdp_attach.
+2. Board is tab 1 of that Chrome (http://localhost:8765/) — or open it in your normal browser.
+3. Sign in: board → "Sign in Arrive/RXO/…" (focuses that tab in the SAME Chrome) → log in → "Back to board" → "Hide Chrome".
+4. Do NOT open a second scanner Chrome / profile. Scraping uses CDP on this one window.
+5. Load # opens a new TAB in the same Chrome window (target=_blank = tab, not a new window).
 6. GitHub Pages / phone: live data via tunnel; sign-in still on work PC board.

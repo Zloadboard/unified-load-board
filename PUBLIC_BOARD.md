@@ -3,13 +3,13 @@
 ## What you get
 
 - One board URL from phone or any browser.
-- Work PC keeps scraping quietly (scanner Chrome + `serve_board.py` + `cdp_attach.py`).
+- Work PC keeps scraping quietly (**one** scanner Chrome + `serve_board.py` + `cdp_attach.py`).
 - GitHub Pages can host the HTML; live data is fetched from the tunnel with CORS.
 
 ## Honest constraint (also shown in the UI)
 
-> Live data comes from the work PC. Sign into brokers on **http://localhost:8765/** (**Sign in brokers**).  
-> GitHub Pages cannot unhide scanner Chrome. Load # links open the broker load in your browser; they do **not** feed the scraper.
+> Broker sites block iframes. Sign into brokers on **http://localhost:8765/** using **Sign in Arrive / RXO / …** — that focuses the broker **tab in the same Chrome window** as the board (CDP profile).  
+> GitHub Pages cannot control Chrome. Load # links open a new **tab** (same window); they do **not** feed the scraper.
 
 ## Morning flow (should be ~zero clicks)
 
@@ -18,9 +18,9 @@ After Task Scheduler is installed:
 1. Log into Windows (or leave PC on / wake).
 2. Task **Unified Load Board** runs `SILENT_START.vbs` at logon and weekdays 7:45 AM.
 3. Open the board:
-   - Local: `http://localhost:8765/`
+   - Local: already tab 1 of scanner Chrome, or `http://localhost:8765/`
    - Phone: tunnel URL from `tunnel_url.txt` (or GitHub Pages with `?api=…`)
-4. First time / after Chrome profile wipe: on **http://localhost:8765/** click **Sign in brokers**, sign into Arrive / RXO / ArcBest / Echo / CHR, then **Hide scanner**. Do not rely on visible scanner Chrome windows.
+4. First time / after profile wipe: on **http://localhost:8765/** click **Sign in Arrive** (etc.), sign in, **Back to board**, then **Hide Chrome**.
 
 Optional tunnel each day (quick tunnels change URL):
 
@@ -29,21 +29,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scanner\start_tunnel.ps1
 # reads public URL → tunnel_url.txt
 ```
 
-Then on phone: open that URL, or GitHub Pages `?api=<that-url>`.
-
 ## Install Task Scheduler (once)
-
-From an elevated PowerShell in the project folder, or use the helper:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scanner\install_task.ps1
-```
-
-Manual equivalent:
-
-```bat
-schtasks /Create /TN "Unified Load Board" /TR "wscript.exe \"C:\Users\Disp\Desktop\unified-load-board\SILENT_START.vbs\"" /SC ONLOGON /RL HIGHEST /F
-schtasks /Create /TN "Unified Load Board Morning" /TR "wscript.exe \"C:\Users\Disp\Desktop\unified-load-board\SILENT_START.vbs\"" /SC WEEKLY /D MON,TUE,WED,THU,FRI /ST 07:45 /RL HIGHEST /F
 ```
 
 ## Named tunnel later (stable URL)

@@ -1,6 +1,11 @@
-"""Win32 helpers to hide/show the scanner CDP Chrome window (chrome_cdp_profile).
+"""Win32 + CDP helpers for the single scanner Chrome window (chrome_cdp_profile).
 
-Prefer SW_HIDE over headless so broker logins/sessions stay intact.
+ONE Chrome hosts:
+  Tab 1: board http://localhost:8765/
+  Other tabs: Arrive / RXO / ArcBest / Echo / CHR
+
+Hide = minimize (never park at -32000 — that caused taskbar-stuck hell).
+Show / focus-tab = restore on primary monitor + CDP activate tab.
 Safe no-ops on non-Windows.
 """
 from __future__ import annotations
@@ -10,26 +15,69 @@ import os
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any
 
 PROFILE_MARKER = "chrome_cdp_profile"
 CDP_PORT = int(os.environ.get("ULB_CDP_PORT", "9222"))
 CDP = f"http://127.0.0.1:{CDP_PORT}"
+BOARD_URL = os.environ.get("ULB_BOARD_URL", "http://localhost:8765/")
 
 SW_HIDE = 0
 SW_SHOWNORMAL = 1
-SW_SHOW = 5
-SW_RESTORE = 9
 SW_SHOWMINIMIZED = 2
+SW_SHOW = 5
+SW_MINIMIZE = 6
+SW_RESTORE = 9
+SWP_NOSIZE = 0x0001
+SWP_NOMOVE = 0x0002
+SWP_NOZORDER = 0x0004
+SWP_SHOWWINDOW = 0x0040
+HWND_TOP = 0
 
-BROKER_URLS = [
-    "https://carrier.arrivelogistics.com/find-loads",
-    "https://carrier.rxoconnect.rxo.com/loads/available-loads",
-    "https://carriers.arcb.com/Shipments",
-    "https://echodrive.echo.com/carrier/10261/availableLoads",
-    "https://www.navispherecarrier.com/",
-]
+# Primary-monitor restore geometry (avoid -32000 forever)
+RESTORE_X = 60
+RESTORE_Y = 40
+RESTORE_W = 1400
+RESTORE_H = 900
+
+BROKER_TABS: dict[str, dict[str, str]] = {
+    "board": {
+        "label": "Board",
+        "url": BOARD_URL,
+        "match": "localhost:8765",
+    },
+    "arrive": {
+        "label": "Arrive",
+        "url": "https://carrier.arrivelogistics.com/find-loads",
+        "match": "arrivelogistics",
+    },
+    "rxo": {
+        "label": "RXO",
+        "url": "https://carrier.rxoconnect.rxo.com/loads/available-loads",
+        "match": "rxo",
+    },
+    "arcbest": {
+        "label": "ArcBest",
+        "url": "https://carriers.arcb.com/Shipments",
+        "match": "arcb",
+    },
+    "echo": {
+        "label": "Echo",
+        "url": "https://echodrive.echo.com/carrier/10261/availableLoads",
+        "match": "echodrive.echo.com",
+    },
+    "chr": {
+        "label": "CHR",
+        "url": "https://www.navispherecarrier.com/",
+        "match": "navisphere",
+    },
+}
+
+# Startup / ensure order: board first, then brokers
+BROKER_URLS = [BROKER_TABS[k]["url"] for k in ("arrive", "rxo", "arcbest", "echo", "chr")]
+STARTUP_URLS = [BOARD_URL] + BROKER_URLS
 
 
 def _is_windows() -> bool:
@@ -60,7 +108,6 @@ def _scanner_chrome_pids() -> list[int]:
     try:
         import subprocess
 
-        # PowerShell is more reliable than wmic on modern Windows
         ps = (
             "Get-CimInstance Win32_Process -Filter \"Name = 'chrome.exe'\" | "
             "Where-Object { $_.CommandLine -and $_.CommandLine -like '*chrome_cdp_profile*' } | "
@@ -82,37 +129,31 @@ def _scanner_chrome_pids() -> list[int]:
         return []
 
 
-def _enum_hwnds_for_pids(pids: set[int]) -> list[int]:
-    if not pids or not _is_windows():
-        return []
-    import ctypes
-    from ctypes import wintypes
+def kill_scanner_chrome() -> dict[str, Any]:
+    """Force-kill all chrome_cdp_profile Chrome processes (stuck taskbar recovery)."""
+    if not _is_windows():
+        return {"ok": False, "error": "not_windows", "killed": []}
+    import subprocess
 
-    user32 = ctypes.windll.user32
-    hwnds: list[int] = []
-
-    @ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
-    def _cb(hwnd, _lparam):  # type: ignore[no-untyped-def]
-        if not user32.IsWindowVisible(hwnd) and not user32.IsIconic(hwnd):
-            # Still collect hidden windows so we can show them later
+    pids = _scanner_chrome_pids()
+    killed: list[int] = []
+    for pid in pids:
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/PID", str(pid), "/T"],
+                capture_output=True,
+                text=True,
+                timeout=20,
+            )
+            killed.append(pid)
+        except Exception:
             pass
-        pid = wintypes.DWORD()
-        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-        if int(pid.value) in pids:
-            # Top-level windows only
-            if user32.GetWindow(hwnd, 4) == 0:  # GW_OWNER = 4 → no owner
-                length = user32.GetWindowTextLengthW(hwnd)
-                # Chrome main window usually has a title; skip tiny tool windows
-                if length >= 0:
-                    hwnds.append(int(hwnd))
-        return True
-
-    user32.EnumWindows(_cb, 0)
-    return hwnds
+    time.sleep(0.8)
+    return {"ok": True, "killed": killed, "remaining": _scanner_chrome_pids()}
 
 
 def _all_scanner_hwnds() -> list[int]:
-    """Include currently-hidden windows: EnumWindows still sees them."""
+    """Top-level hwnds for chrome_cdp_profile (includes minimized / hidden)."""
     pids = set(_scanner_chrome_pids())
     if not pids:
         return []
@@ -128,15 +169,19 @@ def _all_scanner_hwnds() -> list[int]:
         user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
         if int(pid.value) not in pids:
             return True
-        # Skip owned popups
-        if user32.GetWindow(hwnd, 4) != 0:
+        if user32.GetWindow(hwnd, 4) != 0:  # GW_OWNER
             return True
-        # Require a real chrome frame: has size or is iconic/hidden root
         rect = wintypes.RECT()
         user32.GetWindowRect(hwnd, ctypes.byref(rect))
         w = abs(int(rect.right) - int(rect.left))
         h = abs(int(rect.bottom) - int(rect.top))
-        if w < 50 and h < 50 and not user32.IsIconic(hwnd):
+        # Keep off-screen / hidden roots (w/h may be tiny after -32000 park)
+        if w < 50 and h < 50 and not user32.IsIconic(hwnd) and user32.IsWindowVisible(hwnd):
+            return True
+        # Always keep iconic / non-visible roots so we can restore them
+        if w < 50 and h < 50:
+            if user32.IsIconic(hwnd) or not user32.IsWindowVisible(hwnd):
+                hwnds.append(int(hwnd))
             return True
         hwnds.append(int(hwnd))
         return True
@@ -145,35 +190,71 @@ def _all_scanner_hwnds() -> list[int]:
     return hwnds
 
 
-def hide_scanner_chrome() -> dict[str, Any]:
-    """Hide all top-level windows belonging to chrome_cdp_profile processes."""
-    if not _is_windows():
-        return {"ok": False, "error": "not_windows", "state": status().get("state")}
+def _force_foreground(hwnd: int) -> None:
+    """Best-effort SetForegroundWindow (AttachThreadInput when needed)."""
     import ctypes
+    from ctypes import wintypes
 
     user32 = ctypes.windll.user32
-    hwnds = _all_scanner_hwnds()
-    hidden = 0
-    for hwnd in hwnds:
+    kernel32 = ctypes.windll.kernel32
+
+    try:
+        user32.ShowWindow(hwnd, SW_RESTORE)
+        user32.ShowWindow(hwnd, SW_SHOW)
+        user32.BringWindowToTop(hwnd)
+        if user32.SetForegroundWindow(hwnd):
+            return
+        # Attach to foreground thread and retry
+        fg = user32.GetForegroundWindow()
+        fg_tid = user32.GetWindowThreadProcessId(fg, None)
+        our_tid = kernel32.GetCurrentThreadId()
+        if fg_tid and fg_tid != our_tid:
+            user32.AttachThreadInput(our_tid, fg_tid, True)
+            user32.BringWindowToTop(hwnd)
+            user32.SetForegroundWindow(hwnd)
+            user32.AttachThreadInput(our_tid, fg_tid, False)
+        else:
+            user32.SetForegroundWindow(hwnd)
+    except Exception:
         try:
-            user32.ShowWindow(hwnd, SW_HIDE)
-            hidden += 1
+            user32.SetForegroundWindow(hwnd)
         except Exception:
             pass
-    # Also shove off-screen in case ShowWindow is ignored
-    for hwnd in hwnds:
-        try:
-            user32.SetWindowPos(hwnd, 0, -32000, -32000, 0, 0, 0x0001 | 0x0010)  # NOSIZE|NOZORDER
-        except Exception:
-            pass
-    st = status()
-    st["ok"] = True
-    st["hiddenWindows"] = hidden
-    return st
 
 
-def show_scanner_chrome() -> dict[str, Any]:
-    """Unhide / restore scanner Chrome so the user can sign into brokers."""
+def _restore_on_primary(hwnd: int) -> None:
+    """Move window onto primary monitor and show it (fixes -32000 / taskbar-stuck)."""
+    import ctypes
+    from ctypes import wintypes
+
+    user32 = ctypes.windll.user32
+    # Clear any leftover off-screen park, then restore + show
+    try:
+        user32.ShowWindow(hwnd, SW_RESTORE)
+    except Exception:
+        pass
+    try:
+        user32.ShowWindow(hwnd, SW_SHOW)
+    except Exception:
+        pass
+    flags = SWP_SHOWWINDOW
+    try:
+        user32.SetWindowPos(
+            hwnd,
+            HWND_TOP,
+            RESTORE_X,
+            RESTORE_Y,
+            RESTORE_W,
+            RESTORE_H,
+            flags,
+        )
+    except Exception:
+        pass
+    _force_foreground(hwnd)
+
+
+def hide_scanner_chrome() -> dict[str, Any]:
+    """Minimize scanner Chrome (do NOT SW_HIDE + -32000 — that stuck the taskbar)."""
     if not _is_windows():
         return {"ok": False, "error": "not_windows", "state": status().get("state")}
     import ctypes
@@ -181,71 +262,247 @@ def show_scanner_chrome() -> dict[str, Any]:
 
     user32 = ctypes.windll.user32
     hwnds = _all_scanner_hwnds()
-    shown = 0
+    minimized = 0
     for hwnd in hwnds:
         try:
-            user32.ShowWindow(hwnd, SW_RESTORE)
-            user32.ShowWindow(hwnd, SW_SHOW)
-            user32.SetWindowPos(hwnd, 0, 80, 60, 1280, 900, 0x0040)  # SHOWWINDOW
-            user32.SetForegroundWindow(hwnd)
-            shown += 1
+            # If previously parked off-screen, snap back first so minimize is sane
+            rect = wintypes.RECT()
+            user32.GetWindowRect(hwnd, ctypes.byref(rect))
+            if int(rect.left) < -1000 or int(rect.top) < -1000:
+                user32.SetWindowPos(
+                    hwnd,
+                    HWND_TOP,
+                    RESTORE_X,
+                    RESTORE_Y,
+                    RESTORE_W,
+                    RESTORE_H,
+                    SWP_NOZORDER,
+                )
+            user32.ShowWindow(hwnd, SW_MINIMIZE)
+            minimized += 1
         except Exception:
             pass
-    # Ensure broker tabs exist via CDP (never spawn a second Chrome)
-    ensure_broker_tabs()
     st = status()
     st["ok"] = True
-    st["shownWindows"] = shown
+    st["minimizedWindows"] = minimized
     return st
 
 
-def _page_covers(url: str, pages: list[dict]) -> bool:
-    host = url.split("/")[2].lower().replace("www.", "")
-    needles = [host]
-    if "arrivelogistics" in host:
-        needles.append("arrivelogistics")
-    if "rxo" in host:
-        needles.append("rxo")
-    if "arcb" in host:
-        needles.append("arcb")
-    if "echo" in host:
-        needles.append("echodrive.echo.com")
-    if "navisphere" in host:
-        needles.append("navisphere")
-    blob = " ".join((p.get("url") or "") for p in pages).lower()
-    return any(n in blob for n in needles)
+def show_scanner_chrome() -> dict[str, Any]:
+    """Restore scanner Chrome on the primary monitor and ensure broker + board tabs."""
+    if not _is_windows():
+        return {"ok": False, "error": "not_windows", "state": status().get("state")}
+    hwnds = _all_scanner_hwnds()
+    shown = 0
+    for hwnd in hwnds:
+        try:
+            _restore_on_primary(hwnd)
+            shown += 1
+        except Exception:
+            pass
+    # Ensure tabs exist (board + brokers) inside THIS Chrome — never spawn a second window
+    tabs = ensure_tabs(hide_after=False)
+    # Focus board tab by default when showing for sign-in overview
+    try:
+        focus_tab("board", restore_window=True)
+    except Exception:
+        pass
+    st = status()
+    st["ok"] = True
+    st["shownWindows"] = shown
+    st["tabs"] = tabs
+    return st
 
 
-def ensure_broker_tabs() -> dict[str, Any]:
-    """Open missing broker board URLs inside the existing CDP Chrome (no new process)."""
+def _page_matches(match: str, page: dict) -> bool:
+    url = (page.get("url") or "").lower()
+    title = (page.get("title") or "").lower()
+    m = match.lower()
+    if m in url or m in title:
+        return True
+    # board: also match 127.0.0.1:8765
+    if "localhost:8765" in m and ("127.0.0.1:8765" in url or "localhost:8765" in url):
+        return True
+    return False
+
+
+def _find_page_for_key(key: str, pages: list[dict] | None = None) -> dict | None:
+    meta = BROKER_TABS.get(key)
+    if not meta:
+        return None
+    pages = pages if pages is not None else list_cdp_pages()
+    match = meta["match"]
+    # Prefer exact-ish board pages first
+    for p in pages:
+        if _page_matches(match, p):
+            return p
+    return None
+
+
+def _cdp_activate(target_id: str) -> bool:
+    if not target_id:
+        return False
+    tid = urllib.parse.quote(target_id, safe="")
+    for method in ("GET", "PUT"):
+        try:
+            req = urllib.request.Request(CDP + "/json/activate/" + tid, method=method)
+            with urllib.request.urlopen(req, timeout=5) as r:
+                r.read()
+            return True
+        except Exception:
+            continue
+    return False
+
+
+def _cdp_new(url: str) -> bool:
+    enc = urllib.parse.quote(url, safe=":/?&=#%")
+    for method in ("PUT", "GET"):
+        try:
+            req = urllib.request.Request(CDP + "/json/new?" + enc, method=method)
+            with urllib.request.urlopen(req, timeout=8) as r:
+                r.read()
+            return True
+        except Exception:
+            continue
+    return False
+
+
+def _login_guess(key: str, page: dict | None) -> str:
+    """Best-effort: logged_in | needs_login | unknown | missing."""
+    if not page:
+        return "missing"
+    url = (page.get("url") or "").lower()
+    title = (page.get("title") or "").lower()
+    blob = url + " " + title
+    if key == "board":
+        return "ok" if ("8765" in url) else "unknown"
+    login_needles = (
+        "login",
+        "signin",
+        "sign-in",
+        "sign_in",
+        "log-in",
+        "log_in",
+        "auth0",
+        "oauth",
+        "sso",
+        "accounts.google",
+        "microsoftonline",
+        "okta",
+        "b2clogin",
+    )
+    if any(n in blob for n in login_needles):
+        return "needs_login"
+    # On expected host and not an auth page → likely logged in
+    meta = BROKER_TABS.get(key) or {}
+    match = (meta.get("match") or "").lower()
+    if match and match in url:
+        return "logged_in"
+    if match and match in blob:
+        return "logged_in"
+    return "unknown"
+
+
+def ensure_tabs(hide_after: bool = False) -> dict[str, Any]:
+    """Open missing board + broker tabs inside the existing CDP Chrome (no new process)."""
     if not cdp_up():
         return {"ok": False, "error": "cdp_down"}
     pages = list_cdp_pages()
-    opened = []
-    for url in BROKER_URLS:
-        if _page_covers(url, pages):
+    opened: list[str] = []
+    for key in ("board", "arrive", "rxo", "arcbest", "echo", "chr"):
+        meta = BROKER_TABS[key]
+        if _find_page_for_key(key, pages):
             continue
-        ok = False
-        # Chrome accepts PUT or GET /json/new?<url>
-        for method in ("PUT", "GET"):
-            try:
-                req = urllib.request.Request(CDP + "/json/new?" + url, method=method)
-                with urllib.request.urlopen(req, timeout=8) as r:
-                    r.read()
-                ok = True
-                break
-            except Exception:
-                continue
-        if ok:
-            opened.append(url)
-            time.sleep(0.4)
+        if _cdp_new(meta["url"]):
+            opened.append(key)
+            time.sleep(0.35)
             pages = list_cdp_pages()
-    # Hide again after opening tabs so flashes don't linger
-    try:
-        hide_scanner_chrome()
-    except Exception:
-        pass
+    if hide_after:
+        try:
+            hide_scanner_chrome()
+        except Exception:
+            pass
     return {"ok": True, "opened": opened, "pages": len(list_cdp_pages())}
+
+
+def ensure_broker_tabs() -> dict[str, Any]:
+    """Back-compat alias used by older scripts."""
+    return ensure_tabs(hide_after=False)
+
+
+def focus_tab(key: str, restore_window: bool = True) -> dict[str, Any]:
+    """Bring a broker/board tab to front in the SAME Chrome window and focus the window."""
+    key = (key or "board").strip().lower()
+    aliases = {
+        "back": "board",
+        "home": "board",
+        "ulb": "board",
+        "molo": "arcbest",
+        "arc": "arcbest",
+        "navisphere": "chr",
+    }
+    key = aliases.get(key, key)
+    if key not in BROKER_TABS:
+        return {"ok": False, "error": "unknown_broker", "key": key, "known": list(BROKER_TABS)}
+
+    if not cdp_up():
+        return {"ok": False, "error": "cdp_down", "key": key}
+
+    pages = list_cdp_pages()
+    page = _find_page_for_key(key, pages)
+    created = False
+    if not page:
+        if _cdp_new(BROKER_TABS[key]["url"]):
+            created = True
+            time.sleep(0.5)
+            pages = list_cdp_pages()
+            page = _find_page_for_key(key, pages)
+
+    activated = False
+    if page and page.get("id"):
+        activated = _cdp_activate(str(page["id"]))
+
+    shown = 0
+    if restore_window and _is_windows():
+        for hwnd in _all_scanner_hwnds():
+            try:
+                _restore_on_primary(hwnd)
+                shown += 1
+            except Exception:
+                pass
+
+    st = status()
+    st["ok"] = bool(activated or created or shown)
+    st["key"] = key
+    st["label"] = BROKER_TABS[key]["label"]
+    st["activated"] = activated
+    st["created"] = created
+    st["shownWindows"] = shown
+    st["pageUrl"] = (page or {}).get("url")
+    st["login"] = _login_guess(key, page)
+    return st
+
+
+def tab_status() -> dict[str, Any]:
+    """Per-tab presence + best-effort login guess."""
+    up = cdp_up()
+    out: dict[str, Any] = {"ok": True, "cdp": up, "tabs": {}}
+    if not up:
+        for k, meta in BROKER_TABS.items():
+            out["tabs"][k] = {"label": meta["label"], "present": False, "login": "cdp_down"}
+        return out
+    pages = list_cdp_pages()
+    for k, meta in BROKER_TABS.items():
+        page = _find_page_for_key(k, pages)
+        out["tabs"][k] = {
+            "label": meta["label"],
+            "present": bool(page),
+            "login": _login_guess(k, page),
+            "url": (page or {}).get("url"),
+            "title": (page or {}).get("title"),
+        }
+    out["pages"] = len(pages)
+    return out
 
 
 def status() -> dict[str, Any]:
@@ -257,24 +514,46 @@ def status() -> dict[str, Any]:
             "state": "cdp_down",
             "visible": False,
             "pages": 0,
+            "tabs": {},
         }
     pages = list_cdp_pages()
     visible = False
+    minimized = False
     hwnd_count = 0
     if _is_windows():
         import ctypes
+        from ctypes import wintypes
 
         user32 = ctypes.windll.user32
         hwnds = _all_scanner_hwnds()
         hwnd_count = len(hwnds)
         for hwnd in hwnds:
             try:
+                if user32.IsIconic(hwnd):
+                    minimized = True
                 if user32.IsWindowVisible(hwnd) and not user32.IsIconic(hwnd):
-                    visible = True
-                    break
+                    # Treat far off-screen as not really visible
+                    rect = wintypes.RECT()
+                    user32.GetWindowRect(hwnd, ctypes.byref(rect))
+                    if int(rect.left) > -500 and int(rect.top) > -500:
+                        visible = True
+                        break
             except Exception:
                 pass
-    state = "visible" if visible else "hidden"
+    if visible:
+        state = "visible"
+    elif minimized or hwnd_count:
+        state = "hidden"  # minimized counts as hidden for UI
+    else:
+        state = "hidden"
+    tabs_info = {}
+    for k in BROKER_TABS:
+        page = _find_page_for_key(k, pages)
+        tabs_info[k] = {
+            "label": BROKER_TABS[k]["label"],
+            "present": bool(page),
+            "login": _login_guess(k, page),
+        }
     return {
         "ok": True,
         "cdp": True,
@@ -282,11 +561,8 @@ def status() -> dict[str, Any]:
         "visible": visible,
         "pages": len(pages),
         "hwnds": hwnd_count,
+        "tabs": tabs_info,
     }
-
-
-# late import used by ensure_broker_tabs
-import urllib.parse  # noqa: E402
 
 
 if __name__ == "__main__":
@@ -295,7 +571,14 @@ if __name__ == "__main__":
         print(json.dumps(hide_scanner_chrome()))
     elif cmd == "show":
         print(json.dumps(show_scanner_chrome()))
-    elif cmd == "ensure-tabs":
-        print(json.dumps(ensure_broker_tabs()))
+    elif cmd in ("ensure-tabs", "ensure_tabs"):
+        print(json.dumps(ensure_tabs(hide_after=False)))
+    elif cmd in ("focus-tab", "focus_tab", "focus"):
+        key = sys.argv[2] if len(sys.argv) > 2 else "board"
+        print(json.dumps(focus_tab(key)))
+    elif cmd in ("tab-status", "tabs"):
+        print(json.dumps(tab_status()))
+    elif cmd in ("kill", "kill-chrome"):
+        print(json.dumps(kill_scanner_chrome()))
     else:
         print(json.dumps(status()))

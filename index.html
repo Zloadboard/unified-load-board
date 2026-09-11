@@ -165,6 +165,13 @@
     .scanner-pill.cdp_down, .scanner-pill.error, .scanner-pill.unavailable {
       border-color: #f59e0b; color: #fbbf24;
     }
+    .btn-scanner.Arrive:hover { border-color: var(--arrive); color: var(--arrive); }
+    .btn-scanner.RXO:hover { border-color: var(--rxo); color: var(--rxo); }
+    .btn-scanner.ArcBest:hover { border-color: var(--arcbest); color: var(--arcbest); }
+    .btn-scanner.Echo:hover { border-color: var(--echo); color: var(--echo); }
+    .btn-scanner.CHR:hover { border-color: var(--chr); color: var(--chr); }
+    #scannerTabsPill { max-width: 28rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 
 
     .remote-note {
@@ -860,11 +867,18 @@
   </header>
 
   <div class="broker-bar" id="brokerBar" aria-label="Scanner Chrome controls">
-    <span class="broker-help" id="brokerHelp">Live data comes from the work PC. Use <strong>Sign in brokers</strong> on http://localhost:8765/ to briefly show the hidden scanner Chrome (same profile the scraper uses). GitHub Pages cannot control scanner Chrome.</span>
+    <span class="broker-help" id="brokerHelp">ONE Chrome window hosts the board + broker tabs (same CDP profile). Sign in from this board — no separate scanner window. GitHub Pages cannot control Chrome.</span>
     <div class="scanner-controls" id="scannerControls">
-      <button type="button" class="btn-scanner" id="btnSignInBrokers" title="Unhide scanner Chrome on this PC so you can log into brokers">Sign in brokers</button>
-      <button type="button" class="btn-scanner" id="btnHideScanner" title="Hide scanner Chrome again">Hide scanner</button>
+      <button type="button" class="btn-scanner Arrive" data-focus-broker="arrive" title="Focus Arrive tab in the scanner Chrome window">Sign in Arrive</button>
+      <button type="button" class="btn-scanner RXO" data-focus-broker="rxo" title="Focus RXO tab">Sign in RXO</button>
+      <button type="button" class="btn-scanner ArcBest" data-focus-broker="arcbest" title="Focus ArcBest tab">Sign in ArcBest</button>
+      <button type="button" class="btn-scanner Echo" data-focus-broker="echo" title="Focus Echo tab">Sign in Echo</button>
+      <button type="button" class="btn-scanner CHR" data-focus-broker="chr" title="Focus CHR / Navisphere tab">Sign in CHR</button>
+      <button type="button" class="btn-scanner" id="btnBackToBoard" data-focus-broker="board" title="Switch scanner Chrome back to the board tab">Back to board</button>
+      <button type="button" class="btn-scanner" id="btnHideScanner" title="Minimize scanner Chrome after signing in">Hide Chrome</button>
+      <button type="button" class="btn-scanner" id="btnShowScanner" title="Restore scanner Chrome on the primary monitor">Show Chrome</button>
       <span class="scanner-pill" id="scannerStatusPill" title="Scanner Chrome visibility">scanner: …</span>
+      <span class="scanner-pill" id="scannerTabsPill" title="Broker tab login status">tabs: …</span>
     </div>
   </div>
 
@@ -1078,7 +1092,7 @@
   </div>
 
   <footer>
-    Live board: auto-refreshes from <code>loads.json</code> every 20s. On the work PC use <strong>Sign in brokers</strong> / <strong>Hide scanner</strong> (http://localhost:8765/). GitHub Pages cannot control scanner Chrome. Optional: <code>?api=https://…</code> or Settings.
+    Live board: auto-refreshes from <code>loads.json</code> every 20s. On the work PC use <strong>Sign in Arrive/RXO/…</strong> (focuses that tab in the ONE scanner Chrome), then <strong>Hide Chrome</strong>. Load # opens a new <em>tab</em> in the same Chrome window. GitHub Pages cannot control Chrome. Optional: <code>?api=https://…</code> or Settings.
   </footer>
 
   <script src="config.js"></script>
@@ -1129,8 +1143,8 @@
         }
         if (help) {
           help.textContent = remote
-            ? "Live data comes from the work PC. Sign-in controls only work on http://localhost:8765/ (GitHub Pages cannot unhide scanner Chrome)."
-            : "Local board: scanner Chrome stays hidden. Use Sign in brokers / Hide scanner — scraping never pops extra Chrome windows.";
+            ? "Live data comes from the work PC. Sign-in (focus broker tabs) only works on http://localhost:8765/ — GitHub Pages cannot control Chrome."
+            : "ONE Chrome window: board tab + broker tabs. Use Sign in <broker> to focus that tab; Hide Chrome minimizes it. Load # opens a new tab in the same window (target=_blank = new tab, not a new window).";
         }
       }
 
@@ -1161,7 +1175,7 @@
         pill.title = detail || pill.textContent;
       }
 
-      async function callScanner(action) {
+      async function callScanner(action, body) {
         const base = scannerApiBase();
         if (base === null) {
           setScannerPill("unavailable", "Sign-in only works on the work PC board http://localhost:8765/");
@@ -1169,41 +1183,71 @@
         }
         const path = "api/scanner/" + action;
         const url = base ? (base + "/" + path) : ("/" + path);
-        const opts = action === "status"
-          ? { method: "GET", cache: "no-store" }
-          : { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json" }, body: "{}" };
+        let opts;
+        if (action === "status" || action === "tabs") {
+          opts = { method: "GET", cache: "no-store" };
+        } else {
+          opts = {
+            method: "POST",
+            cache: "no-store",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body || {}),
+          };
+        }
         const res = await fetch(url, opts);
         const data = await res.json().catch(function () { return { ok: false, error: "bad_json" }; });
-        const st = (data && data.state) || (data && data.cdp === false ? "cdp_down" : "error");
+        const st = (data && data.state) || (data && data.cdp === false ? "cdp_down" : (data && data.ok ? "visible" : "error"));
         setScannerPill(st, JSON.stringify(data));
+        updateTabsPill(data);
         return data;
+      }
+
+      function updateTabsPill(data) {
+        const pill = document.getElementById("scannerTabsPill");
+        if (!pill) return;
+        const tabs = (data && data.tabs) || {};
+        const keys = ["arrive", "rxo", "arcbest", "echo", "chr"];
+        const bits = keys.map(function (k) {
+          const info = tabs[k];
+          if (!info) return null;
+          const label = info.label || k;
+          const login = info.login || (info.present ? "?" : "missing");
+          if (login === "logged_in") return label + ":ok";
+          if (login === "needs_login") return label + ":login";
+          if (login === "missing" || login === "cdp_down") return label + ":—";
+          return label + ":?";
+        }).filter(Boolean);
+        pill.textContent = bits.length ? ("tabs: " + bits.join(" · ")) : "tabs: …";
+        pill.title = JSON.stringify(tabs);
       }
 
       let _scannerHideTimer = null;
       function wireScannerControls() {
-        const btnIn = document.getElementById("btnSignInBrokers");
-        const btnHide = document.getElementById("btnHideScanner");
-        if (btnIn) {
-          btnIn.addEventListener("click", async function () {
-            btnIn.disabled = true;
+        const root = document.getElementById("scannerControls");
+        if (root) {
+          root.addEventListener("click", async function (ev) {
+            const btn = ev.target && ev.target.closest ? ev.target.closest("[data-focus-broker]") : null;
+            if (!btn) return;
+            const key = btn.getAttribute("data-focus-broker");
+            if (!key) return;
+            btn.disabled = true;
             try {
-              const data = await callScanner("show");
+              const data = await callScanner("focus-tab", { broker: key });
               if (data && data.ok) {
-                // Auto-hide after 10 minutes so the window does not stay up forever
                 if (_scannerHideTimer) clearTimeout(_scannerHideTimer);
-                _scannerHideTimer = setTimeout(function () {
-                  callScanner("hide").catch(function () {});
-                }, 10 * 60 * 1000);
+                // Do not auto-hide while user is signing in; they click Hide Chrome
               } else if (scannerApiBase() === null) {
-                alert("Sign-in brokers only works on the work PC board:\\nhttp://localhost:8765/");
+                alert("Broker sign-in only works on the work PC board:\\nhttp://localhost:8765/");
               }
             } catch (err) {
               setScannerPill("error", String(err && err.message || err));
             } finally {
-              btnIn.disabled = false;
+              btn.disabled = false;
             }
           });
         }
+        const btnHide = document.getElementById("btnHideScanner");
+        const btnShow = document.getElementById("btnShowScanner");
         if (btnHide) {
           btnHide.addEventListener("click", async function () {
             btnHide.disabled = true;
@@ -1217,6 +1261,18 @@
             }
           });
         }
+        if (btnShow) {
+          btnShow.addEventListener("click", async function () {
+            btnShow.disabled = true;
+            try {
+              await callScanner("show");
+            } catch (err) {
+              setScannerPill("error", String(err && err.message || err));
+            } finally {
+              btnShow.disabled = false;
+            }
+          });
+        }
         // Initial status + light poll when local/tunneled
         callScanner("status").catch(function () {
           setScannerPill(scannerApiBase() === null ? "unavailable" : "cdp_down");
@@ -1227,6 +1283,7 @@
           callScanner("status").catch(function () {});
         }, 15000);
       }
+
 
       const state = {
         loads: [],
@@ -2249,7 +2306,7 @@
             const loadCell = href
               ? '<a href="' +
                 escapeAttr(href) +
-                '" target="_blank" rel="noopener noreferrer" title="Open on broker site">' +
+                '" target="_blank" rel="noopener noreferrer" title="Open load in a new tab (same Chrome window — not a separate window)">' +
                 escapeHtml(l.id || EMPTY) +
                 "</a>"
               : escapeHtml(l.id || EMPTY);
