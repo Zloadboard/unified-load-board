@@ -79,3 +79,15 @@ li.broker {
 .count.has-loads { font-weight: 800; font-size: 14px; color: var(--ok); }
 .pill.stale { color: var(--warn); border-color: #a16207; }
 #total { font-size: 18px; font-weight: 800; color: var(--ok); }
+
+.arrive-hint {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  background: #0c4a6e;
+  border: 1px solid #0369a1;
+  border-radius: 8px;
+  color: #e0f2fe;
+  font-size: 11px;
+  font-weight: 600;
+}
+.arrive-hint[hidden] { display: none !important; }

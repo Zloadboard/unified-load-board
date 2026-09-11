@@ -1,5 +1,14 @@
 /** Per-source last-good merge helpers. */
 
+function isProbeArriveId(id) {
+  const s = String(id || "").trim();
+  if (!s) return true;
+  if (/^A-\d+$/i.test(s)) return true;
+  if (/^probe[-_]/i.test(s)) return true;
+  return false;
+}
+
+
 const LAST_GOOD_MAX_AGE_MS = 10 * 60 * 1000;
 
 export function groupBySource(loads) {
@@ -52,7 +61,8 @@ export function mergeSources(sourceLoads, previousLoads, sourceMeta) {
     "CHR",
   ]);
   for (const src of sources) {
-    const fresh = sourceLoads[src] || [];
+    let fresh = sourceLoads[src] || [];
+    if (src === "Arrive") fresh = fresh.filter((L) => !isProbeArriveId(L?.id));
     const meta = (sourceMeta && sourceMeta[src]) || {};
     const status = meta.status || "unknown";
     if (fresh.length > 0) {
@@ -64,7 +74,8 @@ export function mergeSources(sourceLoads, previousLoads, sourceMeta) {
       ["needs_login", "error", "empty", "kept_previous", "no_tab", "stale", "listening"].includes(status) ||
       meta.keepPrevious
     ) {
-      const prev = prevBy[src] || [];
+      let prev = prevBy[src] || [];
+      if (src === "Arrive") prev = prev.filter((L) => !isProbeArriveId(L?.id));
       if (prev.length) out.push(...prev);
     }
   }

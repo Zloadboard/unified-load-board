@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Unified Load Board Scanner",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Fetches Arrive / RXO / ArcBest / Echo / CHR loads using your normal Chrome cookies and posts to localhost:8765.",
   "permissions": [
     "alarms",

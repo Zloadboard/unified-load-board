@@ -79,6 +79,25 @@ function render(state) {
       chrome.runtime.sendMessage({ type: "open_broker", broker: btn.getAttribute("data-open") });
     });
   });
+
+  const arriveMeta = (state.sources && state.sources.Arrive) || {};
+  const arriveCount = arriveMeta.count != null ? Number(arriveMeta.count) : 0;
+  const arriveSt = resolveStatus(arriveMeta.status, arriveCount);
+  let hint = document.getElementById("arriveHint");
+  if (!hint) {
+    hint = document.createElement("p");
+    hint.id = "arriveHint";
+    hint.className = "arrive-hint";
+    const brokersSec = document.querySelector("section.brokers");
+    if (brokersSec) brokersSec.appendChild(hint);
+  }
+  if (arriveCount === 0 && (arriveSt === "empty" || arriveSt === "listening" || arriveSt === "no_tab" || arriveSt === "unknown")) {
+    hint.hidden = false;
+    hint.textContent = "Arrive: Open find-loads, run Search, Scan now";
+  } else {
+    hint.hidden = true;
+    hint.textContent = "";
+  }
 }
 
 async function refresh() {

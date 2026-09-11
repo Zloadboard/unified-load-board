@@ -5,7 +5,7 @@
 import { BROKER_URLS, nowIsoZ, looksLikeLoginUrl, isLoginResponse } from "./lib/normalize.js";
 import { mergeSources, shouldReuseLastGood, dedupeById } from "./lib/merge.js";
 import { honestSourceMeta } from "./lib/status.js";
-import { fetchArrive, loadsFromArrivePayload, isArriveInterestingUrl } from "./brokers/arrive.js";
+import { fetchArrive, loadsFromArrivePayload, isArriveInterestingUrl, filterRealArriveLoads, loadsFromArriveDomRows } from "./brokers/arrive.js";
 import { fetchRxo, loadsFromRxoPayload, isRxoInterestingUrl } from "./brokers/rxo.js";
 import { fetchArcbest, loadsFromSummaries, loadsFromArcbestPayload } from "./brokers/arcbest.js";
 import { fetchEcho, loadsFromEchoPayload, isEchoInterestingUrl } from "./brokers/echo.js";
@@ -116,8 +116,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "net_payload") {
     (async () => {
       const broker = msg.broker || "Unknown";
-      const loads = parseNetPayload(broker, msg.url, msg.body);
+      let loads = parseNetPayload(broker, msg.url, msg.body);
       await rememberEndpoint(broker, msg.url, msg.method, msg.requestBody, msg.requestHeaders);
+      if (broker === "Arrive") {
+        loads = filterRealArriveLoads(loads);
+      }
       if (loads.length) {
         const store = await loadStore();
         const lg = { ...(store.lastGood || {}) };
@@ -416,26 +419,131 @@ async function fetchArriveInPage(tabId, url, bodyText, headers) {
 
 async function nudgeArriveRefresh(tabId) {
   try {
-    await chrome.scripting.executeScript({
+    const results = await chrome.scripting.executeScript({
       target: { tabId },
       world: "MAIN",
       func: () => {
-        const nodes = [...document.querySelectorAll("button, a, [role='button']")];
-        const btn = nodes.find((el) => /refresh results/i.test((el.textContent || "").trim()));
+        const nodes = [...document.querySelectorAll("button, a, [role='button'], input[type='button'], input[type='submit']")];
+        const btn =
+          nodes.find((el) => /refresh results/i.test((el.textContent || el.value || "").trim())) ||
+          nodes.find((el) => /^refresh$/i.test((el.textContent || el.value || "").trim()));
         if (btn) {
           btn.click();
-          return true;
+          return { clicked: true, label: (btn.textContent || btn.value || "").trim().slice(0, 40) };
         }
-        return false;
+        // Search / Find Loads as secondary nudge
+        const search =
+          nodes.find((el) => /^(search|find loads)$/i.test((el.textContent || el.value || "").trim())) ||
+          nodes.find((el) => /\bsearch\b/i.test((el.textContent || "").trim()) && /button|submit/i.test(el.tagName + (el.getAttribute("type") || "")));
+        if (search) {
+          search.click();
+          return { clicked: true, label: (search.textContent || search.value || "search").trim().slice(0, 40) };
+        }
+        return { clicked: false };
       },
     });
+    return results?.[0]?.result || { clicked: false };
   } catch {
-    /* ignore */
+    return { clicked: false };
   }
 }
 
+/** Read Apollo / in-page stores for getLoads rows (MAIN world). */
+async function readArriveApolloCache(tabId) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        const found = [];
+        function walk(obj, depth) {
+          if (depth > 10 || obj == null || found.length >= 400) return;
+          if (Array.isArray(obj)) {
+            if (
+              obj[0] &&
+              typeof obj[0] === "object" &&
+              ("LoadBoardId" in obj[0] || "loadBoardId" in obj[0])
+            ) {
+              for (const x of obj) if (x && typeof x === "object") found.push(x);
+              return;
+            }
+            for (const it of obj.slice(0, 30)) walk(it, depth + 1);
+            return;
+          }
+          if (typeof obj !== "object") return;
+          if ("LoadBoardId" in obj || "loadBoardId" in obj) {
+            found.push(obj);
+            return;
+          }
+          if (obj.getLoads && obj.getLoads.data) walk(obj.getLoads.data, depth + 1);
+          const vals = Object.values(obj);
+          for (const v of vals.slice(0, 40)) walk(v, depth + 1);
+        }
+        try {
+          const clients = [];
+          if (window.__APOLLO_CLIENT__) clients.push(window.__APOLLO_CLIENT__);
+          if (window.__APOLLO_CLIENT_CACHE__) clients.push({ cache: window.__APOLLO_CLIENT_CACHE__ });
+          for (const k of Object.keys(window)) {
+            try {
+              if (/apollo/i.test(k) && window[k]) clients.push(window[k]);
+            } catch (_) {}
+          }
+          for (const c of clients) {
+            try {
+              const cache = c.cache || c;
+              if (cache && typeof cache.extract === "function") walk(cache.extract(), 0);
+              else if (cache && typeof cache === "object") walk(cache, 0);
+            } catch (_) {}
+          }
+        } catch (_) {}
+        // Also scan common React/query globals lightly
+        try {
+          for (const k of ["__NEXT_DATA__", "__PRELOADED_STATE__", "__INITIAL_STATE__"]) {
+            if (window[k]) walk(window[k], 0);
+          }
+        } catch (_) {}
+        return { rows: found.slice(0, 400), n: found.length };
+      },
+    });
+    return results?.[0]?.result || { rows: [], n: 0 };
+  } catch (e) {
+    return { rows: [], n: 0, error: String(e.message || e) };
+  }
+}
+
+/** DOM load-row-* scrape from MAIN world (same ids as content script). */
+async function scrapeArriveDomRows(tabId) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        return [...document.querySelectorAll('tr[data-testid^="load-row-"]')].map((tr) => {
+          const tid = tr.getAttribute("data-testid") || "";
+          const m = tid.match(/load-row-(\d+)/i);
+          const cells = [...tr.querySelectorAll("td")].map((td) => (td.innerText || "").trim());
+          return { loadId: m ? m[1] : null, testId: tid, cells };
+        });
+      },
+    });
+    const rows = results?.[0]?.result || [];
+    return loadsFromArriveDomRows(rows);
+  } catch {
+    return [];
+  }
+}
+
+function preferArriveFindLoadsTabs(tabs) {
+  const ranked = [...tabs].sort((a, b) => {
+    const as = /find-loads/i.test(a.url || "") ? 0 : 1;
+    const bs = /find-loads/i.test(b.url || "") ? 0 : 1;
+    return as - bs;
+  });
+  return ranked;
+}
+
 async function collectArriveViaOpenTabs(store) {
-  const tabs = await queryBrokerTabs("Arrive");
+  const tabs = preferArriveFindLoadsTabs(await queryBrokerTabs("Arrive"));
   if (!tabs.length) return null;
   const endpoints = [];
   for (const u of store.discoveredEndpoints?.Arrive || []) if (u) endpoints.push(u);
@@ -450,7 +558,25 @@ async function collectArriveViaOpenTabs(store) {
   let lastErr = "";
   for (const tab of tabs) {
     await ensureMainWorldHook(tab.id);
-    // Prefer replaying captured bodies (exact search filters)
+
+    // 0) DOM rows already visible (Search already ran)
+    const dom0 = filterRealArriveLoads(await scrapeArriveDomRows(tab.id));
+    if (dom0.length) {
+      return { status: "ok", loads: dom0, error: "", via: "dom_before_gql" };
+    }
+
+    // 1) Apollo / window cache
+    const apollo = await readArriveApolloCache(tab.id);
+    if (apollo?.rows?.length) {
+      const loads = filterRealArriveLoads(loadsFromArrivePayload({ data: { getLoads: { data: apollo.rows } } }));
+      // Also try walking raw rows via payload walker
+      const loads2 = loads.length ? loads : filterRealArriveLoads(loadsFromArrivePayload(apollo.rows));
+      if (loads2.length) {
+        return { status: "ok", loads: loads2, error: "", via: "apollo_cache" };
+      }
+    }
+
+    // 2) Replay captured GraphQL bodies (real search filters), then empty input
     const attempts = [];
     for (const b of bodies) {
       if (b?.bodyText && b?.url) attempts.push({ url: b.url, bodyText: b.bodyText, headers: b.headers || null });
@@ -480,29 +606,34 @@ async function collectArriveViaOpenTabs(store) {
         lastErr = "Arrive page fetch non-json";
         continue;
       }
-      const loads = loadsFromArrivePayload(json);
+      const loads = filterRealArriveLoads(loadsFromArrivePayload(json));
       if (loads.length) {
         return { status: "ok", loads, error: "", endpoint: a.url, via: "page" };
       }
-      lastErr = "0 loads from page GraphQL";
+      lastErr = "0 loads from page GraphQL (empty input needs Search filters — use Refresh/Search on find-loads)";
     }
-    // Nudge Refresh Results so the SPA fires real getLoads; hook captures it
+
+    // 3) Nudge Refresh/Search so SPA fires real getLoads; hook + DOM capture
     await nudgeArriveRefresh(tab.id);
-    await new Promise((r) => setTimeout(r, 2200));
+    await new Promise((r) => setTimeout(r, 2800));
     const store2 = await loadStore();
-    if (store2.lastGood?.Arrive?.loads?.length) {
+    const hooked = filterRealArriveLoads(store2.lastGood?.Arrive?.loads || []);
+    if (hooked.length) {
       const age = Date.now() - (store2.lastGood.Arrive.savedAt || 0);
-      if (age < 15000) {
-        return {
-          status: "ok",
-          loads: store2.lastGood.Arrive.loads,
-          error: "",
-          via: "hook_after_refresh",
-        };
+      if (age < 20000) {
+        return { status: "ok", loads: hooked, error: "", via: "hook_after_refresh" };
       }
     }
+    const dom1 = filterRealArriveLoads(await scrapeArriveDomRows(tab.id));
+    if (dom1.length) {
+      return { status: "ok", loads: dom1, error: "", via: "dom_after_refresh" };
+    }
   }
-  return { status: "empty", loads: [], error: lastErr || "Arrive page GraphQL returned 0" };
+  return {
+    status: "empty",
+    loads: [],
+    error: lastErr || "Open Arrive find-loads, run Search, Scan now",
+  };
 }
 
 async function collectFromTabs(broker) {
@@ -568,7 +699,9 @@ async function fetchOne(broker, store) {
       if (loads.length) return { status: "ok", loads, error: "" };
     }
     if (fromTab.loads?.length) {
-      return { status: "ok", loads: fromTab.loads, error: "" };
+      const tabLoads =
+        broker === "Arrive" ? filterRealArriveLoads(fromTab.loads) : fromTab.loads;
+      if (tabLoads.length) return { status: "ok", loads: tabLoads, error: "", via: fromTab.via || "content" };
     }
   }
 
@@ -646,14 +779,19 @@ async function fetchOne(broker, store) {
       store.lastGood[broker].savedAt
     );
     if (reused) {
-      return {
-        status: "stale",
-        loads: reused,
-        error: confirmedLogin
-          ? "sign in / open tab to refresh"
-          : result.error || tabHint?.error || "open tab to refresh",
-        keptPrevious: true,
-      };
+      const cleaned = broker === "Arrive" ? filterRealArriveLoads(reused) : reused;
+      if (!cleaned.length) {
+        /* fall through — probe leftovers are not success */
+      } else {
+        return {
+          status: "stale",
+          loads: cleaned,
+          error: confirmedLogin
+            ? "sign in / open tab to refresh"
+            : result.error || tabHint?.error || "open tab to refresh",
+          keptPrevious: true,
+        };
+      }
     }
   }
 
@@ -716,11 +854,15 @@ async function runScan(reason = "alarm") {
         result = { status: "error", loads: [], error: String(e.message || e) };
       }
       let loads = result.loads || [];
+      if (broker === "Arrive") {
+        loads = filterRealArriveLoads(loads);
+      }
 
       // Empty + soft fail: keep previous from storage — status becomes stale
       if (!loads.length) {
-        const prev =
+        let prev =
           store.sourceLoads?.[broker] || store.lastGood?.[broker]?.loads || [];
+        if (broker === "Arrive") prev = filterRealArriveLoads(prev);
         if (
           prev.length &&
           ["needs_login", "error", "empty", "no_tab", "kept_previous", "listening", "stale"].includes(

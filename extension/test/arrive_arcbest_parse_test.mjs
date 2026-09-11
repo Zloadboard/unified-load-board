@@ -1,17 +1,25 @@
-import { loadsFromArrivePayload, fromArriveApiItem } from "../brokers/arrive.js";
+import {
+  loadsFromArrivePayload,
+  fromArriveApiItem,
+  fromArriveDomRow,
+  loadsFromArriveDomRows,
+  parseArriveStopBlob,
+  filterRealArriveLoads,
+  isProbeOrFakeArriveId,
+} from "../brokers/arrive.js";
 import { loadsFromSummaries, summaryToLoad } from "../brokers/arcbest.js";
 
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
 }
 
-// Arrive GraphQL shape
+// Arrive GraphQL shape (realistic getLoads)
 const gql = {
   data: {
     getLoads: {
       data: [
         {
-          LoadBoardId: 12345,
+          LoadBoardId: 9564487,
           PickupEarlyCity: "Romeoville",
           PickupEarlyStateCode: "IL",
           DeliveryLateCity: "Atlanta",
@@ -26,18 +34,83 @@ const gql = {
           EquipmentType: "V",
           LoadStatus: "Available",
         },
+        {
+          LoadBoardId: 9564501,
+          PickupEarlyCity: "Dallas",
+          PickupEarlyStateCode: "TX",
+          DeliveryLateCity: "Phoenix",
+          DeliveryLateStateCode: "AZ",
+          PickupApptEarliest: "2026-09-12T11:00:00Z",
+          DeliveryApptEarliest: "2026-09-13T16:00:00Z",
+          Miles: 887,
+          Weight: 38000,
+          TopSpend: 2100,
+          EquipmentType: "VR",
+          LoadStatus: "Available",
+        },
       ],
     },
   },
 };
 const arriveLoads = loadsFromArrivePayload(gql);
-assert(arriveLoads.length === 1, "arrive parse count");
+assert(arriveLoads.length === 2, "arrive parse count " + arriveLoads.length);
 assert(arriveLoads[0].source === "Arrive", "arrive source");
-assert(arriveLoads[0].id === "12345", "arrive id");
+assert(arriveLoads[0].id === "9564487", "arrive id");
 assert(arriveLoads[0].origin.includes("Romeoville"), "arrive origin");
+assert(arriveLoads[0].url.includes("loadBoardId=9564487"), "arrive url");
 
 const bad = fromArriveApiItem({ LoadBoardId: 1, PickupEarlyCity: "", DeliveryLateCity: "" });
 assert(bad === null, "arrive rejects incomplete");
+
+// Probe / fake ids must not look like success
+assert(isProbeOrFakeArriveId("A-0"), "A-0 is probe");
+assert(isProbeOrFakeArriveId("A-1"), "A-1 is probe");
+assert(isProbeOrFakeArriveId("probe-xyz"), "probe- is fake");
+assert(!isProbeOrFakeArriveId("9564487"), "real LoadBoardId ok");
+const mixed = filterRealArriveLoads([
+  { id: "A-0", source: "Arrive" },
+  { id: "A-1", source: "Arrive" },
+  { id: "9564487", source: "Arrive" },
+  { id: "probe-1", source: "Arrive" },
+]);
+assert(mixed.length === 1 && mixed[0].id === "9564487", "filter probes");
+
+// DOM load-row-* → minimal + enriched loads
+const stopBlob = "Romeoville, IL\nFri\nSep 12\n08:00 CDT";
+const parsed = parseArriveStopBlob(stopBlob);
+assert(parsed.city.includes("Romeoville"), "stop city " + parsed.city);
+assert(/Sep/.test(parsed.date), "stop date " + parsed.date);
+
+const domRow = fromArriveDomRow({
+  testId: "load-row-9564487",
+  cells: [
+    "Romeoville, IL\nFri Sep 12\n08:00 CDT",
+    "Atlanta, GA\nSat Sep 13\n14:00 EDT",
+    "",
+    "720",
+    "42,000",
+    "V",
+    "$1,800",
+  ],
+});
+assert(domRow && domRow.id === "9564487", "dom id");
+assert(domRow.source === "Arrive", "dom source");
+assert(domRow.url.includes("loadBoardId=9564487"), "dom url");
+assert(domRow.origin.includes("Romeoville"), "dom origin");
+
+// Minimal: id-only from testid (table visible, cells sparse)
+const minimal = fromArriveDomRow({ testId: "load-row-999001", cells: [] });
+assert(minimal && minimal.id === "999001", "minimal dom id");
+assert(minimal.url.includes("loadBoardId=999001"), "minimal url");
+
+const many = loadsFromArriveDomRows([
+  { testId: "load-row-111", cells: [] },
+  { testId: "load-row-222", cells: [] },
+  { testId: "load-row-A-0", cells: [] }, // non-numeric after load-row- → no match in fromArriveDomRow via testId regex \d+
+  { loadId: "A-0", testId: "x", cells: [] },
+]);
+assert(many.length === 2, "dom rows count " + many.length);
+assert(many.every((L) => /^\d+$/.test(L.id)), "dom ids numeric");
 
 // ArcBest / MoLoTL → MoLo
 const summaries = [
@@ -77,4 +150,9 @@ assert(loads[2].source === "MoLo", "molo → MoLo");
 const one = summaryToLoad(summaries[1]);
 assert(one.source === "MoLo" && one.id === "R2", "summaryToLoad MoLo");
 
-console.log("arrive_arcbest_parse_test: all passed", arriveLoads.length, loads.map((L) => L.source).join(","));
+console.log(
+  "arrive_arcbest_parse_test: all passed",
+  "gql=" + arriveLoads.length,
+  "dom=" + many.length,
+  loads.map((L) => L.source).join(",")
+);
