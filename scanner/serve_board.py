@@ -65,15 +65,48 @@ def _json_bytes(obj: dict) -> bytes:
 
 
 def _atomic_write_json(path: str, obj: dict) -> None:
+    """Write JSON atomically. On Windows, os.replace can hit WinError 5 if
+    another thread (board poll GET) still has loads.json open — retry, then
+    fall back to in-place overwrite.
+    """
+    import time
+
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     raw = json.dumps(obj, ensure_ascii=False, indent=2) + "\n"
-    fd, tmp = tempfile.mkstemp(
-        prefix=".loads_", suffix=".tmp", dir=os.path.dirname(path) or ROOT
-    )
+    directory = os.path.dirname(path) or ROOT
+    # Avoid leading-dot temp names on Windows Desktop (indexer / hide quirks)
+    fd, tmp = tempfile.mkstemp(prefix="loads_w_", suffix=".tmp", dir=directory)
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
             f.write(raw)
-        os.replace(tmp, path)
+            f.flush()
+            os.fsync(f.fileno())
+        last_err: Exception | None = None
+        for attempt in range(25):
+            try:
+                os.replace(tmp, path)
+                return
+            except OSError as exc:
+                last_err = exc
+                # WinError 5 access denied / sharing violation while file is read
+                time.sleep(0.05 + 0.02 * attempt)
+        # Fallback: overwrite in place (board may briefly see partial file)
+        try:
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
+                f.write(raw)
+                f.flush()
+                os.fsync(f.fileno())
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            return
+        except Exception as exc2:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            raise last_err or exc2
     except Exception:
         try:
             os.unlink(tmp)
