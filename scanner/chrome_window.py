@@ -153,7 +153,11 @@ def kill_scanner_chrome() -> dict[str, Any]:
 
 
 def _all_scanner_hwnds() -> list[int]:
-    """Top-level hwnds for chrome_cdp_profile (includes minimized / hidden)."""
+    """Main Chrome frame hwnds for chrome_cdp_profile (includes minimized / hidden).
+
+    Prefer titled top-level windows (the real browser frame). Fall back to large
+    untitled roots only if no titled frame is found (recovery from -32000 park).
+    """
     pids = set(_scanner_chrome_pids())
     if not pids:
         return []
@@ -161,7 +165,8 @@ def _all_scanner_hwnds() -> list[int]:
     from ctypes import wintypes
 
     user32 = ctypes.windll.user32
-    hwnds: list[int] = []
+    titled: list[int] = []
+    untitled: list[int] = []
 
     @ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
     def _cb(hwnd, _lparam):  # type: ignore[no-untyped-def]
@@ -175,19 +180,22 @@ def _all_scanner_hwnds() -> list[int]:
         user32.GetWindowRect(hwnd, ctypes.byref(rect))
         w = abs(int(rect.right) - int(rect.left))
         h = abs(int(rect.bottom) - int(rect.top))
-        # Keep off-screen / hidden roots (w/h may be tiny after -32000 park)
-        if w < 50 and h < 50 and not user32.IsIconic(hwnd) and user32.IsWindowVisible(hwnd):
+        title_len = int(user32.GetWindowTextLengthW(hwnd))
+        iconic = bool(user32.IsIconic(hwnd))
+        visible = bool(user32.IsWindowVisible(hwnd))
+        # Real browser frames are large OR iconic/hidden (may be tiny after -32000)
+        large = w >= 200 and h >= 200
+        recoverable = iconic or (not visible and title_len >= 0)
+        if not large and not recoverable and w < 50 and h < 50:
             return True
-        # Always keep iconic / non-visible roots so we can restore them
-        if w < 50 and h < 50:
-            if user32.IsIconic(hwnd) or not user32.IsWindowVisible(hwnd):
-                hwnds.append(int(hwnd))
-            return True
-        hwnds.append(int(hwnd))
+        if title_len > 0:
+            titled.append(int(hwnd))
+        elif large or recoverable:
+            untitled.append(int(hwnd))
         return True
 
     user32.EnumWindows(_cb, 0)
-    return hwnds
+    return titled if titled else untitled
 
 
 def _force_foreground(hwnd: int) -> None:
