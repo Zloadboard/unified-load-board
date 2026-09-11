@@ -4,6 +4,7 @@
  */
 import { BROKER_URLS, nowIsoZ, looksLikeLoginUrl, isLoginResponse } from "./lib/normalize.js";
 import { mergeSources, shouldReuseLastGood, dedupeById } from "./lib/merge.js";
+import { honestSourceMeta } from "./lib/status.js";
 import { fetchArrive, loadsFromArrivePayload, isArriveInterestingUrl } from "./brokers/arrive.js";
 import { fetchRxo, loadsFromRxoPayload, isRxoInterestingUrl } from "./brokers/rxo.js";
 import { fetchArcbest, loadsFromSummaries, loadsFromArcbestPayload } from "./brokers/arcbest.js";
@@ -759,20 +760,13 @@ async function runScan(reason = "alarm") {
           ? (sourceLoads.ArcBest?.length || 0) + (sourceLoads.MoLo?.length || 0)
           : loads.length;
 
-      // Final guard: never advertise needs_login when count > 0
-      let statusOut = result.status || "unknown";
-      if (count > 0 && statusOut === "needs_login") {
-        statusOut = result.keptPrevious ? "stale" : "ok";
-      }
-      if (count > 0 && !result.keptPrevious) statusOut = "ok";
-      if (count > 0 && result.keptPrevious) statusOut = "stale";
-
-      meta[broker] = {
-        status: statusOut,
+      meta[broker] = honestSourceMeta({
+        status: result.status || "unknown",
         count,
         error: result.error || "",
         keptPrevious: !!result.keptPrevious,
-      };
+        confirmedLogin: result.status === "needs_login" && count === 0,
+      });
       state.sources[broker] = meta[broker];
 
       if (loads.length && !result.keptPrevious) {
@@ -784,12 +778,20 @@ async function runScan(reason = "alarm") {
 
     if (sourceLoads.MoLo?.length) {
       const moloStale = !!meta.ArcBest?.keptPrevious;
-      meta.MoLo = {
-        status: moloStale ? "stale" : (meta.ArcBest?.status === "ok" || sourceLoads.MoLo.length ? "ok" : (meta.ArcBest?.status || "ok")),
+      meta.MoLo = honestSourceMeta({
+        status: moloStale ? "stale" : "ok",
         count: sourceLoads.MoLo.length,
         error: moloStale ? "sign in / open tab to refresh" : "",
         keptPrevious: moloStale,
-      };
+      });
+    } else if (meta.ArcBest && sourceLoads.MoLo) {
+      // Explicit empty MoLo split — do not invent needs_login
+      meta.MoLo = honestSourceMeta({
+        status: meta.ArcBest.status === "needs_login" ? "empty" : (meta.ArcBest.status || "empty"),
+        count: 0,
+        error: "",
+        keptPrevious: false,
+      });
     }
 
     const previous = store.loads || [];
@@ -802,6 +804,11 @@ async function runScan(reason = "alarm") {
       lastGood: store.lastGood,
       sourceMeta: meta,
     });
+
+    // Absolute honesty pass before POST (covers any missed branch)
+    for (const k of Object.keys(meta)) {
+      meta[k] = honestSourceMeta(meta[k]);
+    }
 
     try {
       await postToBoard(finalLoads, meta);

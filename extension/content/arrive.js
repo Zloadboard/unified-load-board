@@ -65,6 +65,7 @@ function collect() {
     status: onBoard ? "listening" : "empty",
     loads: [],
     onBoard,
+    countHint: rows.length || (onBoard ? 1 : 0),
     error: onBoard ? "No load rows yet — click Refresh Results" : "Open Arrive find-loads",
     broker: BROKER,
     pageUrl: url,

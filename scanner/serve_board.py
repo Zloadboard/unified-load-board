@@ -115,6 +115,93 @@ def _atomic_write_json(path: str, obj: dict) -> None:
         raise
 
 
+
+def _honest_source_meta(raw: dict | None) -> dict:
+    """Mirror extension/lib/status.js — never needs_login when count > 0."""
+    raw = raw if isinstance(raw, dict) else {}
+    try:
+        n = int(raw.get("count") or 0)
+    except (TypeError, ValueError):
+        n = 0
+    if n < 0:
+        n = 0
+    kept = bool(raw.get("keptPrevious") or raw.get("kept_previous"))
+    st = str(raw.get("status") or "unknown")
+    err = str(raw.get("error") or "")
+    if n > 0:
+        if kept:
+            st = "stale"
+            if not err:
+                err = "sign in / open tab to refresh"
+        else:
+            st = "ok"
+            err = ""
+    else:
+        if st == "kept_previous":
+            st = "stale"
+    if n > 0 and st == "needs_login":
+        st = "stale" if kept else "ok"
+    return {"status": st, "count": n, "error": err, "keptPrevious": kept}
+
+
+def _sanitize_sources(sources: dict | None, merged_loads: list | None = None) -> dict:
+    """Sanitize POST sources; optionally recompute counts from merged loads."""
+    sources = sources if isinstance(sources, dict) else {}
+    counts: dict[str, int] = {}
+    if isinstance(merged_loads, list):
+        for row in merged_loads:
+            if isinstance(row, dict) and row.get("source"):
+                src = str(row["source"])
+                counts[src] = counts.get(src, 0) + 1
+    out: dict = {}
+    keys = set(sources) | set(counts)
+    # Always include core brokers so UI is consistent
+    for name in ("Arrive", "RXO", "ArcBest", "MoLo", "Echo", "CHR"):
+        keys.add(name)
+    for name in keys:
+        raw = sources.get(name) if isinstance(sources.get(name), dict) else {}
+        meta = dict(raw) if raw else {}
+        posted = name in sources
+        board_n = counts.get(name, 0)
+        posted_n = 0
+        try:
+            posted_n = int((raw or {}).get("count") or 0)
+        except (TypeError, ValueError):
+            posted_n = 0
+        if board_n:
+            meta["count"] = board_n
+            soft = str(meta.get("status") or "") in (
+                "needs_login", "empty", "error", "no_tab", "kept_previous", "stale", "listening", "unknown", ""
+            )
+            # Omitted from POST but rows survived merge → kept previous → stale
+            if not posted and board_n > 0:
+                meta["keptPrevious"] = True
+                meta["status"] = "stale"
+            # Soft-fail / lie statuses with surviving rows → stale
+            elif board_n > 0 and soft and (
+                meta.get("keptPrevious")
+                or posted_n == 0
+                or str(raw.get("status") or "") in (
+                    "needs_login", "empty", "error", "no_tab", "kept_previous", "stale", "listening"
+                )
+            ):
+                meta["keptPrevious"] = True
+                if str(meta.get("status") or "") != "ok":
+                    meta["status"] = "stale"
+        elif "count" not in meta:
+            meta["count"] = 0
+        out[name] = _honest_source_meta(meta)
+    cleaned = {}
+    for k, v in out.items():
+        # Omit noise: never-posted MoLo/etc with 0 + unknown
+        if v.get("count", 0) == 0 and v.get("status") == "unknown" and k not in sources:
+            continue
+        if k in sources or counts.get(k, 0) > 0 or k in ("Arrive", "RXO", "ArcBest", "Echo", "CHR"):
+            cleaned[k] = v
+        elif k == "MoLo" and v.get("count", 0) > 0:
+            cleaned[k] = v
+    return cleaned
+
 def _write_last_scan_from_extension(sources: dict | None, mode: str, total: int) -> None:
     payload = {
         "scannedAt": _now_iso_z(),
@@ -193,7 +280,7 @@ def _merge_keep_previous(new_loads: list, previous_loads: list, sources: dict | 
         if isinstance(row, dict) and row.get("source"):
             prev_by.setdefault(str(row["source"]), []).append(row)
 
-    keep_statuses = {"needs_login", "error", "empty", "no_tab", "kept_previous"}
+    keep_statuses = {"needs_login", "error", "empty", "no_tab", "kept_previous", "stale", "listening"}
     out: list = []
     all_sources = set(new_by) | set(prev_by) | set(sources)
     for src in all_sources:
@@ -292,7 +379,8 @@ class CORSRequestHandler(SimpleHTTPRequestHandler):
         }
         try:
             _atomic_write_json(LOADS_PATH, out)
-            _write_last_scan_from_extension(sources, mode, len(merged))
+            sources_out = _sanitize_sources(sources, merged)
+            _write_last_scan_from_extension(sources_out, mode, len(merged))
         except Exception as exc:
             self._send_json(500, {"ok": False, "error": str(exc)})
             return True

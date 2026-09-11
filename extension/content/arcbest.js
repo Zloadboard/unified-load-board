@@ -62,11 +62,14 @@ function collect() {
     return { status: "needs_login", loads: [], error: "ArcBest login required", broker: BROKER, pageUrl: url };
   }
   // Background will MAIN-world scrape Vue; we just signal listening
+  const onBoard = hasShipments || /\/shipments/i.test(low);
   return {
-    status: hasShipments ? "listening" : "empty",
+    status: onBoard ? "listening" : "empty",
     loads: [],
     summaries: [],
-    error: hasShipments
+    onBoard,
+    countHint: onBoard ? 1 : 0,
+    error: onBoard
       ? ""
       : "Open ArcBest Shipments and wait for the list (visible search/list required)",
     broker: BROKER,

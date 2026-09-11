@@ -6,10 +6,10 @@
   <title>Unified Load Board - Zygis V</title>
   <style>
     :root {
-      --bg: #0f1419;
-      --surface: #1a2332;
-      --surface-2: #243044;
-      --border: #2d3a4f;
+      --bg: #0b1220;
+      --surface: #121a2b;
+      --surface-2: #1a2438;
+      --border: #2a364d;
       --text: #e8eef7;
       --muted: #8b9bb4;
       --accent: #3b82f6;
@@ -18,18 +18,22 @@
       --arrive: #22c55e;
       --rxo: #f59e0b;
       --arcbest: #a78bfa;
+      --molo: #f472b6;
       --echo: #38bdf8;
       --chr: #fb7185;
       --warn-bg: #422006;
       --warn-border: #b45309;
       --warn-text: #fcd34d;
       --empty: #64748b;
-      --row-hover: #1e2a3d;
-      --input-bg: #121a26;
+      --row-hover: #1a2538;
+      --row-alt: rgba(255,255,255,.018);
+      --input-bg: #0e1624;
       --shadow: 0 1px 3px rgba(0,0,0,.35);
       --pop-shadow: 0 8px 28px rgba(0,0,0,.45);
-      --radius: 8px;
+      --radius: 10px;
       --chip-radius: 999px;
+      --control-h: 32px;
+      --gap: 0.55rem;
       font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
     }
 
@@ -87,9 +91,12 @@
       font: inherit;
       font-size: 0.8rem;
       font-weight: 600;
-      padding: 0.35rem 0.75rem;
+      padding: 0 0.85rem;
+      height: var(--control-h);
       border-radius: var(--chip-radius);
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
     }
     .btn-refresh:hover { background: var(--border); border-color: var(--muted); }
     .btn-refresh:disabled { opacity: 0.6; cursor: wait; }
@@ -98,9 +105,9 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.45rem 0.65rem;
-      margin: -0.35rem 0 1rem;
-      padding: 0.55rem 0.75rem;
+      gap: var(--gap);
+      margin: 0 0 var(--gap);
+      padding: 0.65rem 0.85rem;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -128,7 +135,7 @@
     .broker-link.Arrive:hover { border-color: var(--arrive); color: var(--arrive); }
     .broker-link.RXO:hover { border-color: var(--rxo); color: var(--rxo); }
     .broker-link.ArcBest:hover { border-color: var(--arcbest); color: var(--arcbest); }
-    .broker-link.MoLo:hover { border-color: #f472b6; color: #f472b6; }
+    .broker-link.MoLo:hover { border-color: var(--molo); color: var(--molo); }
     .broker-link.Echo:hover { border-color: var(--echo); color: var(--echo); }
     .broker-link.CHR:hover { border-color: var(--chr); color: var(--chr); }
 
@@ -143,26 +150,36 @@
       background: var(--input-bg);
       border: 1px solid var(--border);
       color: var(--text);
-      border-radius: 999px;
-      padding: 0.35rem 0.75rem;
+      border-radius: var(--chip-radius);
+      padding: 0 0.8rem;
+      height: var(--control-h);
       font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
     }
     .btn-scanner:hover { border-color: var(--accent); color: var(--accent); }
     .btn-scanner:disabled { opacity: 0.55; cursor: not-allowed; }
     .scanner-pill {
       font-size: 0.72rem;
       font-weight: 600;
-      padding: 0.25rem 0.65rem;
-      border-radius: 999px;
+      padding: 0 0.7rem;
+      height: var(--control-h);
+      border-radius: var(--chip-radius);
       border: 1px solid var(--border);
       color: var(--muted);
       background: var(--surface);
+      display: inline-flex;
+      align-items: center;
     }
     .scanner-pill.hidden { border-color: #64748b; color: #94a3b8; }
     .scanner-pill.visible { border-color: #22c55e; color: #4ade80; }
-    .scanner-pill.cdp_down, .scanner-pill.error, .scanner-pill.unavailable {
+    .scanner-pill.cdp_down, .scanner-pill.unavailable {
+      border-color: #475569; color: #94a3b8;
+    }
+    .scanner-pill.error {
       border-color: #f59e0b; color: #fbbf24;
     }
     .btn-scanner.Arrive:hover { border-color: var(--arrive); color: var(--arrive); }
@@ -324,9 +341,9 @@
 
     .source-health {
       display: none;
-      margin: 0.5rem 1.1rem 0;
+      margin: 0 0 var(--gap);
       padding: 0.55rem 0.85rem;
-      border-radius: 8px;
+      border-radius: var(--radius);
       border: 1px solid #b45309;
       background: rgba(180, 83, 9, 0.12);
       color: #fbbf24;
@@ -345,14 +362,14 @@
     .search-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.55rem;
+      gap: var(--gap);
       align-items: flex-end;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 0.85rem 1rem;
+      padding: 0.75rem 0.9rem;
       box-shadow: var(--shadow);
-      margin-bottom: 0.65rem;
+      margin-bottom: var(--gap);
     }
 
     .field {
@@ -376,9 +393,10 @@
       background: var(--input-bg);
       border: 1px solid var(--border);
       color: var(--text);
-      border-radius: 6px;
-      padding: 0.5rem 0.7rem;
-      font-size: 0.9rem;
+      border-radius: 8px;
+      padding: 0 0.7rem;
+      height: var(--control-h);
+      font-size: 0.88rem;
       outline: none;
       min-width: 0;
       width: 100%;
@@ -409,8 +427,9 @@
       background: var(--input-bg);
       border: 1px solid var(--border);
       color: var(--text);
-      border-radius: 6px;
-      padding: 0.45rem 0.5rem;
+      border-radius: 8px;
+      padding: 0 0.5rem;
+      height: var(--control-h);
       font-size: 0.85rem;
       min-width: 0;
       width: 9.2rem;
@@ -427,14 +446,17 @@
       background: var(--accent);
       border: 1px solid var(--accent);
       color: #fff;
-      border-radius: 6px;
-      padding: 0.5rem 1.25rem;
-      font-size: 0.9rem;
+      border-radius: 8px;
+      padding: 0 1.15rem;
+      font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
       align-self: flex-end;
-      height: 2.35rem;
+      height: var(--control-h);
       min-width: 5.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .btn-search:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
@@ -602,12 +624,12 @@
       border: 1px solid var(--border);
       color: var(--text);
       border-radius: var(--chip-radius);
-      padding: 0.4rem 0.85rem;
+      padding: 0 0.85rem;
       font-size: 0.82rem;
       cursor: pointer;
       user-select: none;
       white-space: nowrap;
-      height: 2rem;
+      height: var(--control-h);
       box-sizing: border-box;
     }
 
@@ -855,7 +877,7 @@
     }
 
     th, td {
-      padding: 0.7rem 0.75rem;
+      padding: 0.55rem 0.7rem;
       text-align: left;
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
@@ -879,6 +901,7 @@
     th .sort-ind { opacity: 0.45; margin-left: 0.25rem; font-weight: 700; }
     th.active .sort-ind { opacity: 1; color: var(--accent); }
 
+    tbody tr:nth-child(even) { background: var(--row-alt); }
     tbody tr:hover { background: var(--row-hover); }
     tbody tr:last-child td { border-bottom: none; }
 
@@ -897,7 +920,7 @@
     .badge.Arrive { background: rgba(34,197,94,.15); color: var(--arrive); }
     .badge.RXO { background: rgba(245,158,11,.15); color: var(--rxo); }
     .badge.ArcBest { background: rgba(167,139,250,.15); color: var(--arcbest); }
-    .badge.MoLo { background: rgba(244,114,182,.15); color: #f472b6; }
+    .badge.MoLo { background: rgba(244,114,182,.15); color: var(--molo); }
     .badge.Echo { background: rgba(56,189,248,.15); color: var(--echo); }
     .badge.CHR { background: rgba(251,113,133,.15); color: var(--chr); }
 
@@ -991,7 +1014,7 @@
   </div>
 
   <div id="extensionBanner" class="banner extension-mode" role="status">
-    Extension mode — brokers signed in via normal Chrome. Loads posted by the Unified Load Board Scanner extension. Legacy CDP Chrome is optional and not required.
+    Extension mode — loads come from the Chrome extension (normal broker tabs). Legacy CDP Chrome is optional; “CDP off” is normal here, not an error.
   </div>
 
   <div class="ext-install" id="extInstallPanel" aria-label="Download and install Chrome extension">
@@ -1309,7 +1332,7 @@
         const labels = {
           hidden: "scanner: hidden",
           visible: "scanner: visible",
-          cdp_down: "legacy CDP: off (ok if using extension)",
+          cdp_down: "CDP: off (normal in extension mode)",
           extension: "mode: extension",
           unavailable: "scanner: use localhost",
           error: "scanner: error",
@@ -1400,10 +1423,14 @@
             const st = s.status || "?";
             const n = (typeof s.count === "number") ? s.count : "?";
             bits.push(name + ":" + n + (st && st !== "ok" ? "(" + st + ")" : ""));
-            if (st === "needs_login" && !(typeof n === "number" && n > 0)) problems.push(name + " needs login — open broker tab / sign in");
-            else if (st === "stale") { /* kept previous; not an alarm */ }
-            else if (st === "empty" && n === 0) problems.push(name + " 0 loads (open tab + search/refresh)");
-            else if (st === "error") problems.push(name + " error");
+            // Honesty: needs_login with loads is a lie — treat as stale for display
+            var showSt = st;
+            if (typeof n === "number" && n > 0 && st === "needs_login") showSt = "stale";
+            if (showSt !== st) bits[bits.length - 1] = name + ":" + n + "(stale)";
+            if (showSt === "needs_login") problems.push(name + " needs login — open broker tab / sign in");
+            else if (showSt === "stale") { /* kept previous; not an alarm */ }
+            else if (showSt === "empty" && n === 0) problems.push(name + " 0 loads (open tab + search/refresh)");
+            else if (showSt === "error") problems.push(name + " error");
           });
           const when = data.scannedAt ? (" · scan " + data.scannedAt) : "";
           if (problems.length) {

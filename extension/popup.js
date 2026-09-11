@@ -6,10 +6,18 @@ const BROKERS = [
   { key: "CHR", open: "CHR" },
 ];
 
+function resolveStatus(status, count) {
+  // honest display — mirror lib/status.js
+  const n = Number(count) || 0;
+  let s = String(status || "unknown");
+  if (n > 0 && s === "needs_login") s = "stale";
+  if (n > 0 && s !== "stale" && s !== "ok") s = "ok";
+  return s;
+}
+
 function pillClass(status, count) {
-  const s = String(status || "unknown");
+  const s = resolveStatus(status, count);
   if (s === "ok") return "ok";
-  if (s === "needs_login" && count > 0) return "stale";
   if (s === "needs_login" || s === "no_tab") return s;
   if (s === "error") return "error";
   if (s === "kept_previous" || s === "empty" || s === "listening") return s;
@@ -18,9 +26,9 @@ function pillClass(status, count) {
 }
 
 function labelStatus(status, count) {
-  const s = String(status || "unknown");
-  if (s === "stale" || (s === "needs_login" && count > 0) || s === "kept_previous") {
-    return "sign in / open tab to refresh";
+  const s = resolveStatus(status, count);
+  if (s === "stale" || s === "kept_previous") {
+    return "stale — open tab to refresh";
   }
   const map = {
     ok: "ok",
