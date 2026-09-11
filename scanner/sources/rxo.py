@@ -814,6 +814,20 @@ def fetch(context, url: str, debug_dir: Path, page=None) -> list[dict]:
 
         wait_out_mfa(page, timeout_ms=180_000)
 
+        # Plain Sign-In (not MFA): do not hammer redirects or spawn search UI
+        try:
+            if is_login_wall(page):
+                log.warning(
+                    "[%s] Login wall after goto — use board button Sign in RXO, then complete "
+                    "username/password (+ MFA if prompted). Skipping scrape this cycle.",
+                    SOURCE,
+                )
+                dump_html_snippet(page.content(), debug_dir / "rxo-last.html")
+                reused = _reuse_last_good_if_ok(debug_dir, [], reason="login-wall")
+                return reused or []
+        except Exception:
+            pass
+
         try:
             u = (page.url or "").lower()
             if "available-loads" not in u or "multifactor" in u:
@@ -823,6 +837,14 @@ def fetch(context, url: str, debug_dir: Path, page=None) -> list[dict]:
                 except Exception:
                     pass
                 page.wait_for_timeout(6000)
+        except Exception:
+            pass
+
+        try:
+            if is_login_wall(page):
+                log.warning("[%s] Still on login wall — skip cycle", SOURCE)
+                reused = _reuse_last_good_if_ok(debug_dir, [], reason="login-wall")
+                return reused or []
         except Exception:
             pass
 

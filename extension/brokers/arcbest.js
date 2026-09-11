@@ -67,8 +67,15 @@ export function summaryToLoad(s) {
   const src = isMolo(st) ? SOURCE_MOLO : SOURCE;
   const sid = s.shipmentId != null ? String(s.shipmentId).trim() : "";
   let detailUrl = BOARD;
-  if (sid && /^[\w-]+$/.test(sid)) detailUrl = `https://carriers.arcb.com/Shipments?shipmentId=${sid}`;
-  else if (/^[\w-]+$/.test(lid)) detailUrl = `https://carriers.arcb.com/Shipments?referenceNumber=${lid}`;
+  // Load # on the board is referenceNumber for MoLo / often for ArcBest — prefer that in the deep link
+  if (lid && /^[\w-]+$/.test(lid)) {
+    detailUrl = `https://carriers.arcb.com/Shipments?referenceNumber=${encodeURIComponent(lid)}`;
+    if (sid && sid !== lid && /^[\w-]+$/.test(sid)) {
+      detailUrl += `&shipmentId=${encodeURIComponent(sid)}`;
+    }
+  } else if (sid && /^[\w-]+$/.test(sid)) {
+    detailUrl = `https://carriers.arcb.com/Shipments?shipmentId=${encodeURIComponent(sid)}`;
+  }
   const raw = {
     id: lid,
     origin,

@@ -4,7 +4,13 @@ import { normalizeLoad, isLoginResponse, BROKER_URLS } from "../lib/normalize.js
 const SOURCE = "CHR";
 const BOARD = BROKER_URLS.CHR;
 
-const ID_KEYS = ["loadId","LoadId","loadNumber","LoadNumber","shipmentId","ShipmentId","orderNumber","OrderNumber","id","Id"];
+const ID_KEYS = [
+  "loadId","LoadId","loadNumber","LoadNumber","LoadNumberId","carrierLoadId","CarrierLoadId",
+  "shipmentId","ShipmentId","orderNumber","OrderNumber","orderId","OrderId",
+  "movementId","MovementId","bolNumber","BolNumber","quoteId","QuoteId",
+  "postingId","PostingId","availabilityId","AvailabilityId",
+  "id","Id",
+];
 
 function firstStr(item, keys) {
   for (const k of keys) {
@@ -14,49 +20,129 @@ function firstStr(item, keys) {
 }
 
 function cityFrom(obj) {
-  if (!obj || typeof obj !== "object") return String(obj || "").trim();
-  const city = String(obj.city || obj.City || obj.name || "").trim();
-  const state = String(obj.state || obj.State || obj.stateCode || obj.StateCode || "").trim();
-  const zipc = String(obj.zip || obj.postalCode || obj.Zip || "").trim();
+  if (obj == null) return "";
+  if (typeof obj === "string") return obj.trim();
+  if (typeof obj !== "object") return String(obj || "").trim();
+  const city = String(
+    obj.city || obj.City || obj.cityName || obj.CityName ||
+    obj.name || obj.locationName || obj.LocationName || ""
+  ).trim();
+  const state = String(
+    obj.state || obj.State || obj.stateCode || obj.StateCode ||
+    obj.stateAbbreviation || obj.StateAbbreviation ||
+    obj.stateOrProvince || obj.province || ""
+  ).trim();
+  const zipc = String(
+    obj.zip || obj.postalCode || obj.Zip || obj.zipCode || obj.postal || ""
+  ).trim();
   if (city && state && zipc) return `${city}, ${state} ${zipc}`;
   if (city && state) return `${city}, ${state}`;
+  if (state && zipc) return `${state} ${zipc}`;
+  return city || state || "";
+}
+
+function hasStateToken(s) {
+  const str = String(s || "").trim();
+  if (!str) return false;
+  if (/,[\s]*[A-Za-z]{2}\b/.test(str)) return true;
+  if (/\b[A-Za-z]{2}\s+\d{5}\b/.test(str)) return true;
+  if (/^[A-Za-z]{2}$/.test(str)) return true;
+  if (/\s[A-Za-z]{2}$/.test(str)) return true; // "ITASCA IL"
+  return false;
+}
+
+function joinCityState(city, state, zip) {
+  city = String(city || "").trim();
+  state = String(state || "").trim();
+  zip = String(zip || "").trim();
+  if (!city && !state) return "";
+  if (city && hasStateToken(city) && !state) return city;
+  if (city && state && zip) return `${city}, ${state} ${zip}`;
+  if (city && state) return `${city}, ${state}`;
+  if (state && zip) return `${state} ${zip}`;
   return city || state || "";
 }
 
 function fromItem(item) {
   if (!item || typeof item !== "object") return null;
-  const lid = firstStr(item, ID_KEYS);
+  // Dig one level into nested load/shipment wrappers common on Navisphere
+  const nested = item.load || item.Load || item.shipment || item.Shipment || item.posting || null;
+  const src = nested && typeof nested === "object" ? { ...item, ...nested } : item;
+
+  let lid = firstStr(src, ID_KEYS);
+  // Avoid using useless generic ids that are empty-ish or look like UI keys
+  if (lid && /^(null|undefined|true|false)$/i.test(lid)) lid = "";
+
   let origin =
-    cityFrom(item.origin || item.Origin || item.pickup || {}) ||
-    firstStr(item, ["originCity","OriginCity","pickupCity","PickupCity","originLocation"]);
+    cityFrom(src.origin || src.Origin || src.pickup || src.Pickup || src.originLocation || {}) ||
+    firstStr(src, ["originCity","OriginCity","pickupCity","PickupCity","originLocation","OriginLocation"]);
   let dest =
-    cityFrom(item.destination || item.Destination || item.delivery || {}) ||
-    firstStr(item, ["destinationCity","DestinationCity","deliveryCity","DeliveryCity","destLocation"]);
-  const stops = item.stops || item.Stops;
-  if ((!origin || !dest) && Array.isArray(stops) && stops.length) {
-    origin = origin || cityFrom(stops[0]);
-    dest = dest || cityFrom(stops[stops.length - 1]);
+    cityFrom(src.destination || src.Destination || src.delivery || src.Delivery || src.destLocation || {}) ||
+    firstStr(src, ["destinationCity","DestinationCity","deliveryCity","DeliveryCity","destLocation","DestLocation","destCity"]);
+
+  // Sibling state fields when origin/dest are city-only strings ("ITASCA" + destinationState="IL")
+  const oState = firstStr(src, [
+    "originState","OriginState","originStateCode","OriginStateCode",
+    "pickupState","PickupState","pickupStateCode","originProvince",
+  ]);
+  const dState = firstStr(src, [
+    "destinationState","DestinationState","destinationStateCode","DestinationStateCode",
+    "deliveryState","DeliveryState","deliveryStateCode","destState","DestState","destProvince",
+  ]);
+  const oZip = firstStr(src, ["originZip","OriginZip","originPostalCode","pickupZip","PickupZip"]);
+  const dZip = firstStr(src, ["destinationZip","DestinationZip","deliveryZip","DeliveryZip","destZip"]);
+  if (origin && oState && !hasStateToken(origin)) origin = joinCityState(origin, oState, oZip);
+  else if (origin && oZip && !/\d{5}/.test(origin)) origin = joinCityState(origin, oState, oZip);
+  if (dest && dState && !hasStateToken(dest)) dest = joinCityState(dest, dState, dZip);
+  else if (dest && dZip && !/\d{5}/.test(dest)) dest = joinCityState(dest, dState, dZip);
+
+  const stops = src.stops || src.Stops || src.StopList || src.locations || src.Locations;
+  if ((!origin || !dest || !hasStateToken(origin) || !hasStateToken(dest)) && Array.isArray(stops) && stops.length) {
+    const first = cityFrom(stops[0]);
+    const last = cityFrom(stops[stops.length - 1]);
+    if (!origin || (first && hasStateToken(first) && !hasStateToken(origin))) origin = origin && hasStateToken(origin) ? origin : (first || origin);
+    if (!dest || (last && hasStateToken(last) && !hasStateToken(dest))) dest = dest && hasStateToken(dest) ? dest : (last || dest);
   }
   if (!origin && !dest) return null;
-  let rate = item.rate ?? item.Rate ?? item.bookNowRate ?? item.price;
+
+  let rate = src.rate ?? src.Rate ?? src.bookNowRate ?? src.price ?? src.RateAmount;
   try { rate = rate != null && rate !== "" ? Number(rate) : null; } catch { rate = null; }
-  let miles = item.miles ?? item.Miles ?? item.distance ?? item.Distance;
+  let miles = src.miles ?? src.Miles ?? src.distance ?? src.Distance ?? src.totalMiles;
   try { miles = miles != null && miles !== "" ? Number(miles) : null; } catch { miles = null; }
+
+  const detail = firstStr(src, ["url","detailUrl","detail_url","href","loadUrl","LoadUrl","deepLink","DeepLink"]);
+  let url = BOARD;
+  if (detail && /^https?:\/\//i.test(detail)) {
+    url = detail;
+  } else if (lid && !/^CHR-/i.test(lid) && lid.indexOf(",") < 0) {
+    // Best available Navisphere deep links (SPA still needs session)
+    url = `https://www.navispherecarrier.com/find-loads?loadId=${encodeURIComponent(lid)}`;
+  }
+
   const raw = {
     id: lid || `CHR-${origin}-${dest}`,
     origin,
     destination: dest,
     pickupCity: origin,
     deliveryCity: dest,
-    pickupDate: firstStr(item, ["pickupDate","PickupDate","pickUpDate","originDate","pickupStart"]),
-    deliveryDate: firstStr(item, ["deliveryDate","DeliveryDate","destDate","deliveryStart"]),
-    equipment: firstStr(item, ["equipment","Equipment","equipmentType","EquipmentType","trailerType"]),
+    pickupDate: firstStr(src, ["pickupDate","PickupDate","pickUpDate","originDate","pickupStart","PickupStart"]),
+    deliveryDate: firstStr(src, ["deliveryDate","DeliveryDate","destDate","deliveryStart","DeliveryStart"]),
+    equipment: firstStr(src, ["equipment","Equipment","equipmentType","EquipmentType","trailerType","TrailerType"]),
     miles,
-    weight: item.weight ?? item.Weight ?? "",
+    weight: src.weight ?? src.Weight ?? "",
     rate,
-    url: lid ? `${BOARD}?loadId=${lid}` : BOARD,
+    url,
   };
-  try { return normalizeLoad(raw, SOURCE, BOARD); } catch { return null; }
+  try {
+    const n = normalizeLoad(raw, SOURCE, BOARD);
+    // Keep a non-board url when we have a real lid
+    if (lid && !/^CHR-/i.test(lid) && n.url === BOARD) {
+      n.url = `https://www.navispherecarrier.com/find-loads?loadId=${encodeURIComponent(lid)}`;
+    }
+    return n;
+  } catch {
+    return null;
+  }
 }
 
 function walkItems(body, out, depth = 0) {
@@ -66,9 +152,9 @@ function walkItems(body, out, depth = 0) {
       if (row && typeof row === "object") {
         const keys = new Set(Object.keys(row).map((k) => k.toLowerCase()));
         if (
-          ["loadid","loadnumber","origin","destination","pickupcity","miles","rate","stops"].some((k) => keys.has(k)) ||
-          ((keys.has("origin") || keys.has("pickup") || keys.has("origincity")) &&
-            (keys.has("destination") || keys.has("delivery") || keys.has("destinationcity")))
+          ["loadid","loadnumber","origin","destination","pickupcity","miles","rate","stops","origincity","destinationcity","origincityname"].some((k) => keys.has(k)) ||
+          ((keys.has("origin") || keys.has("pickup") || keys.has("origincity") || keys.has("pickupcity")) &&
+            (keys.has("destination") || keys.has("delivery") || keys.has("destinationcity") || keys.has("deliverycity")))
         ) {
           const n = fromItem(row);
           if (n) out.push(n);

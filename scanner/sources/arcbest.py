@@ -496,6 +496,38 @@ def collect(page, url: str, debug_dir: Path) -> list[dict]:
     return []
 
 
+def _pass_auth0_form(page) -> None:
+    """Auth0 OIDC form_post interstitial ('Submit This Form') — auto-submit."""
+    try:
+        cur = (page.url or "").lower()
+        title = ""
+        try:
+            title = (page.title() or "").lower()
+        except Exception:
+            title = ""
+        if "auth0.com" not in cur and "submit this form" not in title:
+            return
+        log.info("[%s] Auth0 form_post interstitial — submitting", SOURCE)
+        try:
+            page.evaluate(
+                """() => {
+                  const f = document.querySelector('form');
+                  if (f) { f.submit(); return true; }
+                  const btn = document.querySelector('button[type=submit], input[type=submit]');
+                  if (btn) { btn.click(); return true; }
+                  return false;
+                }"""
+            )
+        except Exception:
+            pass
+        try:
+            page.wait_for_url("**/Shipments**", timeout=45_000)
+        except Exception:
+            page.wait_for_timeout(5000)
+    except Exception as exc:
+        log.warning("[%s] Auth0 form pass failed: %s", SOURCE, exc)
+
+
 def fetch(context, url: str, debug_dir: Path, page=None) -> list[dict]:
     owns = page is None
     try:
@@ -509,7 +541,18 @@ def fetch(context, url: str, debug_dir: Path, page=None) -> list[dict]:
             already = False
         if not already:
             page.goto(url, wait_until="domcontentloaded", timeout=90_000)
-            page.wait_for_timeout(5000)
+            page.wait_for_timeout(3000)
+            _pass_auth0_form(page)
+            # After Auth0, wait for Vue shipments
+            try:
+                cur2 = (page.url or "").lower()
+                if "shipment" not in cur2:
+                    page.goto(url, wait_until="domcontentloaded", timeout=90_000)
+                    page.wait_for_timeout(4000)
+                    _pass_auth0_form(page)
+            except Exception:
+                pass
+            page.wait_for_timeout(2000)
         return collect(page, page.url or url, debug_dir)
     except Exception as exc:
         log.warning("[%s] fetch fail: %s", SOURCE, exc)

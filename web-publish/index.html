@@ -1666,16 +1666,16 @@
           return String(BROKER_BOARD_URLS[k]).replace(/\/$/, "");
         });
         if (boards.indexOf(bare) >= 0) return false;
-        // Board homepage variants (no load-specific path/query)
         for (let i = 0; i < boards.length; i++) {
           if (bare === boards[i]) return false;
         }
+        // RXO page-index junk: /loads/1 .. /loads/99
+        if (/rxoconnect\.rxo\.com\/loads\/\d{1,2}\/?$/i.test(bare)) return false;
         const idStr = String(id || "");
+        if (idStr && /^\d{1,2}$/.test(idStr) && /rxoconnect\.rxo\.com\/loads\//i.test(u)) return false;
         if (idStr && u.indexOf(idStr) >= 0) return true;
-        // load-specific query/path markers
         if (/[?&#](loadId|loadNumber|loadBoardId|shipmentId|referenceNumber)=/i.test(u)) return true;
         if (/\/(loads|availableLoads|Shipments|find-loads)\/[^/?#]+/i.test(u)) return true;
-        // Non-board http(s) link (detail / filtered / deep) counts as useful
         return true;
       }
 
@@ -1699,25 +1699,39 @@
         const id = String((load && load.id) || "").trim();
         const src = String((load && load.source) || "").trim();
         const raw = String((load && load.url) || "").trim();
-        if (isUsefulLoadUrl(raw, id)) return raw;
         const board = BROKER_BOARD_URLS[src] || "";
-        if (isSyntheticLoadId(id)) return board || raw || "";
         const enc = encodeURIComponent(id);
+
+        // Drop RXO index deep links stored from bad scrapes
+        if (src === "RXO" && (/^\d{1,2}$/.test(id) || /rxoconnect\.rxo\.com\/loads\/\d{1,2}\/?$/i.test(raw))) {
+          return board || "";
+        }
+
+        // MoLo / ArcBest: Load # is referenceNumber — prefer that even when stored url only has shipmentId
+        if ((src === "ArcBest" || src === "MoLo") && id && !isSyntheticLoadId(id)) {
+          let u = "https://carriers.arcb.com/Shipments?referenceNumber=" + enc;
+          const sm = raw.match(/[?&#]shipmentId=([^&#]+)/i);
+          if (sm && sm[1] && decodeURIComponent(sm[1]) !== id) {
+            u += "&shipmentId=" + encodeURIComponent(sm[1]);
+          }
+          return u;
+        }
+
+        if (isUsefulLoadUrl(raw, id)) return raw;
+        if (isSyntheticLoadId(id)) return board || raw || "";
         if (src === "Arrive") {
           return "https://carrier.arrivelogistics.com/find-loads?loadBoardId=" + enc;
         }
         if (src === "RXO") {
+          // Reject tiny index ids 1..99 as deep links
+          if (/^\d{1,2}$/.test(id)) return board || raw || "";
           return "https://carrier.rxoconnect.rxo.com/loads/" + enc;
         }
-        if (src === "ArcBest" || src === "MoLo") {
-          return "https://carriers.arcb.com/Shipments?referenceNumber=" + enc;
-        }
         if (src === "Echo") {
-          // CDP-proven: /v2/…?loadId= expands the correct load (email/lane-alert style)
           return "https://echodrive.echo.com/v2/carrier/10261/availableLoads?loadId=" + enc;
         }
         if (src === "CHR") {
-          return "https://www.navispherecarrier.com/?loadId=" + enc;
+          return "https://www.navispherecarrier.com/find-loads?loadId=" + enc;
         }
         return board || raw || "";
       }
@@ -1801,13 +1815,19 @@
           (load && (load.delivery_city || load.destination || load.delivery || "")) || ""
         ).replace(/\s+/g, " ").trim();
         if (!hay) return "";
-        // "City, SC 29550" | "Hartsville, SC" | "SC 29550" | "PA 16881" | "... SC"
-        let m = hay.match(/,\s*([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?\s*$/);
+        // Echo-style: "LANCASTER, NY 14086" | "Hartsville, SC" | "City, ST"
+        let m = hay.match(/,\s*([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?\s*$/i);
         if (m && US_STATE_CODES[m[1].toUpperCase()]) return m[1].toUpperCase();
+        // "ITASCA IL" / "MENOMONIE WI" (no comma)
+        m = hay.match(/^(.+?)\s+([A-Za-z]{2})$/);
+        if (m && US_STATE_CODES[m[2].toUpperCase()] && m[1].length >= 2) return m[2].toUpperCase();
+        // "SC 29550" | "PA 16881" | bare "SC"
         m = hay.match(/^([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?\s*$/);
         if (m && US_STATE_CODES[m[1].toUpperCase()]) return m[1].toUpperCase();
+        // Anywhere: "ST 12345"
         m = hay.match(/\b([A-Za-z]{2})\s+\d{5}(?:-\d{4})?\b/);
         if (m && US_STATE_CODES[m[1].toUpperCase()]) return m[1].toUpperCase();
+        // Trailing ", ST" already covered; trailing " ST"
         m = hay.match(/\b([A-Za-z]{2})\s*$/);
         if (m && US_STATE_CODES[m[1].toUpperCase()]) return m[1].toUpperCase();
         return "";
@@ -2397,14 +2417,18 @@
             destStates.forEach((s) => { want[s] = true; });
             rows = rows.filter((l) => {
               const st = parseDeliveryState(l);
-              if (st && want[st]) return true;
-              // Also allow cityMatch against raw hay for "ST ZIP" edge cases
-              const hay = (deliveryCity(l) + " " + (l.delivery_city || "") + " " + (l.destination || "")).trim();
-              return destStates.some((s) => cityMatch(hay, s) || new RegExp("\\b" + s + "\\b", "i").test(hay));
+              if (st) return !!want[st];
+              // No parseable state: do NOT match via loose cityMatch("SC") on city names —
+              // only accept explicit ST token in the raw hay (word-boundary).
+              const hay = (
+                deliveryCity(l) + " " + (l.delivery_city || "") + " " + (l.destination || "")
+              ).trim();
+              if (!hay) return false; // missing dest → exclude when user required states
+              return destStates.some((s) => new RegExp("\\b" + s + "\\b", "i").test(hay));
             });
           } else {
             rows = rows.filter((l) => {
-              const hay = (deliveryCity(l) + " " + (l.destination || "")).trim();
+              const hay = (deliveryCity(l) + " " + (l.delivery_city || "") + " " + (l.destination || "")).trim();
               return cityMatch(hay, destQ);
             });
           }
@@ -2568,7 +2592,16 @@
           el.tbody.innerHTML = "";
           el.empty.hidden = false;
           el.empty.textContent = "No loads match the current filters";
-          el.stats.textContent = "0 match filters · " + state.loads.length + " total";
+          const totalBySrc0 = {};
+          state.loads.forEach(function (l) {
+            const s = l.source || "?";
+            totalBySrc0[s] = (totalBySrc0[s] || 0) + 1;
+          });
+          const bits0 = ALL_BROKERS.filter(function (s) { return totalBySrc0[s]; })
+            .map(function (s) { return s + " 0/" + totalBySrc0[s] + " (0 match filter)"; });
+          el.stats.textContent =
+            "0 match filters · " + state.loads.length + " total" +
+            (bits0.length ? " (" + bits0.join(" · ") + ")" : "");
           return;
         }
 
@@ -2578,12 +2611,24 @@
           const s = l.source || "?";
           bySrc[s] = (bySrc[s] || 0) + 1;
         });
+        const totalBySrc = {};
+        state.loads.forEach(function (l) {
+          const s = l.source || "?";
+          totalBySrc[s] = (totalBySrc[s] || 0) + 1;
+        });
+        const filtered = rows.length !== state.loads.length;
         const srcBits = ALL_BROKERS
-          .filter(function (s) { return bySrc[s]; })
-          .map(function (s) { return s + " " + bySrc[s]; });
+          .filter(function (s) { return totalBySrc[s]; })
+          .map(function (s) {
+            const n = bySrc[s] || 0;
+            const tot = totalBySrc[s] || 0;
+            if (!filtered) return s + " " + tot;
+            if (n === 0) return s + " 0/" + tot + " (0 match filter)";
+            return s + " " + n + "/" + tot;
+          });
         const srcTxt = srcBits.length ? " (" + srcBits.join(" · ") + ")" : "";
         el.stats.textContent =
-          rows.length === state.loads.length
+          !filtered
             ? "Showing " + rows.length + " loads" + srcTxt
             : rows.length + " match filters · " + state.loads.length + " total" + srcTxt;
 

@@ -340,11 +340,36 @@ def _find_page_for_key(key: str, pages: list[dict] | None = None) -> dict | None
         return None
     pages = pages if pages is not None else list_cdp_pages()
     match = meta["match"]
-    # Prefer exact-ish board pages first
+    login_bits = (
+        "login", "signin", "sign-in", "authorize", "auth0.com", "okta.com",
+        "oauth", "sso", "account/login", "multifactor",
+    )
+    scored: list[tuple[int, dict]] = []
     for p in pages:
-        if _page_matches(match, p):
-            return p
-    return None
+        if not _page_matches(match, p):
+            continue
+        url = (p.get("url") or "").lower()
+        title = (p.get("title") or "").lower()
+        score = 10
+        if any(b in url or b in title for b in login_bits):
+            score -= 40
+        if key == "rxo" and "available-loads" in url:
+            score += 30
+        if key == "arrive" and "find-loads" in url:
+            score += 30
+        if key == "arcbest" and "shipment" in url:
+            score += 30
+        if key == "echo" and "availableloads" in url:
+            score += 30
+        if key == "chr" and "find-loads" in url:
+            score += 20
+        if key == "board" and "8765" in url:
+            score += 30
+        scored.append((score, p))
+    if not scored:
+        return None
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return scored[0][1]
 
 
 def _cdp_activate(target_id: str) -> bool:
@@ -411,26 +436,128 @@ def _login_guess(key: str, page: dict | None) -> str:
     return "unknown"
 
 
+def _cdp_close(target_id: str) -> bool:
+    if not target_id:
+        return False
+    tid = urllib.parse.quote(target_id, safe="")
+    for method in ("GET", "POST"):
+        try:
+            req = urllib.request.Request(CDP + "/json/close/" + tid, method=method)
+            with urllib.request.urlopen(req, timeout=5) as r:
+                r.read()
+            return True
+        except Exception:
+            continue
+    return False
+
+
+def _score_page_for_key(key: str, page: dict) -> int | None:
+    """None = not this broker. Higher = better tab to keep."""
+    meta = BROKER_TABS.get(key)
+    if not meta or not _page_matches(meta["match"], page):
+        return None
+    url = (page.get("url") or "").lower()
+    title = (page.get("title") or "").lower()
+    score = 10
+    login_bits = (
+        "login", "signin", "sign-in", "authorize", "auth0.com", "okta.com",
+        "oauth", "sso", "account/login", "multifactor",
+    )
+    if any(b in url or b in title for b in login_bits):
+        score -= 40
+    if url.startswith("chrome-error://") or url.startswith("chrome://"):
+        score -= 100
+    if key == "rxo" and "available-loads" in url:
+        score += 30
+    if key == "arrive" and "find-loads" in url:
+        score += 30
+    if key == "arcbest" and "shipment" in url:
+        score += 30
+    if key == "echo" and "availableloads" in url:
+        score += 30
+    if key == "chr" and "find-loads" in url:
+        score += 20
+    if key == "board" and "8765" in url:
+        score += 30
+    return score
+
+
+def dedupe_tabs() -> dict[str, Any]:
+    """Close extra tabs per broker — keep the highest-scoring one only.
+
+    Never leaves 2x Arrive / 2x RXO Sign In. Safe to call anytime CDP is up.
+    """
+    if not cdp_up():
+        return {"ok": False, "error": "cdp_down", "closed": []}
+    pages = list_cdp_pages()
+    by_key: dict[str, list[tuple[int, dict]]] = {k: [] for k in BROKER_TABS}
+    for p in pages:
+        for key in BROKER_TABS:
+            sc = _score_page_for_key(key, p)
+            if sc is not None:
+                by_key[key].append((sc, p))
+                break
+    closed: list[dict[str, str]] = []
+    for key, items in by_key.items():
+        if len(items) <= 1:
+            continue
+        items.sort(key=lambda x: x[0], reverse=True)
+        for _sc, p in items[1:]:
+            tid = str(p.get("id") or "")
+            if _cdp_close(tid):
+                closed.append({
+                    "key": key,
+                    "id": tid[:12],
+                    "url": (p.get("url") or "")[:160],
+                })
+            time.sleep(0.15)
+    return {
+        "ok": True,
+        "closed": closed,
+        "pages": len(list_cdp_pages()),
+        "closedCount": len(closed),
+    }
+
+
 def ensure_tabs(hide_after: bool = False) -> dict[str, Any]:
-    """Open missing board + broker tabs inside the existing CDP Chrome (no new process)."""
+    """Open missing board + broker tabs inside the existing CDP Chrome (no new process).
+
+    Never opens a second tab for a broker that already has ANY matching tab
+    (including login / Auth0 / Okta). Always dedupes afterward.
+    """
     if not cdp_up():
         return {"ok": False, "error": "cdp_down"}
+    # Retry briefly: Chrome may still be on about:blank right after launch
     pages = list_cdp_pages()
+    for _ in range(6):
+        if pages:
+            break
+        time.sleep(0.5)
+        pages = list_cdp_pages()
     opened: list[str] = []
     for key in ("board", "arrive", "rxo", "arcbest", "echo", "chr"):
         meta = BROKER_TABS[key]
+        pages = list_cdp_pages()
         if _find_page_for_key(key, pages):
+            continue
+        # Extra safety: any page matching the needle counts — do not open another
+        if any(_page_matches(meta["match"], p) for p in pages):
             continue
         if _cdp_new(meta["url"]):
             opened.append(key)
-            time.sleep(0.35)
-            pages = list_cdp_pages()
+            time.sleep(0.5)
+    dedupe = dedupe_tabs()
     if hide_after:
         try:
             hide_scanner_chrome()
         except Exception:
             pass
-    return {"ok": True, "opened": opened, "pages": len(list_cdp_pages())}
+    return {
+        "ok": True,
+        "opened": opened,
+        "deduped": dedupe.get("closed") or [],
+        "pages": len(list_cdp_pages()),
+    }
 
 
 def ensure_broker_tabs() -> dict[str, Any]:
@@ -456,15 +583,27 @@ def focus_tab(key: str, restore_window: bool = True) -> dict[str, Any]:
     if not cdp_up():
         return {"ok": False, "error": "cdp_down", "key": key}
 
+    # Always collapse duplicates before focusing
+    try:
+        dedupe_tabs()
+    except Exception:
+        pass
     pages = list_cdp_pages()
     page = _find_page_for_key(key, pages)
     created = False
     if not page:
-        if _cdp_new(BROKER_TABS[key]["url"]):
-            created = True
-            time.sleep(0.5)
-            pages = list_cdp_pages()
-            page = _find_page_for_key(key, pages)
+        meta = BROKER_TABS[key]
+        # Any matching tab (even login) → activate it, never open a second
+        for p in pages:
+            if _page_matches(meta["match"], p):
+                page = p
+                break
+        if not page:
+            if _cdp_new(meta["url"]):
+                created = True
+                time.sleep(0.5)
+                pages = list_cdp_pages()
+                page = _find_page_for_key(key, pages)
 
     activated = False
     if page and page.get("id"):
@@ -581,6 +720,8 @@ if __name__ == "__main__":
         print(json.dumps(show_scanner_chrome()))
     elif cmd in ("ensure-tabs", "ensure_tabs"):
         print(json.dumps(ensure_tabs(hide_after=False)))
+    elif cmd in ("dedupe", "dedupe-tabs", "dedupe_tabs"):
+        print(json.dumps(dedupe_tabs()))
     elif cmd in ("focus-tab", "focus_tab", "focus"):
         key = sys.argv[2] if len(sys.argv) > 2 else "board"
         print(json.dumps(focus_tab(key)))

@@ -1,5 +1,5 @@
 # Start ONE scanner Chrome (board + broker tabs) with CDP :9222.
-# Visible on primary monitor — never -32000. Hide from the board UI when done signing in.
+# Visible on primary monitor - never -32000. Hide from the board UI when done signing in.
 $ErrorActionPreference = "Stop"
 $port = 9222
 $profile = Join-Path $PSScriptRoot "chrome_cdp_profile"
@@ -40,6 +40,8 @@ function Invoke-ChromeWindow([string]$Action) {
 $listening = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
 if (-not $listening) {
   Write-Host "Starting ONE scanner Chrome on primary monitor (CDP port $port)..."
+  # ONLY the board URL at process start. Brokers opened once via ensure-tabs after CDP is ready.
+  # Passing all broker URLs here + ensure-tabs previously caused duplicate Arrive/RXO tabs.
   $board = "http://localhost:8765/"
   $chromeArgs = @(
     "--remote-debugging-port=$port",
@@ -48,20 +50,17 @@ if (-not $listening) {
     "--no-default-browser-check",
     "--window-position=60,40",
     "--window-size=1400,900",
-    $board,
-    "https://carrier.arrivelogistics.com/find-loads",
-    "https://carrier.rxoconnect.rxo.com/loads/available-loads",
-    "https://carriers.arcb.com/Shipments",
-    "https://echodrive.echo.com/carrier/10261/availableLoads",
-    "https://www.navispherecarrier.com/"
+    $board
   )
   Start-Process -FilePath $chrome -ArgumentList $chromeArgs
-  Start-Sleep -Seconds 4
+  Start-Sleep -Seconds 5
   Invoke-ChromeWindow "ensure-tabs"
+  Invoke-ChromeWindow "dedupe"
   Invoke-ChromeWindow "show"
 } else {
-  Write-Host "CDP $port already up — ensuring board+broker tabs (no new Chrome window)."
+  Write-Host "CDP $port already up - ensuring board+broker tabs (no new Chrome window)."
   Invoke-ChromeWindow "ensure-tabs"
+  Invoke-ChromeWindow "dedupe"
   Invoke-ChromeWindow "show"
 }
 

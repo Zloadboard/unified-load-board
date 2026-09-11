@@ -2,7 +2,7 @@
 
 **Preferred daily path.** Sign into brokers in **normal Chrome**. No CDP / scanner profile window.
 
-**Current version: 1.1.0**
+**Current version: 1.1.2**
 
 ## Download
 
@@ -42,7 +42,7 @@ Chrome Web Store is **not** required for v1 (unpacked / Load unpacked). Store pa
 
 Empty or logged-out sources **keep last-good loads** for that source (do not wipe the board).
 
-## How capture works (v1.1.0)
+## How capture works (v1.1.2)
 
 1. Content scripts inject a MAIN-world network hook (fetch/XHR + request body/headers) and never alone short-circuit the scan on soft `needs_login`.
 2. **Arrive:** GraphQL `getLoads` is fetched **inside the open find-loads tab** (page cookies) via `executeScript({ world: 'MAIN' })`, replaying the last captured body. SW fetch is fallback only.
@@ -66,14 +66,14 @@ Writes `extension/ulb-extension.zip` and copies into `docs/` + `web-publish/` wh
 
 Old `cdp_attach.py` / scanner Chrome code remains in the repo but is **not** started by `silent_start.ps1` unless `ULB_ENABLE_CDP=1`.
 
-## Reload steps for 1.1.0 (required)
+## Reload steps for 1.1.2 (required)
 
 The work PC may still be running an old service worker until you reload:
 
 1. Download/unzip `extension/ulb-extension.zip` (or use the already-synced `Desktop\unified-load-board\extension` folder).
 2. Open `chrome://extensions` → find **Unified Load Board Scanner**.
-3. Click **Reload** (or Remove + Load unpacked pointing at the `extension` folder). Confirm version shows **1.1.0**.
+3. Click **Reload** (or Remove + Load unpacked pointing at the `extension` folder). Confirm version shows **1.1.2**.
 4. Open Arrive find-loads + ArcBest Shipments (with a search/list visible). Click **Refresh Results** on Arrive once.
 5. Open the extension popup → **Scan now**. Board `last_scan` should show `ok`/`stale` — never `needs_login` for RXO/Echo/CHR when counts &gt; 0.
 
-Until you Reload 1.1.0, the live Chrome extension may still post the old dishonest statuses; serve_board now sanitizes those on write, but Arrive/ArcBest scrapes only improve after reload.
+Until you Reload 1.1.2, the live Chrome extension may still post the old dishonest statuses; serve_board now sanitizes those on write, but Arrive/ArcBest scrapes only improve after reload.

@@ -5,6 +5,7 @@ const SOURCE = "RXO";
 const BOARD = BROKER_URLS.RXO;
 
 const DEFAULT_URLS = [
+  "https://webapi.rxoconnect.rxo.com/RxoConnect.LoadAggregator.Api/carrier/search/loadboard",
   "https://carrier.rxoconnect.rxo.com/api/loadboard/search/loadboard",
   "https://carrier.rxoconnect.rxo.com/loadboard/api/search/loadboard",
   "https://carrier.rxoconnect.rxo.com/api/search/loadboard",
@@ -60,23 +61,63 @@ function cityFromLoc(loc) {
   if (!loc) return "";
   if (typeof loc === "string") return loc.trim();
   if (typeof loc !== "object") return "";
-  const city = (loc.city || loc.City || loc.name || "").toString().trim();
-  const state = (loc.state || loc.State || loc.stateCode || loc.StateCode || "").toString().trim();
-  const zip = (loc.zip || loc.postalCode || loc.Zip || "").toString().trim();
+  // RXO loadboard uses cityName / stateCode / zipCode (not city/state/zip)
+  const city = (
+    loc.city || loc.City || loc.cityName || loc.CityName ||
+    loc.name || loc.locationName || ""
+  ).toString().trim();
+  const state = (
+    loc.state || loc.State || loc.stateCode || loc.StateCode ||
+    loc.stateOrProvince || loc.province || ""
+  ).toString().trim();
+  const zip = (
+    loc.zip || loc.postalCode || loc.zipCode || loc.Zip || loc.postal || ""
+  ).toString().trim();
   if (city && state && zip) return `${city}, ${state} ${zip}`;
   if (city && state) return `${city}, ${state}`;
   if (state && zip) return `${state} ${zip}`;
   return city || state || zip;
 }
 
+/** Real RXO load numbers are long (e.g. 24000967) or dashed (2-21495980). Reject page/stop indexes. */
+function pickRxoId(item) {
+  const candidates = [
+    item.number, item.alternateNumber, item.loadNumber, item.loadId,
+    item.id, item.suggestionId, item.tripNumber,
+  ];
+  const cleaned = [];
+  for (const c of candidates) {
+    if (c == null || c === "") continue;
+    const s = String(c).trim();
+    if (!s) continue;
+    cleaned.push(s);
+  }
+  // Prefer long numeric load numbers / dashed ids over tiny indexes 1..N
+  for (const s of cleaned) {
+    if (/^\d{5,}$/.test(s) || /^\d+-\d+$/.test(s) || /^[A-Za-z]{1,4}\d{4,}$/.test(s)) return s;
+  }
+  for (const s of cleaned) {
+    // Reject bare 1..99 (page/stop indexes) unless nothing else exists AND we have locations
+    if (/^\d{1,2}$/.test(s)) continue;
+    return s;
+  }
+  return "";
+}
+
+function fmtCityStateZip(city, state, zip) {
+  city = (city || "").toString().trim();
+  state = (state || "").toString().trim();
+  zip = (zip || "").toString().trim();
+  if (city && state && zip) return `${city}, ${state} ${zip}`;
+  if (city && state) return `${city}, ${state}`;
+  if (state && zip) return `${state} ${zip}`;
+  return city || state || zip || "";
+}
+
 function enrichRxo(rawItem, normalized) {
   const out = { ...normalized };
-  const num = rawItem.number;
-  if (num != null && num !== "") out.id = String(num).trim();
-  else if (!out.id) {
-    const rid = rawItem.alternateNumber || rawItem.suggestionId;
-    if (rid != null && rid !== "") out.id = String(rid).trim();
-  }
+  const picked = pickRxoId(rawItem);
+  if (picked) out.id = picked;
   if (!out.pickup_date) {
     const dug = digDate(rawItem);
     if (dug) {
@@ -96,8 +137,10 @@ function enrichRxo(rawItem, normalized) {
       }
     }
   }
-  if (out.id && /^\d+$/.test(String(out.id))) {
-    out.url = `https://carrier.rxoconnect.rxo.com/loads/${out.id}`;
+  // Deep link: prefer real load number (not 1..N indexes)
+  const lid = String(out.id || "").trim();
+  if (lid && !/^\d{1,2}$/.test(lid)) {
+    out.url = `https://carrier.rxoconnect.rxo.com/loads/${encodeURIComponent(lid)}`;
   }
   return out;
 }
@@ -114,18 +157,33 @@ export function loadsFromRxoPayload(body) {
   if (!items) return out;
   for (const item of items) {
     if (!item || typeof item !== "object") continue;
+    const stops = item.stops || item.loadStops || [];
+    const pickStop = Array.isArray(stops)
+      ? stops.find((s) => /pick/i.test(String(s?.type || s?.stopType || ""))) || stops[0]
+      : null;
+    const dropStop = Array.isArray(stops) && stops.length
+      ? stops.find((s) => /deliv|drop|consign/i.test(String(s?.type || s?.stopType || ""))) || stops[stops.length - 1]
+      : null;
     const origin =
       cityFromLoc(item.origin) ||
       cityFromLoc(item.originLocation) ||
-      [item.originCity, item.originState, item.originZip].filter(Boolean).join(" ") ||
-      cityFromLoc((item.stops || [])[0]);
+      fmtCityStateZip(item.originCity || item.originCityName, item.originState || item.originStateCode, item.originZip || item.originZipCode) ||
+      cityFromLoc(pickStop);
     const dest =
       cityFromLoc(item.destination) ||
       cityFromLoc(item.destinationLocation) ||
-      [item.destinationCity, item.destinationState, item.destinationZip].filter(Boolean).join(" ") ||
-      cityFromLoc((item.stops || item.loadStops || []).slice(-1)[0]);
+      fmtCityStateZip(
+        item.destinationCity || item.destinationCityName || item.destCity,
+        item.destinationState || item.destinationStateCode || item.destState,
+        item.destinationZip || item.destinationZipCode || item.destZip
+      ) ||
+      cityFromLoc(dropStop);
+    const lid = pickRxoId(item);
+    // Never keep page-index stubs (id 1..N, empty lanes)
+    if (!origin && !dest) continue;
+    if (!lid && !origin && !dest) continue;
     const raw = {
-      id: item.number || item.id || item.loadId || item.alternateNumber || "",
+      id: lid,
       origin,
       destination: dest,
       pickupCity: origin,
@@ -139,7 +197,10 @@ export function loadsFromRxoPayload(body) {
     try {
       let n = normalizeLoad(raw, SOURCE, BOARD);
       n = enrichRxo(item, n);
-      if (n.origin || n.destination || n.rate || n.id) out.push(n);
+      if (!n.origin && !n.destination) continue;
+      // Drop leftover index-only ids with blank lanes
+      if (/^\d{1,2}$/.test(String(n.id || "")) && !n.origin && !n.destination) continue;
+      out.push(n);
     } catch { /* skip */ }
   }
   return out;
@@ -147,7 +208,12 @@ export function loadsFromRxoPayload(body) {
 
 export function isRxoInterestingUrl(url) {
   const u = (url || "").toLowerCase();
-  return u.includes("search/loadboard") || u.includes("availableloads") || u.includes("loadboard");
+  return (
+    u.includes("search/loadboard") ||
+    u.includes("availableloads") ||
+    u.includes("loadaggregator") ||
+    u.includes("loadboard")
+  );
 }
 
 async function tryUrl(url, method, bodyText) {
