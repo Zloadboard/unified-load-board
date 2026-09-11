@@ -298,6 +298,29 @@
       color: #7dd3fc;
     }
     .ext-install .muted { color: #94a3b8; font-size: 0.78rem; }
+    .ext-install { position: relative; }
+    .ext-install .ext-close {
+      position: absolute;
+      top: 0.45rem;
+      right: 0.55rem;
+      appearance: none;
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: #e2e8f0;
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+    }
+    .ext-install .ext-close:hover { border-color: #94a3b8; color: #fff; }
+    .ext-install.hidden { display: none !important; }
+    .scanner-pill.extension {
+      border-color: #0ea5e9;
+      color: #7dd3fc;
+    }
 
     .source-health {
       display: none;
@@ -937,7 +960,7 @@
   </header>
 
   <div class="broker-bar" id="brokerBar" aria-label="Scanner Chrome controls">
-    <span class="broker-help" id="brokerHelp">Preferred: Chrome extension (Download panel below). Legacy CDP Sign in / Hide buttons still call localhost scanner APIs if a CDP Chrome is running.</span>
+    <span class="broker-help" id="brokerHelp">Preferred: Chrome extension (Download panel below). Sign-in buttons below are legacy CDP-only; with the extension they are optional.</span>
     <div class="scanner-controls" id="scannerControls">
       <button type="button" class="btn-scanner Arrive" data-focus-broker="arrive" title="Focus Arrive tab in the scanner Chrome window">Sign in Arrive</button>
       <button type="button" class="btn-scanner RXO" data-focus-broker="rxo" title="Focus RXO tab">Sign in RXO</button>
@@ -968,10 +991,11 @@
   </div>
 
   <div id="extensionBanner" class="banner extension-mode" role="status">
-    Extension mode — sign into brokers in this Chrome. Data posted by the Unified Load Board Scanner extension (no CDP window required).
+    Extension mode — brokers signed in via normal Chrome. Loads posted by the Unified Load Board Scanner extension. Legacy CDP Chrome is optional and not required.
   </div>
 
   <div class="ext-install" id="extInstallPanel" aria-label="Download and install Chrome extension">
+    <button type="button" class="ext-close" id="btnCloseExtInstall" title="Hide this panel" aria-label="Close download panel">×</button>
     <h2>Download / Install extension</h2>
     <p>Use the Chrome MV3 extension on any PC. Sign into brokers in <strong>normal Chrome</strong> — no scanner CDP profile.</p>
     <div class="ext-actions">
@@ -1219,6 +1243,23 @@
         return API_BASE.replace(/\/+$/, "") + "/" + p;
       }
 
+      function initExtInstallPanel() {
+        const panel = document.getElementById("extInstallPanel");
+        const btn = document.getElementById("btnCloseExtInstall");
+        if (!panel) return;
+        try {
+          if (localStorage.getItem("ulb_hide_ext_download") === "1") {
+            panel.classList.add("hidden");
+          }
+        } catch (_) {}
+        if (btn) {
+          btn.addEventListener("click", function () {
+            panel.classList.add("hidden");
+            try { localStorage.setItem("ulb_hide_ext_download", "1"); } catch (_) {}
+          });
+        }
+      }
+
       function refreshApiUi() {
         const pill = document.getElementById("apiBasePill");
         const note = document.getElementById("remoteNote");
@@ -1246,7 +1287,7 @@
         if (help) {
           help.textContent = remote
             ? "Live data comes from the work PC (Chrome extension). Install the extension on the work PC; GitHub Pages cannot control Chrome."
-            : "Preferred: Chrome extension (see Download panel). Legacy Sign in / Hide buttons talk to CDP if enabled. Load # opens a new tab (target=_blank).";
+            : "Preferred: Chrome extension (see Download panel). Legacy Sign in / Hide = CDP only (optional). Load # opens a new tab.";
         }
       }
 
@@ -1268,7 +1309,8 @@
         const labels = {
           hidden: "scanner: hidden",
           visible: "scanner: visible",
-          cdp_down: "scanner: CDP down",
+          cdp_down: "legacy CDP: off (ok if using extension)",
+          extension: "mode: extension",
           unavailable: "scanner: use localhost",
           error: "scanner: error",
           unknown: "scanner: …",
@@ -1358,8 +1400,9 @@
             const st = s.status || "?";
             const n = (typeof s.count === "number") ? s.count : "?";
             bits.push(name + ":" + n + (st && st !== "ok" ? "(" + st + ")" : ""));
-            if (st === "needs_login") problems.push(name + " needs login — click Sign in " + name);
-            else if (st === "empty" && n === 0) problems.push(name + " scraped 0 (not a broker filter)");
+            if (st === "needs_login" && !(typeof n === "number" && n > 0)) problems.push(name + " needs login — open broker tab / sign in");
+            else if (st === "stale") { /* kept previous; not an alarm */ }
+            else if (st === "empty" && n === 0) problems.push(name + " 0 loads (open tab + search/refresh)");
             else if (st === "error") problems.push(name + " error");
           });
           const when = data.scannedAt ? (" · scan " + data.scannedAt) : "";
@@ -1377,6 +1420,7 @@
       }
 
       function wireScannerControls() {
+        initExtInstallPanel();
         const root = document.getElementById("scannerControls");
         if (root) {
           root.addEventListener("click", async function (ev) {
@@ -1429,7 +1473,9 @@
         }
         // Initial status + light poll when local/tunneled
         callScanner("status").catch(function () {
-          setScannerPill(scannerApiBase() === null ? "unavailable" : "cdp_down");
+          const extMode = String(state.dataMode || "").toLowerCase() === "extension";
+          if (extMode) setScannerPill("extension", "Using Chrome extension — legacy CDP not required");
+          else setScannerPill(scannerApiBase() === null ? "unavailable" : "cdp_down");
         });
         refreshSourceHealth();
         setInterval(function () {
@@ -2406,6 +2452,12 @@
         if (el.extBanner) {
           const extMode = String(state.dataMode || "").toLowerCase() === "extension";
           el.extBanner.classList.toggle("visible", extMode && !hasExampleRows(state.loads));
+          if (extMode) {
+            const pill = document.getElementById("scannerStatusPill");
+            if (pill && /cdp|unavailable|…|\.\.\./i.test(pill.textContent || "")) {
+              setScannerPill("extension", "Using Chrome extension — legacy CDP not required");
+            }
+          }
         }
         refreshSourceHealth();
         if (el.sortPreset.value !== state.sortPreset) {

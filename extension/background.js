@@ -2,7 +2,7 @@
  * Unified Load Board — MV3 service worker.
  * Alarm ~60s: fetch brokers (cookies + MAIN-world + content scripts), merge, POST localhost:8765/api/loads.
  */
-import { BROKER_URLS, nowIsoZ, looksLikeLoginUrl } from "./lib/normalize.js";
+import { BROKER_URLS, nowIsoZ, looksLikeLoginUrl, isLoginResponse } from "./lib/normalize.js";
 import { mergeSources, shouldReuseLastGood, dedupeById } from "./lib/merge.js";
 import { fetchArrive, loadsFromArrivePayload, isArriveInterestingUrl } from "./brokers/arrive.js";
 import { fetchRxo, loadsFromRxoPayload, isRxoInterestingUrl } from "./brokers/rxo.js";
@@ -48,7 +48,7 @@ async function saveStore(partial) {
   await chrome.storage.local.set(partial);
 }
 
-function rememberEndpoint(broker, url, method, requestBody) {
+function rememberEndpoint(broker, url, method, requestBody, requestHeaders) {
   return loadStore().then(async (store) => {
     const eps = { ...(store.discoveredEndpoints || {}) };
     const list = [...(eps[broker] || [])];
@@ -63,6 +63,7 @@ function rememberEndpoint(broker, url, method, requestBody) {
         url,
         method: method || "POST",
         bodyText: typeof requestBody === "string" ? requestBody : JSON.stringify(requestBody),
+        headers: requestHeaders || null,
         savedAt: Date.now(),
       });
       bodies[broker] = blist.slice(0, 5);
@@ -115,7 +116,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     (async () => {
       const broker = msg.broker || "Unknown";
       const loads = parseNetPayload(broker, msg.url, msg.body);
-      await rememberEndpoint(broker, msg.url, msg.method, msg.requestBody);
+      await rememberEndpoint(broker, msg.url, msg.method, msg.requestBody, msg.requestHeaders);
       if (loads.length) {
         const store = await loadStore();
         const lg = { ...(store.lastGood || {}) };
@@ -202,7 +203,8 @@ async function ensureMainWorldHook(tabId) {
 
 /**
  * Read ArcBest Vue shipmentSummaries from MAIN world.
- * CSP often blocks inline script.textContent; executeScript world:MAIN works.
+ * Discovers app if window.shipmentsListApp is renamed.
+ * CSP-safe via executeScript world:MAIN.
  */
 async function readArcbestMainWorld(tabId) {
   try {
@@ -211,12 +213,9 @@ async function readArcbestMainWorld(tabId) {
       world: "MAIN",
       func: () => {
         try {
-          const app = window.shipmentsListApp || null;
-          const list =
-            (app && (app.shipmentSummaries || (app.$data && app.$data.shipmentSummaries))) ||
-            null;
-          const out = [];
-          if (list && list.length) {
+          function summarize(list) {
+            const out = [];
+            if (!list || !list.length) return out;
             for (let i = 0; i < list.length; i++) {
               const s = list[i];
               if (!s) continue;
@@ -243,11 +242,88 @@ async function readArcbestMainWorld(tabId) {
                 consigneeLocation: { city: cons.city || null, state: cons.state || null },
               });
             }
+            return out;
           }
+
+          function listFromApp(app) {
+            if (!app || typeof app !== "object") return null;
+            return (
+              app.shipmentSummaries ||
+              (app.$data && app.$data.shipmentSummaries) ||
+              (app._data && app._data.shipmentSummaries) ||
+              null
+            );
+          }
+
+          let appName = null;
+          let app = window.shipmentsListApp || null;
+          let list = listFromApp(app);
+          if (app) appName = "shipmentsListApp";
+
+          if (!list || !list.length) {
+            const keys = Object.keys(window);
+            for (let i = 0; i < keys.length; i++) {
+              const k = keys[i];
+              if (!k || k.length > 80) continue;
+              let v;
+              try {
+                v = window[k];
+              } catch (_) {
+                continue;
+              }
+              if (!v || typeof v !== "object") continue;
+              const cand = listFromApp(v);
+              if (
+                Array.isArray(cand) &&
+                cand.length &&
+                cand[0] &&
+                typeof cand[0] === "object" &&
+                ("shipmentId" in cand[0] || "referenceNumber" in cand[0])
+              ) {
+                app = v;
+                list = cand;
+                appName = k;
+                break;
+              }
+            }
+          }
+
+          // Vue 2 roots on DOM
+          if (!list || !list.length) {
+            const els = document.querySelectorAll("*");
+            const lim = Math.min(els.length, 2500);
+            for (let i = 0; i < lim; i++) {
+              const el = els[i];
+              const vue = el.__vue__ || null;
+              if (!vue) continue;
+              const root = vue.$root || vue;
+              const cand =
+                listFromApp(root) ||
+                listFromApp(root.$data) ||
+                (root.$store &&
+                  root.$store.state &&
+                  (root.$store.state.shipmentSummaries ||
+                    (root.$store.state.shipments && root.$store.state.shipments.summaries)));
+              if (
+                Array.isArray(cand) &&
+                cand.length &&
+                cand[0] &&
+                ("shipmentId" in cand[0] || "referenceNumber" in cand[0])
+              ) {
+                list = cand;
+                appName = "dom.__vue__";
+                break;
+              }
+            }
+          }
+
+          const out = summarize(list);
           return {
             summaries: out,
             href: String(location.href || ""),
-            hasApp: !!app,
+            hasApp: !!(app || (list && list.length)),
+            appName,
+            listLen: list && list.length ? list.length : 0,
           };
         } catch (e) {
           return { summaries: [], error: String(e), href: String(location.href || "") };
@@ -258,6 +334,174 @@ async function readArcbestMainWorld(tabId) {
   } catch (e) {
     return { summaries: [], error: String(e.message || e) };
   }
+}
+
+const ARRIVE_GET_LOADS_BODY = JSON.stringify({
+  operationName: "GetLoads",
+  query: `query GetLoads($input: GetLoadsInput) {
+  getLoads(input: $input) {
+    data {
+      LoadBoardId
+      PickupEarlyCity
+      PickupEarlyStateCode
+      DeliveryLateCity
+      DeliveryLateStateCode
+      PickupApptEarliest
+      PickupApptLatest
+      DeliveryApptEarliest
+      DeliveryApptLatest
+      PickupLocationIANACode
+      DeliveryLocationIANACode
+      Miles
+      Weight
+      TopSpend
+      EquipmentType
+      LoadStatus
+    }
+  }
+}`,
+  variables: { input: {} },
+});
+
+/**
+ * GraphQL fetch inside Arrive tab (page cookies). Prefer over SW fetch.
+ */
+async function fetchArriveInPage(tabId, url, bodyText, headers) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: async (fetchUrl, body, extraHeaders) => {
+        try {
+          const hdrs = Object.assign(
+            {
+              "content-type": "application/json",
+              accept: "application/json",
+            },
+            extraHeaders && typeof extraHeaders === "object" ? extraHeaders : {}
+          );
+          // Drop forbidden / hop-by-hop headers if any leaked from capture
+          delete hdrs["host"];
+          delete hdrs["content-length"];
+          delete hdrs["origin"];
+          delete hdrs["referer"];
+          delete hdrs["cookie"];
+          const res = await fetch(fetchUrl, {
+            method: "POST",
+            credentials: "include",
+            headers: hdrs,
+            body: body,
+          });
+          const ct = res.headers.get("content-type") || "";
+          const text = await res.text();
+          return {
+            ok: res.ok,
+            status: res.status,
+            ct,
+            text: text.slice(0, 4000000),
+            finalUrl: String(res.url || fetchUrl),
+          };
+        } catch (e) {
+          return { ok: false, status: 0, ct: "", text: "", error: String(e && e.message ? e.message : e) };
+        }
+      },
+      args: [url, bodyText || ARRIVE_GET_LOADS_BODY, headers || null],
+    });
+    return results?.[0]?.result || null;
+  } catch (e) {
+    return { ok: false, error: String(e.message || e) };
+  }
+}
+
+async function nudgeArriveRefresh(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        const nodes = [...document.querySelectorAll("button, a, [role='button']")];
+        const btn = nodes.find((el) => /refresh results/i.test((el.textContent || "").trim()));
+        if (btn) {
+          btn.click();
+          return true;
+        }
+        return false;
+      },
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
+async function collectArriveViaOpenTabs(store) {
+  const tabs = await queryBrokerTabs("Arrive");
+  if (!tabs.length) return null;
+  const endpoints = [];
+  for (const u of store.discoveredEndpoints?.Arrive || []) if (u) endpoints.push(u);
+  for (const u of [
+    "https://carrier.arrivelogistics.com/graphql",
+    "https://carrier.arrivelogistics.com/api/graphql",
+    "https://api.arrivelogistics.com/graphql",
+  ]) {
+    if (!endpoints.includes(u)) endpoints.push(u);
+  }
+  const bodies = store.lastRequestBodies?.Arrive || [];
+  let lastErr = "";
+  for (const tab of tabs) {
+    await ensureMainWorldHook(tab.id);
+    // Prefer replaying captured bodies (exact search filters)
+    const attempts = [];
+    for (const b of bodies) {
+      if (b?.bodyText && b?.url) attempts.push({ url: b.url, bodyText: b.bodyText, headers: b.headers || null });
+    }
+    for (const url of endpoints) {
+      attempts.push({ url, bodyText: ARRIVE_GET_LOADS_BODY, headers: null });
+    }
+    const seen = new Set();
+    for (const a of attempts) {
+      const key = `${a.url}::${(a.bodyText || "").slice(0, 80)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const raw = await fetchArriveInPage(tab.id, a.url, a.bodyText, a.headers);
+      if (!raw || raw.error) {
+        lastErr = raw?.error || lastErr;
+        continue;
+      }
+      const ct = raw.ct || "";
+      if (isLoginResponse(raw.status, ct, raw.text || "", raw.finalUrl || a.url)) {
+        lastErr = "Arrive login in page fetch";
+        continue;
+      }
+      let json;
+      try {
+        json = JSON.parse(raw.text || "");
+      } catch {
+        lastErr = "Arrive page fetch non-json";
+        continue;
+      }
+      const loads = loadsFromArrivePayload(json);
+      if (loads.length) {
+        return { status: "ok", loads, error: "", endpoint: a.url, via: "page" };
+      }
+      lastErr = "0 loads from page GraphQL";
+    }
+    // Nudge Refresh Results so the SPA fires real getLoads; hook captures it
+    await nudgeArriveRefresh(tab.id);
+    await new Promise((r) => setTimeout(r, 2200));
+    const store2 = await loadStore();
+    if (store2.lastGood?.Arrive?.loads?.length) {
+      const age = Date.now() - (store2.lastGood.Arrive.savedAt || 0);
+      if (age < 15000) {
+        return {
+          status: "ok",
+          loads: store2.lastGood.Arrive.loads,
+          error: "",
+          via: "hook_after_refresh",
+        };
+      }
+    }
+  }
+  return { status: "empty", loads: [], error: lastErr || "Arrive page GraphQL returned 0" };
 }
 
 async function collectFromTabs(broker) {
@@ -286,7 +530,8 @@ async function collectFromTabs(broker) {
 
 /**
  * fetchOne: never short-circuit solely on content-script needs_login.
- * Always try MAIN-world (ArcBest) + background GraphQL/API; content script is bonus.
+ * Arrive: prefer in-tab GraphQL (cookies). ArcBest: MAIN-world Vue (+ discover).
+ * Status: loads from this scan → ok; kept previous only → stale.
  */
 async function fetchOne(broker, store) {
   const opts = {
@@ -296,6 +541,16 @@ async function fetchOne(broker, store) {
 
   let confirmedLogin = false;
   let tabHint = null;
+  let onBoard = false;
+
+  // --- 0) Very recent network-hook capture counts as this scan ---
+  const recent = store.lastGood?.[broker];
+  if (recent?.loads?.length && recent.savedAt && Date.now() - recent.savedAt < 120000) {
+    // Still try live paths below for ArcBest/Arrive; for others recent hook is enough
+    if (broker === "Echo" || broker === "CHR" || broker === "RXO") {
+      return { status: "ok", loads: recent.loads, error: "" };
+    }
+  }
 
   // --- 1) Content script collect (bonus; do NOT trust soft needs_login alone) ---
   const fromTab = await collectFromTabs(broker);
@@ -303,6 +558,9 @@ async function fetchOne(broker, store) {
     tabHint = fromTab;
     if (fromTab.status === "needs_login" && looksLikeLoginUrl(fromTab.pageUrl || "")) {
       confirmedLogin = true;
+    }
+    if (fromTab.onBoard || fromTab.status === "ok_dom_hint" || fromTab.countHint > 0) {
+      onBoard = true;
     }
     if (broker === "ArcBest" && fromTab.summaries?.length) {
       const loads = loadsFromSummaries(fromTab.summaries);
@@ -313,22 +571,41 @@ async function fetchOne(broker, store) {
     }
   }
 
-  // --- 2) MAIN-world Vue scrape for ArcBest (CSP-safe) ---
+  // --- 2) Arrive: page-context GraphQL when find-loads tab is open ---
+  if (broker === "Arrive") {
+    const pageResult = await collectArriveViaOpenTabs(store);
+    if (pageResult?.loads?.length) {
+      return { status: "ok", loads: pageResult.loads, error: "" };
+    }
+    if (pageResult && pageResult.status && pageResult.status !== "needs_login") {
+      // keep as fallback hint; still try SW below
+      tabHint = tabHint || pageResult;
+    }
+  }
+
+  // --- 3) MAIN-world Vue scrape for ArcBest (CSP-safe + discover) ---
   if (broker === "ArcBest") {
     const tabs = await queryBrokerTabs(broker);
+    let sawShipmentsApp = false;
     for (const tab of tabs) {
       const mw = await readArcbestMainWorld(tab.id);
       if (mw?.summaries?.length) {
         const loads = loadsFromSummaries(mw.summaries);
         if (loads.length) {
-          return { status: "ok", loads, error: "" };
+          return { status: "ok", loads, error: "", appName: mw.appName || "" };
         }
       }
+      if (mw?.hasApp || (mw?.listLen || 0) > 0) {
+        sawShipmentsApp = true;
+        onBoard = true;
+      }
       if (mw?.href && looksLikeLoginUrl(mw.href)) confirmedLogin = true;
+      if (mw?.href && /\/shipments/i.test(mw.href)) onBoard = true;
     }
+    if (sawShipmentsApp) onBoard = true;
   }
 
-  // --- 3) Background cookie GraphQL / API (try ALL endpoints; don't bail on first login miss) ---
+  // --- 4) Background cookie GraphQL / API ---
   let result;
   if (broker === "Arrive") result = await fetchArrive(opts);
   else if (broker === "RXO") result = await fetchRxo(opts);
@@ -337,7 +614,16 @@ async function fetchOne(broker, store) {
   else if (broker === "CHR") result = await fetchChr(opts);
   else result = { status: "error", loads: [], error: "unknown broker" };
 
-  if (result.status === "needs_login") confirmedLogin = true;
+  // If we clearly have an open board tab, do not let soft SW login HTML win
+  if (result.status === "needs_login" && onBoard) {
+    result = {
+      status: "empty",
+      loads: [],
+      error: result.error || `${broker} open but 0 fresh loads`,
+    };
+  } else if (result.status === "needs_login") {
+    confirmedLogin = true;
+  }
 
   if (result.loads?.length) {
     const reused = shouldReuseLastGood(
@@ -346,12 +632,12 @@ async function fetchOne(broker, store) {
       store.lastGood?.[broker]?.savedAt
     );
     if (reused && reused.length > result.loads.length) {
-      return { status: "kept_previous", loads: reused, error: "", keptPrevious: true };
+      return { status: "ok", loads: reused, error: "", keptPrevious: false };
     }
-    return { status: result.status === "needs_login" ? "ok" : result.status || "ok", loads: result.loads, error: "" };
+    return { status: "ok", loads: result.loads, error: "" };
   }
 
-  // --- 4) lastGood / network-hook stash ---
+  // --- 5) lastGood / network-hook stash → STALE (not needs_login) ---
   if (store.lastGood?.[broker]?.loads?.length) {
     const reused = shouldReuseLastGood(
       [],
@@ -360,18 +646,17 @@ async function fetchOne(broker, store) {
     );
     if (reused) {
       return {
-        status: confirmedLogin ? "needs_login" : result.status === "no_tab" ? "kept_previous" : result.status || "kept_previous",
+        status: "stale",
         loads: reused,
         error: confirmedLogin
-          ? "sign in to refresh"
-          : result.error || tabHint?.error || "",
+          ? "sign in / open tab to refresh"
+          : result.error || tabHint?.error || "open tab to refresh",
         keptPrevious: true,
       };
     }
   }
 
-  // Soft content needs_login without confirmed URL → treat as empty/listening, not hard login
-  if (confirmedLogin) {
+  if (confirmedLogin && !onBoard) {
     return {
       status: "needs_login",
       loads: [],
@@ -379,13 +664,16 @@ async function fetchOne(broker, store) {
     };
   }
 
-  // Prefer tab listening/empty over hard needs_login
   if (tabHint && tabHint.status && tabHint.status !== "needs_login") {
     return {
-      status: result.status || tabHint.status || "empty",
+      status: result.status === "needs_login" ? "empty" : result.status || tabHint.status || "empty",
       loads: [],
       error: result.error || tabHint.error || "",
     };
+  }
+
+  if (result.status === "needs_login" && onBoard) {
+    return { status: "empty", loads: [], error: result.error || "0 loads" };
   }
 
   return result;
@@ -428,21 +716,32 @@ async function runScan(reason = "alarm") {
       }
       let loads = result.loads || [];
 
-      // Empty + needs_login/error: keep previous from storage
+      // Empty + soft fail: keep previous from storage — status becomes stale
       if (!loads.length) {
         const prev =
           store.sourceLoads?.[broker] || store.lastGood?.[broker]?.loads || [];
         if (
           prev.length &&
-          ["needs_login", "error", "empty", "no_tab", "kept_previous", "listening"].includes(
+          ["needs_login", "error", "empty", "no_tab", "kept_previous", "listening", "stale"].includes(
             result.status
           )
         ) {
           loads = prev;
           result.keptPrevious = true;
-          // Keep needs_login status but show prior count (popup: "sign in to refresh")
-          if (result.status !== "needs_login") result.status = "kept_previous";
+          result.status = "stale";
+          result.error = result.error || "sign in / open tab to refresh";
         }
+      }
+
+      // Honesty: fresh loads this scan → always ok; kept-only → stale
+      if (loads.length && !result.keptPrevious) {
+        result.status = "ok";
+        result.error = "";
+      } else if (loads.length && result.keptPrevious) {
+        result.status = "stale";
+        if (!result.error) result.error = "sign in / open tab to refresh";
+      } else if (!loads.length && result.status !== "needs_login") {
+        // leave empty/error/no_tab as-is; needs_login only when zero + confirmed wall
       }
 
       if (broker === "ArcBest") {
@@ -460,15 +759,23 @@ async function runScan(reason = "alarm") {
           ? (sourceLoads.ArcBest?.length || 0) + (sourceLoads.MoLo?.length || 0)
           : loads.length;
 
+      // Final guard: never advertise needs_login when count > 0
+      let statusOut = result.status || "unknown";
+      if (count > 0 && statusOut === "needs_login") {
+        statusOut = result.keptPrevious ? "stale" : "ok";
+      }
+      if (count > 0 && !result.keptPrevious) statusOut = "ok";
+      if (count > 0 && result.keptPrevious) statusOut = "stale";
+
       meta[broker] = {
-        status: result.status || "unknown",
+        status: statusOut,
         count,
         error: result.error || "",
         keptPrevious: !!result.keptPrevious,
       };
       state.sources[broker] = meta[broker];
 
-      if (loads.length && !result.keptPrevious && result.status === "ok") {
+      if (loads.length && !result.keptPrevious) {
         const lg = { ...(store.lastGood || {}) };
         lg[broker] = { loads, savedAt: Date.now() };
         store.lastGood = lg;
@@ -476,11 +783,12 @@ async function runScan(reason = "alarm") {
     }
 
     if (sourceLoads.MoLo?.length) {
+      const moloStale = !!meta.ArcBest?.keptPrevious;
       meta.MoLo = {
-        status: meta.ArcBest?.status || "ok",
+        status: moloStale ? "stale" : (meta.ArcBest?.status === "ok" || sourceLoads.MoLo.length ? "ok" : (meta.ArcBest?.status || "ok")),
         count: sourceLoads.MoLo.length,
-        error: "",
-        keptPrevious: !!meta.ArcBest?.keptPrevious,
+        error: moloStale ? "sign in / open tab to refresh" : "",
+        keptPrevious: moloStale,
       };
     }
 

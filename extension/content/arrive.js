@@ -22,6 +22,7 @@ const BROKER = "Arrive";
         method: d.method,
         body: d.body,
         requestBody: d.requestBody,
+        requestHeaders: d.requestHeaders || null,
       });
     } catch (_) {}
   });
@@ -44,7 +45,14 @@ function collect() {
   }
   const rows = [...document.querySelectorAll('tr[data-testid^="load-row-"]')];
   if (rows.length) {
-    return { status: "ok_dom_hint", loads: [], countHint: rows.length, broker: BROKER, pageUrl: url };
+    return {
+      status: "ok_dom_hint",
+      loads: [],
+      countHint: rows.length,
+      onBoard: true,
+      broker: BROKER,
+      pageUrl: url,
+    };
   }
   const body = (document.body?.innerText || "").slice(0, 2500).toLowerCase();
   const strongLogin =
@@ -56,6 +64,7 @@ function collect() {
   return {
     status: onBoard ? "listening" : "empty",
     loads: [],
+    onBoard,
     error: onBoard ? "No load rows yet — click Refresh Results" : "Open Arrive find-loads",
     broker: BROKER,
     pageUrl: url,

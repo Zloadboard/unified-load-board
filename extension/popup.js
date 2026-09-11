@@ -19,8 +19,9 @@ function pillClass(status, count) {
 
 function labelStatus(status, count) {
   const s = String(status || "unknown");
-  if (s === "needs_login" && count > 0) return "sign in to refresh";
-  if (s === "kept_previous") return "kept last";
+  if (s === "stale" || (s === "needs_login" && count > 0) || s === "kept_previous") {
+    return "sign in / open tab to refresh";
+  }
   const map = {
     ok: "ok",
     needs_login: "needs login",

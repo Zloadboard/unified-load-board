@@ -22,6 +22,7 @@ const BROKER = "Echo";
         method: d.method,
         body: d.body,
         requestBody: d.requestBody,
+        requestHeaders: d.requestHeaders || null,
       });
     } catch (_) {}
   });

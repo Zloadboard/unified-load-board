@@ -61,7 +61,7 @@ export function mergeSources(sourceLoads, previousLoads, sourceMeta) {
     }
     // Keep last-good for empty / needs_login / error (do not wipe)
     if (
-      ["needs_login", "error", "empty", "kept_previous", "no_tab"].includes(status) ||
+      ["needs_login", "error", "empty", "kept_previous", "no_tab", "stale", "listening"].includes(status) ||
       meta.keepPrevious
     ) {
       const prev = prevBy[src] || [];

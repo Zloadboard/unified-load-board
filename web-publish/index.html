@@ -165,6 +165,13 @@
     .scanner-pill.cdp_down, .scanner-pill.error, .scanner-pill.unavailable {
       border-color: #f59e0b; color: #fbbf24;
     }
+    .btn-scanner.Arrive:hover { border-color: var(--arrive); color: var(--arrive); }
+    .btn-scanner.RXO:hover { border-color: var(--rxo); color: var(--rxo); }
+    .btn-scanner.ArcBest:hover { border-color: var(--arcbest); color: var(--arcbest); }
+    .btn-scanner.Echo:hover { border-color: var(--echo); color: var(--echo); }
+    .btn-scanner.CHR:hover { border-color: var(--chr); color: var(--chr); }
+    #scannerTabsPill { max-width: 28rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 
 
     .remote-note {
@@ -240,6 +247,99 @@
     }
 
     .banner.visible { display: block; }
+
+    .banner.extension-mode {
+      display: none;
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid #0284c7;
+      color: #7dd3fc;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 550;
+    }
+    .banner.extension-mode.visible { display: block; }
+
+    .ext-install {
+      margin: 0 0 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius);
+      border: 1px solid #334155;
+      background: #0f172a;
+    }
+    .ext-install h2 {
+      margin: 0 0 0.4rem;
+      font-size: 0.95rem;
+      color: #e2e8f0;
+    }
+    .ext-install p, .ext-install li {
+      margin: 0.25rem 0;
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+    .ext-install ol { margin: 0.4rem 0 0.6rem 1.2rem; padding: 0; }
+    .ext-install .ext-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.55rem 0; }
+    .ext-install a.btn-ext, .ext-install button.btn-ext {
+      display: inline-block;
+      text-decoration: none;
+      border: 1px solid #0ea5e9;
+      background: #0ea5e9;
+      color: #0f172a;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .ext-install a.btn-ext.secondary, .ext-install button.btn-ext.secondary {
+      background: transparent;
+      color: #7dd3fc;
+    }
+    .ext-install .muted { color: #94a3b8; font-size: 0.78rem; }
+    .ext-install { position: relative; }
+    .ext-install .ext-close {
+      position: absolute;
+      top: 0.45rem;
+      right: 0.55rem;
+      appearance: none;
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: #e2e8f0;
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+    }
+    .ext-install .ext-close:hover { border-color: #94a3b8; color: #fff; }
+    .ext-install.hidden { display: none !important; }
+    .scanner-pill.extension {
+      border-color: #0ea5e9;
+      color: #7dd3fc;
+    }
+
+    .source-health {
+      display: none;
+      margin: 0.5rem 1.1rem 0;
+      padding: 0.55rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid #b45309;
+      background: rgba(180, 83, 9, 0.12);
+      color: #fbbf24;
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+    .source-health.visible { display: block; }
+    .source-health.ok {
+      border-color: #047857;
+      background: rgba(4, 120, 87, 0.12);
+      color: #6ee7b7;
+    }
+
 
     /* ---- Top search toolbar ---- */
     .search-bar {
@@ -847,21 +947,6 @@
   </style>
 </head>
 <body>
-
-  <div class="ext-install" id="extInstallPanel" style="margin:1rem;padding:1rem;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#e2e8f0;font-family:system-ui,sans-serif">
-    <h2 style="margin:0 0 .4rem;font-size:1rem">Download / Install extension</h2>
-    <p style="margin:.25rem 0;font-size:.9rem;color:#cbd5e1">Chrome MV3 scanner — sign into brokers in normal Chrome. No CDP window.</p>
-    <p><a href="ulb-extension.zip" download style="display:inline-block;background:#0ea5e9;color:#0f172a;font-weight:700;padding:.45rem .85rem;border-radius:8px;text-decoration:none">Download ulb-extension.zip</a>
-       &nbsp; <a href="EXTENSION.md" style="color:#7dd3fc">Install notes</a></p>
-    <ol style="font-size:.85rem;color:#cbd5e1;line-height:1.4">
-      <li>Download and unzip (folder must contain <code>manifest.json</code>).</li>
-      <li>Chrome → <code>chrome://extensions</code> → Developer mode → <strong>Load unpacked</strong>.</li>
-      <li>Select the unzipped folder. Sign into Arrive / RXO / ArcBest / Echo / CHR once.</li>
-      <li>On the work PC keep <code>serve_board</code> on :8765 so the extension can POST loads.</li>
-    </ol>
-    <p style="font-size:.75rem;color:#94a3b8">Chrome Web Store not required for v1 (unpacked).</p>
-  </div>
-
   <header>
     <div>
       <h1>Unified Load Board <span>Arrive / RXO / ArcBest / MoLo / Echo / CHR</span></h1>
@@ -875,11 +960,18 @@
   </header>
 
   <div class="broker-bar" id="brokerBar" aria-label="Scanner Chrome controls">
-    <span class="broker-help" id="brokerHelp">Live data comes from the work PC. Use <strong>Sign in brokers</strong> on http://localhost:8765/ to briefly show the hidden scanner Chrome (same profile the scraper uses). GitHub Pages cannot control scanner Chrome.</span>
+    <span class="broker-help" id="brokerHelp">Preferred: Chrome extension (Download panel below). Sign-in buttons below are legacy CDP-only; with the extension they are optional.</span>
     <div class="scanner-controls" id="scannerControls">
-      <button type="button" class="btn-scanner" id="btnSignInBrokers" title="Unhide scanner Chrome on this PC so you can log into brokers">Sign in brokers</button>
-      <button type="button" class="btn-scanner" id="btnHideScanner" title="Hide scanner Chrome again">Hide scanner</button>
+      <button type="button" class="btn-scanner Arrive" data-focus-broker="arrive" title="Focus Arrive tab in the scanner Chrome window">Sign in Arrive</button>
+      <button type="button" class="btn-scanner RXO" data-focus-broker="rxo" title="Focus RXO tab">Sign in RXO</button>
+      <button type="button" class="btn-scanner ArcBest" data-focus-broker="arcbest" title="Focus ArcBest tab">Sign in ArcBest</button>
+      <button type="button" class="btn-scanner Echo" data-focus-broker="echo" title="Focus Echo tab">Sign in Echo</button>
+      <button type="button" class="btn-scanner CHR" data-focus-broker="chr" title="Focus CHR / Navisphere tab">Sign in CHR</button>
+      <button type="button" class="btn-scanner" id="btnBackToBoard" data-focus-broker="board" title="Switch scanner Chrome back to the board tab">Back to board</button>
+      <button type="button" class="btn-scanner" id="btnHideScanner" title="Minimize scanner Chrome after signing in">Hide Chrome</button>
+      <button type="button" class="btn-scanner" id="btnShowScanner" title="Restore scanner Chrome on the primary monitor">Show Chrome</button>
       <span class="scanner-pill" id="scannerStatusPill" title="Scanner Chrome visibility">scanner: …</span>
+      <span class="scanner-pill" id="scannerTabsPill" title="Broker tab login status">tabs: …</span>
     </div>
   </div>
 
@@ -891,12 +983,36 @@
   </div>
 
   <div id="remoteNote" class="remote-note" role="status">
-    Viewing from phone/elsewhere: live data is scraped on the work PC. Sign into brokers there once (scanner Chrome). Broker links on this page open the site for you but do not feed the scraper.
+    Viewing from phone/elsewhere: live data comes from the work PC (extension → serve_board). Sign into brokers in work-PC Chrome where the extension is installed.
   </div>
 
   <div id="sampleBanner" class="banner" role="status">
     Sample data - not live. Rows with EXAMPLE- IDs are placeholders for UI demo only.
   </div>
+
+  <div id="extensionBanner" class="banner extension-mode" role="status">
+    Extension mode — brokers signed in via normal Chrome. Loads posted by the Unified Load Board Scanner extension. Legacy CDP Chrome is optional and not required.
+  </div>
+
+  <div class="ext-install" id="extInstallPanel" aria-label="Download and install Chrome extension">
+    <button type="button" class="ext-close" id="btnCloseExtInstall" title="Hide this panel" aria-label="Close download panel">×</button>
+    <h2>Download / Install extension</h2>
+    <p>Use the Chrome MV3 extension on any PC. Sign into brokers in <strong>normal Chrome</strong> — no scanner CDP profile.</p>
+    <div class="ext-actions">
+      <a class="btn-ext" id="btnDownloadExt" href="extension/ulb-extension.zip" download="ulb-extension.zip">Download ulb-extension.zip</a>
+      <a class="btn-ext secondary" href="EXTENSION.md" target="_blank" rel="noopener">Full install notes</a>
+    </div>
+    <ol>
+      <li>Download the zip (button above, or <code>extension/ulb-extension.zip</code> / Pages <code>ulb-extension.zip</code>).</li>
+      <li>Unzip to a stable folder (you should see <code>manifest.json</code> inside).</li>
+      <li>Open <code>chrome://extensions</code> → turn on <strong>Developer mode</strong>.</li>
+      <li>Click <strong>Load unpacked</strong> → select that unzipped folder.</li>
+      <li>Pin the extension → <strong>Open</strong> each broker once to sign in → open this board. Leave Chrome open.</li>
+    </ol>
+    <p class="muted">Chrome Web Store not required for v1 (unpacked). ArcBest/CHR work best with their board tab open. Empty sources keep last-good loads.</p>
+  </div>
+
+  <div id="sourceHealth" class="source-health" role="status" aria-live="polite"></div>
 
   <div id="errorBox" class="error" role="alert"></div>
 
@@ -1093,7 +1209,7 @@
   </div>
 
   <footer>
-    Live board: auto-refreshes from <code>loads.json</code> every 20s. On the work PC use <strong>Sign in brokers</strong> / <strong>Hide scanner</strong> (http://localhost:8765/). GitHub Pages cannot control scanner Chrome. Optional: <code>?api=https://…</code> or Settings.
+    Live board: auto-refreshes from <code>loads.json</code> every 20s. Preferred: install the extension (Download panel), sign into brokers in normal Chrome. Legacy CDP controls remain for optional use. Optional: <code>?api=https://…</code> or Settings.
   </footer>
 
   <script src="config.js"></script>
@@ -1127,11 +1243,37 @@
         return API_BASE.replace(/\/+$/, "") + "/" + p;
       }
 
+      function initExtInstallPanel() {
+        const panel = document.getElementById("extInstallPanel");
+        const btn = document.getElementById("btnCloseExtInstall");
+        if (!panel) return;
+        try {
+          if (localStorage.getItem("ulb_hide_ext_download") === "1") {
+            panel.classList.add("hidden");
+          }
+        } catch (_) {}
+        if (btn) {
+          btn.addEventListener("click", function () {
+            panel.classList.add("hidden");
+            try { localStorage.setItem("ulb_hide_ext_download", "1"); } catch (_) {}
+          });
+        }
+      }
+
       function refreshApiUi() {
         const pill = document.getElementById("apiBasePill");
         const note = document.getElementById("remoteNote");
         const help = document.getElementById("brokerHelp");
         const input = document.getElementById("apiBaseInput");
+        const dl = document.getElementById("btnDownloadExt");
+        if (dl) {
+          // Prefer same-origin extension zip; fall back to docs copy for Pages
+          const candidates = ["extension/ulb-extension.zip", "ulb-extension.zip", "docs/ulb-extension.zip"];
+          dl.href = apiUrl(candidates[0]);
+          dl.onclick = function (ev) {
+            // keep default download; if 404 user can try Pages copy
+          };
+        }
         if (pill) {
           pill.textContent = API_BASE ? ("API: " + API_BASE) : "API: same origin";
           pill.title = API_BASE || location.origin || "same origin";
@@ -1144,8 +1286,8 @@
         }
         if (help) {
           help.textContent = remote
-            ? "Live data comes from the work PC. Sign-in controls only work on http://localhost:8765/ (GitHub Pages cannot unhide scanner Chrome)."
-            : "Local board: scanner Chrome stays hidden. Use Sign in brokers / Hide scanner — scraping never pops extra Chrome windows.";
+            ? "Live data comes from the work PC (Chrome extension). Install the extension on the work PC; GitHub Pages cannot control Chrome."
+            : "Preferred: Chrome extension (see Download panel). Legacy Sign in / Hide = CDP only (optional). Load # opens a new tab.";
         }
       }
 
@@ -1167,7 +1309,8 @@
         const labels = {
           hidden: "scanner: hidden",
           visible: "scanner: visible",
-          cdp_down: "scanner: CDP down",
+          cdp_down: "legacy CDP: off (ok if using extension)",
+          extension: "mode: extension",
           unavailable: "scanner: use localhost",
           error: "scanner: error",
           unknown: "scanner: …",
@@ -1176,7 +1319,7 @@
         pill.title = detail || pill.textContent;
       }
 
-      async function callScanner(action) {
+      async function callScanner(action, body) {
         const base = scannerApiBase();
         if (base === null) {
           setScannerPill("unavailable", "Sign-in only works on the work PC board http://localhost:8765/");
@@ -1184,41 +1327,125 @@
         }
         const path = "api/scanner/" + action;
         const url = base ? (base + "/" + path) : ("/" + path);
-        const opts = action === "status"
-          ? { method: "GET", cache: "no-store" }
-          : { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json" }, body: "{}" };
+        let opts;
+        if (action === "status" || action === "tabs") {
+          opts = { method: "GET", cache: "no-store" };
+        } else {
+          opts = {
+            method: "POST",
+            cache: "no-store",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body || {}),
+          };
+        }
         const res = await fetch(url, opts);
         const data = await res.json().catch(function () { return { ok: false, error: "bad_json" }; });
-        const st = (data && data.state) || (data && data.cdp === false ? "cdp_down" : "error");
+        const st = (data && data.state) || (data && data.cdp === false ? "cdp_down" : (data && data.ok ? "visible" : "error"));
         setScannerPill(st, JSON.stringify(data));
+        updateTabsPill(data);
         return data;
       }
 
+      function updateTabsPill(data) {
+        const pill = document.getElementById("scannerTabsPill");
+        if (!pill) return;
+        const tabs = (data && data.tabs) || {};
+        const keys = ["arrive", "rxo", "arcbest", "echo", "chr"];
+        const bits = keys.map(function (k) {
+          const info = tabs[k];
+          if (!info) return null;
+          const label = info.label || k;
+          const login = info.login || (info.present ? "?" : "missing");
+          if (login === "logged_in") return label + ":ok";
+          if (login === "needs_login") return label + ":login";
+          if (login === "missing" || login === "cdp_down") return label + ":—";
+          return label + ":?";
+        }).filter(Boolean);
+        pill.textContent = bits.length ? ("tabs: " + bits.join(" · ")) : "tabs: …";
+        pill.title = JSON.stringify(tabs);
+      }
+
       let _scannerHideTimer = null;
-      function wireScannerControls() {
-        const btnIn = document.getElementById("btnSignInBrokers");
-        const btnHide = document.getElementById("btnHideScanner");
-        if (btnIn) {
-          btnIn.addEventListener("click", async function () {
-            btnIn.disabled = true;
+      async function refreshSourceHealth() {
+        const box = el.sourceHealth || document.getElementById("sourceHealth");
+        if (!box) return;
+        try {
+          const base = scannerApiBase();
+          // same-origin or configured API; also try relative
+          const urls = [];
+          if (base) urls.push(base.replace(/\/$/, "") + "/api/last_scan");
+          urls.push("/api/last_scan");
+          urls.push("scanner/debug/last_scan.json");
+          urls.push("last_scan.json");
+          let data = null;
+          for (let i = 0; i < urls.length; i++) {
             try {
-              const data = await callScanner("show");
+              const res = await fetch(urls[i], { cache: "no-store" });
+              if (!res.ok) continue;
+              data = await res.json();
+              if (data) break;
+            } catch (e) { /* try next */ }
+          }
+          if (!data || !data.sources) {
+            box.classList.remove("visible", "ok");
+            box.textContent = "";
+            return;
+          }
+          const order = ["Arrive", "RXO", "ArcBest", "MoLo", "Echo", "CHR"];
+          const bits = [];
+          const problems = [];
+          order.forEach(function (name) {
+            const s = data.sources[name];
+            if (!s) return;
+            const st = s.status || "?";
+            const n = (typeof s.count === "number") ? s.count : "?";
+            bits.push(name + ":" + n + (st && st !== "ok" ? "(" + st + ")" : ""));
+            if (st === "needs_login" && !(typeof n === "number" && n > 0)) problems.push(name + " needs login — open broker tab / sign in");
+            else if (st === "stale") { /* kept previous; not an alarm */ }
+            else if (st === "empty" && n === 0) problems.push(name + " 0 loads (open tab + search/refresh)");
+            else if (st === "error") problems.push(name + " error");
+          });
+          const when = data.scannedAt ? (" · scan " + data.scannedAt) : "";
+          if (problems.length) {
+            box.classList.add("visible");
+            box.classList.remove("ok");
+            box.textContent = problems.join(" · ") + " | " + bits.join(" · ") + when;
+          } else {
+            box.classList.add("visible", "ok");
+            box.textContent = "Sources OK: " + bits.join(" · ") + when;
+          }
+        } catch (err) {
+          box.classList.remove("visible", "ok");
+        }
+      }
+
+      function wireScannerControls() {
+        initExtInstallPanel();
+        const root = document.getElementById("scannerControls");
+        if (root) {
+          root.addEventListener("click", async function (ev) {
+            const btn = ev.target && ev.target.closest ? ev.target.closest("[data-focus-broker]") : null;
+            if (!btn) return;
+            const key = btn.getAttribute("data-focus-broker");
+            if (!key) return;
+            btn.disabled = true;
+            try {
+              const data = await callScanner("focus-tab", { broker: key });
               if (data && data.ok) {
-                // Auto-hide after 10 minutes so the window does not stay up forever
                 if (_scannerHideTimer) clearTimeout(_scannerHideTimer);
-                _scannerHideTimer = setTimeout(function () {
-                  callScanner("hide").catch(function () {});
-                }, 10 * 60 * 1000);
+                // Do not auto-hide while user is signing in; they click Hide Chrome
               } else if (scannerApiBase() === null) {
-                alert("Sign-in brokers only works on the work PC board:\\nhttp://localhost:8765/");
+                alert("Broker sign-in only works on the work PC board:\\nhttp://localhost:8765/");
               }
             } catch (err) {
               setScannerPill("error", String(err && err.message || err));
             } finally {
-              btnIn.disabled = false;
+              btn.disabled = false;
             }
           });
         }
+        const btnHide = document.getElementById("btnHideScanner");
+        const btnShow = document.getElementById("btnShowScanner");
         if (btnHide) {
           btnHide.addEventListener("click", async function () {
             btnHide.disabled = true;
@@ -1232,20 +1459,38 @@
             }
           });
         }
+        if (btnShow) {
+          btnShow.addEventListener("click", async function () {
+            btnShow.disabled = true;
+            try {
+              await callScanner("show");
+            } catch (err) {
+              setScannerPill("error", String(err && err.message || err));
+            } finally {
+              btnShow.disabled = false;
+            }
+          });
+        }
         // Initial status + light poll when local/tunneled
         callScanner("status").catch(function () {
-          setScannerPill(scannerApiBase() === null ? "unavailable" : "cdp_down");
+          const extMode = String(state.dataMode || "").toLowerCase() === "extension";
+          if (extMode) setScannerPill("extension", "Using Chrome extension — legacy CDP not required");
+          else setScannerPill(scannerApiBase() === null ? "unavailable" : "cdp_down");
         });
+        refreshSourceHealth();
         setInterval(function () {
           if (document.hidden) return;
           if (scannerApiBase() === null) return;
           callScanner("status").catch(function () {});
+          refreshSourceHealth();
         }, 15000);
       }
+
 
       const state = {
         loads: [],
         updatedAt: null,
+        dataMode: null,
         sortPreset: "pu_miles_weight",
         sortKey: "pickup_city",
         sortDir: "asc",
@@ -1277,6 +1522,8 @@
         empty: document.getElementById("emptyState"),
         updatedAt: document.getElementById("updatedAt"),
         banner: document.getElementById("sampleBanner"),
+        extBanner: document.getElementById("extensionBanner"),
+        sourceHealth: document.getElementById("sourceHealth"),
         error: document.getElementById("errorBox"),
         stats: document.getElementById("stats"),
         origin: document.getElementById("filterOrigin"),
@@ -2202,6 +2449,17 @@
         const rows = filteredLoads();
         el.updatedAt.textContent = formatUpdated(state.updatedAt);
         el.banner.classList.toggle("visible", hasExampleRows(state.loads));
+        if (el.extBanner) {
+          const extMode = String(state.dataMode || "").toLowerCase() === "extension";
+          el.extBanner.classList.toggle("visible", extMode && !hasExampleRows(state.loads));
+          if (extMode) {
+            const pill = document.getElementById("scannerStatusPill");
+            if (pill && /cdp|unavailable|…|\.\.\./i.test(pill.textContent || "")) {
+              setScannerPill("extension", "Using Chrome extension — legacy CDP not required");
+            }
+          }
+        }
+        refreshSourceHealth();
         if (el.sortPreset.value !== state.sortPreset) {
           el.sortPreset.value = state.sortPreset;
         }
@@ -2264,7 +2522,7 @@
             const loadCell = href
               ? '<a href="' +
                 escapeAttr(href) +
-                '" target="_blank" rel="noopener noreferrer" title="Open on broker site">' +
+                '" target="_blank" rel="noopener noreferrer" title="Open load in a new tab (same Chrome window — not a separate window)">' +
                 escapeHtml(l.id || EMPTY) +
                 "</a>"
               : escapeHtml(l.id || EMPTY);
@@ -2578,6 +2836,7 @@
       function applyData(data, fromFetch) {
         state.updatedAt = (data && data.updatedAt) || null;
         state.loads = data && Array.isArray(data.loads) ? data.loads : [];
+        state.dataMode = (data && data.mode) || null;
         state.dataSource = fromFetch ? "loads.json" : "embedded";
         populateEquipmentOptions(state.loads);
         computeBounds(state.loads);

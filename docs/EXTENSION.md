@@ -2,7 +2,7 @@
 
 **Preferred daily path.** Sign into brokers in **normal Chrome**. No CDP / scanner profile window.
 
-**Current version: 1.0.1**
+**Current version: 1.0.2**
 
 ## Download
 
@@ -42,14 +42,15 @@ Chrome Web Store is **not** required for v1 (unpacked / Load unpacked). Store pa
 
 Empty or logged-out sources **keep last-good loads** for that source (do not wipe the board).
 
-## How capture works (v1.0.1)
+## How capture works (v1.0.2)
 
-1. Content scripts inject a MAIN-world network hook (fetch/XHR) and never alone short-circuit the scan on soft `needs_login`.
-2. Background always tries cookie GraphQL/API across **all** known + discovered endpoints (does not bail on the first soft login miss).
-3. ArcBest Vue state is read with `chrome.scripting.executeScript({ world: 'MAIN' })` (CSP-safe; inline `script.textContent` is blocked on many boards).
-4. When a broker tab is open, the extension also ensures the network hook is present and collects captured payloads.
+1. Content scripts inject a MAIN-world network hook (fetch/XHR + request body/headers) and never alone short-circuit the scan on soft `needs_login`.
+2. **Arrive:** GraphQL `getLoads` is fetched **inside the open find-loads tab** (page cookies) via `executeScript({ world: 'MAIN' })`, replaying the last captured body. SW fetch is fallback only.
+3. **ArcBest:** Vue `shipmentSummaries` read from MAIN world; if `shipmentsListApp` is missing, the extension discovers another window/DOM Vue root that holds summaries. MoLoTL → MoLo.
+4. Background also tries cookie GraphQL/API across known + discovered endpoints.
+5. **Status honesty:** fresh loads this scan → `ok` (never `needs_login`). Kept previous only → `stale` + “sign in / open tab to refresh”. `needs_login` only when zero loads and a confirmed login wall.
 
-**Honest limits:** ArcBest needs the Shipments list loaded in a visible tab. CHR needs you to run a search so the API fires (the extension listens; it does not invent a search for you).
+**Honest limits:** ArcBest needs the Shipments list loaded in a visible tab. Arrive needs find-loads open + a search/refresh so GraphQL fires (or a captured body to replay). CHR needs you to run a search so the API fires.
 
 ## Rebuild the zip (dev)
 
