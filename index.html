@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Unified Load Board - Zygis V</title>
   <style>
     :root {
@@ -112,6 +115,8 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
     }
+    /* Extension mode: hide legacy CDP Sign-in / Hide Chrome / CDP pills entirely */
+    .broker-bar.extension-hidden { display: none !important; }
     .broker-bar .broker-help {
       color: var(--muted);
       font-size: 0.75rem;
@@ -356,6 +361,14 @@
       background: rgba(4, 120, 87, 0.12);
       color: #6ee7b7;
     }
+    .source-health .src-bit { white-space: nowrap; }
+    .source-health .src-cached {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.78em;
+      opacity: 0.85;
+    }
+    .source-health.ok .src-cached { color: #94a3b8; }
 
 
     /* ---- Top search toolbar ---- */
@@ -1014,7 +1027,7 @@
   </div>
 
   <div id="extensionBanner" class="banner extension-mode" role="status">
-    Extension mode — loads come from the Chrome extension (normal broker tabs). Legacy CDP Chrome is optional; “CDP off” is normal here, not an error.
+    Loads from Chrome extension — use the extension popup to open or sign in to brokers.
   </div>
 
   <div class="ext-install" id="extInstallPanel" aria-label="Download and install Chrome extension">
@@ -1389,6 +1402,27 @@
       }
 
       let _scannerHideTimer = null;
+      function isExtensionMode() {
+        const m = String(state.dataMode || state.lastScanMode || "").toLowerCase();
+        return m === "extension";
+      }
+
+      function updateBrokerBarVisibility() {
+        const bar = document.getElementById("brokerBar");
+        if (!bar) return;
+        // Hide legacy CDP Sign-in / Hide Chrome / Back to board / CDP pills in extension mode.
+        // Keep APIs wired; only the UI row is hidden. Unknown/legacy CDP keeps controls.
+        bar.classList.toggle("extension-hidden", isExtensionMode());
+      }
+
+      function escapeHtml(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
       async function refreshSourceHealth() {
         const box = el.sourceHealth || document.getElementById("sourceHealth");
         if (!box) return;
@@ -1412,34 +1446,53 @@
           if (!data || !data.sources) {
             box.classList.remove("visible", "ok");
             box.textContent = "";
+            updateBrokerBarVisibility();
             return;
           }
+          if (data.mode) state.lastScanMode = data.mode;
+          updateBrokerBarVisibility();
           const order = ["Arrive", "RXO", "ArcBest", "MoLo", "Echo", "CHR"];
-          const bits = [];
+          const bitsHtml = [];
           const problems = [];
           order.forEach(function (name) {
             const s = data.sources[name];
             if (!s) return;
             const st = s.status || "?";
             const n = (typeof s.count === "number") ? s.count : "?";
-            bits.push(name + ":" + n + (st && st !== "ok" ? "(" + st + ")" : ""));
             // Honesty: needs_login with loads is a lie — treat as stale for display
             var showSt = st;
-            if (typeof n === "number" && n > 0 && st === "needs_login") showSt = "stale";
-            if (showSt !== st) bits[bits.length - 1] = name + ":" + n + "(stale)";
+            if (typeof n === "number" && n > 0 && (st === "needs_login" || st === "stale")) showSt = "stale";
+            if (st === "stale") showSt = "stale";
+            var label = escapeHtml(name) + " " + escapeHtml(n);
+            var title = "";
+            if (showSt === "ok" || showSt === "?") {
+              bitsHtml.push('<span class="src-bit" title="' + escapeHtml(st) + '">' + label + "</span>");
+            } else if (showSt === "stale") {
+              // Soft: count first; muted "cached" — never look like an error
+              title = "stale — showing last-good / cached loads";
+              bitsHtml.push(
+                '<span class="src-bit" title="' + title + '">' + label +
+                ' <span class="src-cached">· cached</span></span>'
+              );
+            } else {
+              bitsHtml.push(
+                '<span class="src-bit" title="' + escapeHtml(st) + '">' + label +
+                (st && st !== "ok" ? " (" + escapeHtml(st) + ")" : "") + "</span>"
+              );
+            }
             if (showSt === "needs_login") problems.push(name + " needs login — open broker tab / sign in");
-            else if (showSt === "stale") { /* kept previous; not an alarm */ }
+            else if (showSt === "stale") { /* cached last-good; not an alarm */ }
             else if (showSt === "empty" && n === 0) problems.push(name + " 0 loads (open tab + search/refresh)");
             else if (showSt === "error") problems.push(name + " error");
           });
-          const when = data.scannedAt ? (" · scan " + data.scannedAt) : "";
+          const when = data.scannedAt ? (" · scan " + escapeHtml(data.scannedAt)) : "";
           if (problems.length) {
             box.classList.add("visible");
             box.classList.remove("ok");
-            box.textContent = problems.join(" · ") + " | " + bits.join(" · ") + when;
+            box.innerHTML = escapeHtml(problems.join(" · ")) + " | " + bitsHtml.join(" · ") + when;
           } else {
             box.classList.add("visible", "ok");
-            box.textContent = "Sources OK: " + bits.join(" · ") + when;
+            box.innerHTML = "Sources: " + bitsHtml.join(" · ") + when;
           }
         } catch (err) {
           box.classList.remove("visible", "ok");
@@ -1500,9 +1553,9 @@
         }
         // Initial status + light poll when local/tunneled
         callScanner("status").catch(function () {
-          const extMode = String(state.dataMode || "").toLowerCase() === "extension";
-          if (extMode) setScannerPill("extension", "Using Chrome extension — legacy CDP not required");
+          if (isExtensionMode()) setScannerPill("extension", "Using Chrome extension");
           else setScannerPill(scannerApiBase() === null ? "unavailable" : "cdp_down");
+          updateBrokerBarVisibility();
         });
         refreshSourceHealth();
         setInterval(function () {
@@ -1518,6 +1571,7 @@
         loads: [],
         updatedAt: null,
         dataMode: null,
+        lastScanMode: null,
         sortPreset: "pu_miles_weight",
         sortKey: "pickup_city",
         sortDir: "asc",
@@ -2477,15 +2531,10 @@
         el.updatedAt.textContent = formatUpdated(state.updatedAt);
         el.banner.classList.toggle("visible", hasExampleRows(state.loads));
         if (el.extBanner) {
-          const extMode = String(state.dataMode || "").toLowerCase() === "extension";
+          const extMode = isExtensionMode();
           el.extBanner.classList.toggle("visible", extMode && !hasExampleRows(state.loads));
-          if (extMode) {
-            const pill = document.getElementById("scannerStatusPill");
-            if (pill && /cdp|unavailable|…|\.\.\./i.test(pill.textContent || "")) {
-              setScannerPill("extension", "Using Chrome extension — legacy CDP not required");
-            }
-          }
         }
+        updateBrokerBarVisibility();
         refreshSourceHealth();
         if (el.sortPreset.value !== state.sortPreset) {
           el.sortPreset.value = state.sortPreset;
@@ -2864,7 +2913,11 @@
         state.updatedAt = (data && data.updatedAt) || null;
         state.loads = data && Array.isArray(data.loads) ? data.loads : [];
         state.dataMode = (data && data.mode) || null;
+        if (!state.dataMode && data && data.last_scan && data.last_scan.mode) {
+          state.dataMode = data.last_scan.mode;
+        }
         state.dataSource = fromFetch ? "loads.json" : "embedded";
+        updateBrokerBarVisibility();
         populateEquipmentOptions(state.loads);
         computeBounds(state.loads);
         initDateInputs();
