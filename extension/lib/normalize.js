@@ -87,22 +87,71 @@ function hashCode(s) {
   return h;
 }
 
-export function looksLikeLoginHtml(text, url = "") {
-  const t = (text || "").toLowerCase();
+/** True when the URL itself is clearly an auth wall (not a board SPA). */
+export function looksLikeLoginUrl(url = "") {
   const u = (url || "").toLowerCase();
-  if (/login|signin|sign-in|auth0|okta|sso|multifactor|\/u\/login/.test(u)) return true;
-  if (t.includes("<html") || t.includes("<!doctype")) {
-    if (/sign\s*in|log\s*in|password|username|one-time code|verification code/.test(t)) {
-      return true;
-    }
+  if (!u) return false;
+  // Board paths that sometimes contain "login" in query/hash — exclude them
+  if (
+    /find-loads|available-?loads|shipment|loadboard|getloads|navispherecarrier|carriers\.arcb|echodrive\.echo\.com\/carrier/i.test(
+      u
+    )
+  ) {
+    return false;
   }
-  return false;
+  return /login\.id\.rxo|auth0\.com|\/u\/login|okta\.com|\/signin|\/sign-in|\/login(\?|$|\/)|multifactor|sso\./i.test(
+    u
+  );
 }
 
+export function looksLikeLoginHtml(text, url = "") {
+  if (looksLikeLoginUrl(url)) return true;
+  const t = (text || "").toLowerCase().slice(0, 12000);
+  if (!(t.includes("<html") || t.includes("<!doctype"))) return false;
+  // SPA shells often mention "password" in bundled JS — require stronger signals
+  const strongLogin =
+    /sign\s*in\s*to\s+(your|continue)|log\s*in\s*to\s+(your|continue)|enter your password|forgot (your )?password|one-time code|verification code|enter your 6-digit|welcome back.*password/i.test(
+      t
+    ) ||
+    (/<form[^>]{0,200}(login|signin|sign-in|auth)/i.test(text || "") &&
+      /type=["']password["']/i.test(text || ""));
+  const boardMarkers =
+    /find-loads|available.?loads|shipmentsummar|loadboard|getloads|navisphere|shipments list|open board/i.test(
+      t
+    );
+  return strongLogin && !boardMarkers;
+}
+
+/**
+ * Soft login detector — avoid false positives on SPA HTML shells and GraphQL
+ * error JSON that happens to mention auth words.
+ */
 export function isLoginResponse(status, contentType, text, url) {
   if (status === 401 || status === 403) return true;
+  if (looksLikeLoginUrl(url)) return true;
   const ct = (contentType || "").toLowerCase();
+  // JSON GraphQL / API errors are NOT login walls unless status already caught above
+  if (ct.includes("application/json") || ct.includes("+json")) {
+    try {
+      const j = JSON.parse(text || "");
+      // Some APIs return 200 + { errors: [{ message: "Unauthorized" }] }
+      const errs = j && (j.errors || j.error);
+      if (errs) {
+        const msg = JSON.stringify(errs).toLowerCase();
+        if (
+          /unauthori[sz]ed|not authenticated|session expired|please log ?in|invalid.?token|jwt expired/.test(
+            msg
+          ) &&
+          !/forbidden.*field|validation|bad request/.test(msg)
+        ) {
+          return true;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    return false;
+  }
   if (ct.includes("text/html") && looksLikeLoginHtml(text, url)) return true;
-  if (looksLikeLoginHtml(text, url) && !ct.includes("json")) return true;
   return false;
 }

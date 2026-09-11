@@ -150,7 +150,7 @@ export async function fetchArcbest(/* opts */) {
     const res = await fetch(BOARD, { credentials: "include", redirect: "follow" });
     const text = await res.text();
     const ct = res.headers.get("content-type") || "";
-    if (isLoginResponse(res.status, ct, text, res.url || BOARD) || /auth0\.com|sign\s*in/i.test(res.url + text.slice(0, 1500))) {
+    if (isLoginResponse(res.status, ct, text, res.url || BOARD) || /auth0\.com|\/u\/login/i.test(res.url || "")) {
       return { status: "needs_login", loads: [], error: "ArcBest login required" };
     }
   } catch (e) {

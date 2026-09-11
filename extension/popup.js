@@ -6,27 +6,32 @@ const BROKERS = [
   { key: "CHR", open: "CHR" },
 ];
 
-function pillClass(status) {
+function pillClass(status, count) {
   const s = String(status || "unknown");
   if (s === "ok") return "ok";
+  if (s === "needs_login" && count > 0) return "stale";
   if (s === "needs_login" || s === "no_tab") return s;
   if (s === "error") return "error";
   if (s === "kept_previous" || s === "empty" || s === "listening") return s;
+  if (s === "stale") return "stale";
   return "";
 }
 
-function labelStatus(status) {
+function labelStatus(status, count) {
+  const s = String(status || "unknown");
+  if (s === "needs_login" && count > 0) return "sign in to refresh";
+  if (s === "kept_previous") return "kept last";
   const map = {
     ok: "ok",
     needs_login: "needs login",
     no_tab: "open tab",
     error: "error",
-    kept_previous: "kept last",
     empty: "empty",
     listening: "listening",
+    stale: "stale",
     unknown: "…",
   };
-  return map[status] || status || "…";
+  return map[s] || s || "…";
 }
 
 function render(state) {
@@ -46,14 +51,16 @@ function render(state) {
   ul.innerHTML = "";
   for (const b of BROKERS) {
     const meta = (state.sources && state.sources[b.key]) || {};
+    const count = meta.count != null ? Number(meta.count) : 0;
     const li = document.createElement("li");
     li.className = "broker";
+    const countClass = count > 0 ? "count has-loads" : "count";
     li.innerHTML = `
       <div class="broker-name">${b.key}</div>
       <button type="button" class="tiny" data-open="${b.open}">Open</button>
       <div class="broker-meta">
-        <span class="pill ${pillClass(meta.status)}">${labelStatus(meta.status)}</span>
-        <span class="count">${meta.count != null ? meta.count : "—"} loads</span>
+        <span class="pill ${pillClass(meta.status, count)}">${labelStatus(meta.status, count)}</span>
+        <span class="${countClass}" title="${meta.error || ""}">${count} loads</span>
       </div>
     `;
     ul.appendChild(li);

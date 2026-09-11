@@ -38,13 +38,14 @@ const BROKER = "Echo";
 function collect() {
   const url = (location.href || "").toLowerCase();
   if (url.includes("auth0.com") || url.includes("/u/login")) {
-    return { status: "needs_login", loads: [], error: "Echo login required", broker: BROKER };
+    return { status: "needs_login", loads: [], error: "Echo login required", broker: BROKER, pageUrl: location.href };
   }
-  if (url.includes("echodrive.echo.com") && !url.includes("/carrier/") && !url.includes("available")) {
-    const body = (document.body?.innerText || "").slice(0, 2000).toLowerCase();
-    if (/sign\s*in|log\s*in|password/.test(body)) {
-      return { status: "needs_login", loads: [], error: "Echo login required", broker: BROKER };
-    }
+  const body = (document.body?.innerText || "").slice(0, 2500).toLowerCase();
+  const onBoard = url.includes("/carrier/") || url.includes("available") || /available loads|open board/.test(body);
+  const strongLogin =
+    /enter your password|forgot (your )?password|sign in to continue|one-time code/.test(body);
+  if (strongLogin && !onBoard) {
+    return { status: "needs_login", loads: [], error: "Echo login required", broker: BROKER, pageUrl: location.href };
   }
   return { status: "listening", loads: [], broker: BROKER, pageUrl: location.href };
 }

@@ -37,20 +37,27 @@ const BROKER = "Arrive";
 
 function collect() {
   const url = location.href || "";
-  if (/login|signin|auth/i.test(url) && !/find-loads/i.test(url)) {
-    return { status: "needs_login", loads: [], error: "Arrive login wall", broker: BROKER };
+  const low = url.toLowerCase();
+  // Hard login only on clear auth URLs (not find-loads SPA)
+  if (/login|signin|auth/i.test(low) && !/find-loads/i.test(low)) {
+    return { status: "needs_login", loads: [], error: "Arrive login wall", broker: BROKER, pageUrl: url };
   }
-  // Prefer network payloads already sent; also scrape load-row testids as thin fallback
   const rows = [...document.querySelectorAll('tr[data-testid^="load-row-"]')];
-  if (!rows.length) {
-    const loginish = /sign\s*in|log\s*in|password/i.test(document.body?.innerText?.slice(0, 2000) || "");
-    return {
-      status: loginish ? "needs_login" : "empty",
-      loads: [],
-      error: loginish ? "Arrive login required" : "No load rows yet — click Refresh Results",
-      broker: BROKER,
-    };
+  if (rows.length) {
+    return { status: "ok_dom_hint", loads: [], countHint: rows.length, broker: BROKER, pageUrl: url };
   }
-  // Signal only — background prefers GraphQL. Return empty so we don't invent synthetic ids.
-  return { status: "ok_dom_hint", loads: [], countHint: rows.length, broker: BROKER, pageUrl: url };
+  const body = (document.body?.innerText || "").slice(0, 2500).toLowerCase();
+  const strongLogin =
+    /enter your password|forgot (your )?password|one-time code|sign in to continue/.test(body);
+  const onBoard = /find.?loads|refresh results|load board|equipment/.test(body) || /find-loads/i.test(low);
+  if (strongLogin && !onBoard) {
+    return { status: "needs_login", loads: [], error: "Arrive login required", broker: BROKER, pageUrl: url };
+  }
+  return {
+    status: onBoard ? "listening" : "empty",
+    loads: [],
+    error: onBoard ? "No load rows yet — click Refresh Results" : "Open Arrive find-loads",
+    broker: BROKER,
+    pageUrl: url,
+  };
 }

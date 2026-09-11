@@ -42,10 +42,15 @@ function collect() {
     url.includes("login.id.rxo") ||
     url.includes("multifactor") ||
     body.includes("one-time code") ||
-    body.includes("enter your 6-digit") ||
-    (body.includes("sign in") && body.includes("password") && !body.includes("available"))
+    body.includes("enter your 6-digit")
   ) {
-    return { status: "needs_login", loads: [], error: "RXO login / MFA required", broker: BROKER };
+    return { status: "needs_login", loads: [], error: "RXO login / MFA required", broker: BROKER, pageUrl: location.href };
+  }
+  const strongLogin =
+    /enter your password|forgot (your )?password|sign in to continue/.test(body) &&
+    !/available loads|loadboard|search loads/.test(body);
+  if (strongLogin) {
+    return { status: "needs_login", loads: [], error: "RXO login required", broker: BROKER, pageUrl: location.href };
   }
   return { status: "listening", loads: [], broker: BROKER, pageUrl: location.href };
 }

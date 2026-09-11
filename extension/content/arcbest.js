@@ -1,4 +1,7 @@
-/** ArcBest content script — read window.shipmentsListApp via page world. */
+/** ArcBest content script — network hook + soft collect.
+ *  Vue shipmentSummaries are read from the service worker via
+ *  chrome.scripting.executeScript({ world: 'MAIN' }) — CSP blocks inline script.textContent.
+ */
 const BROKER = "ArcBest";
 
 (function bridge() {
@@ -35,82 +38,37 @@ const BROKER = "ArcBest";
   });
 })();
 
-function readVue() {
-  return new Promise((resolve) => {
-    const id = "ulb-arcbest-" + Math.random().toString(36).slice(2);
-    function onMsg(ev) {
-      if (!ev.data || ev.data.source !== "ulb-arcbest-vue" || ev.data.id !== id) return;
-      window.removeEventListener("message", onMsg);
-      resolve(ev.data.summaries || null);
+function collect() {
+  const url = location.href || "";
+  const low = url.toLowerCase();
+  // Only hard needs_login on clear auth hosts/paths
+  if (
+    low.includes("auth0.com") ||
+    /\/u\/login|\/signin|\/login(\?|$)/.test(low) ||
+    (low.includes("login") && !low.includes("shipments"))
+  ) {
+    // Still allow Shipments board URLs that happen to mention login in query
+    if (!/\/shipments/i.test(low)) {
+      return { status: "needs_login", loads: [], error: "ArcBest login required", broker: BROKER, pageUrl: url };
     }
-    window.addEventListener("message", onMsg);
-    const script = document.createElement("script");
-    script.textContent = `
-      (function(){
-        const id = ${JSON.stringify(id)};
-        try {
-          const app = window.shipmentsListApp || null;
-          let list = app && (app.shipmentSummaries || (app.$data && app.$data.shipmentSummaries));
-          const out = [];
-          if (list && list.length) {
-            for (let i = 0; i < list.length; i++) {
-              const s = list[i];
-              if (!s) continue;
-              const ship = s.shipperLocation || {};
-              const cons = s.consigneeLocation || {};
-              out.push({
-                shipmentId: s.shipmentId,
-                referenceNumber: s.referenceNumber,
-                shipmentType: s.shipmentType,
-                source: s.source,
-                status: s.status,
-                partial: s.partial,
-                preferred: s.preferred,
-                suggestedRate: s.suggestedRate,
-                currentOfferAmount: s.currentOfferAmount,
-                weight: s.weight,
-                miles: s.miles,
-                equipmentTypes: s.equipmentTypes,
-                pickupStartDateTime: s.pickupStartDateTime,
-                pickupTimeZone: s.pickupTimeZone,
-                deliveryStartDateTime: s.deliveryStartDateTime,
-                deliveryTimeZone: s.deliveryTimeZone,
-                shipperLocation: { city: ship.city || null, state: ship.state || null },
-                consigneeLocation: { city: cons.city || null, state: cons.state || null }
-              });
-            }
-          }
-          window.postMessage({ source: "ulb-arcbest-vue", id, summaries: out }, "*");
-        } catch (e) {
-          window.postMessage({ source: "ulb-arcbest-vue", id, summaries: null, error: String(e) }, "*");
-        }
-      })();`;
-    (document.documentElement || document.head).appendChild(script);
-    script.remove();
-    setTimeout(() => {
-      window.removeEventListener("message", onMsg);
-      resolve(null);
-    }, 2000);
-  });
-}
-
-async function collect() {
-  const url = (location.href || "").toLowerCase();
-  if (url.includes("auth0.com") || url.includes("login") || url.includes("signin")) {
-    return { status: "needs_login", loads: [], error: "ArcBest login required", broker: BROKER };
   }
-  const summaries = await readVue();
-  if (summaries && summaries.length) {
-    return { status: "ok", summaries, broker: BROKER, pageUrl: location.href };
+  // Soft check: login form visible without shipment UI
+  const body = (document.body?.innerText || "").slice(0, 2500).toLowerCase();
+  const hasShipments = /shipment|reference|suggested rate|miles/.test(body);
+  const strongLogin =
+    /enter your password|forgot (your )?password|one-time code|sign in to continue/.test(body);
+  if (strongLogin && !hasShipments) {
+    return { status: "needs_login", loads: [], error: "ArcBest login required", broker: BROKER, pageUrl: url };
   }
-  const body = (document.body?.innerText || "").slice(0, 2000).toLowerCase();
-  if (/sign\s*in|log\s*in|password/.test(body) && !/shipment/.test(body)) {
-    return { status: "needs_login", loads: [], error: "ArcBest login required", broker: BROKER };
-  }
+  // Background will MAIN-world scrape Vue; we just signal listening
   return {
-    status: "empty",
+    status: hasShipments ? "listening" : "empty",
     loads: [],
-    error: "No Vue shipmentSummaries yet — open Shipments and wait",
+    summaries: [],
+    error: hasShipments
+      ? ""
+      : "Open ArcBest Shipments and wait for the list (visible search/list required)",
     broker: BROKER,
+    pageUrl: url,
   };
 }

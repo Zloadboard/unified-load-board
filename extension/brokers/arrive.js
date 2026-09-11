@@ -228,6 +228,8 @@ export async function fetchArrive(opts = {}) {
   ];
   const seen = new Set();
   const bodies = opts.lastRequestBodies?.Arrive || [];
+  let sawLogin = false;
+  let lastErr = "";
   for (const url of endpoints) {
     if (!url || seen.has(url)) continue;
     seen.add(url);
@@ -235,27 +237,35 @@ export async function fetchArrive(opts = {}) {
       // Prefer replaying a captured GraphQL body if we have one for this host
       const matchingBody = bodies.find((b) => (b.url || "").includes(new URL(url).host));
       const result = await tryGraphql(url, matchingBody?.bodyText);
-      if (result.status === "needs_login") return result;
+      if (result.status === "needs_login") {
+        sawLogin = true;
+        lastErr = result.error || lastErr;
+        continue; // try remaining endpoints + tab capture
+      }
       if (result.loads.length) return result;
       if (result.status === "ok") return result;
+      lastErr = result.error || lastErr;
     } catch (e) {
-      /* try next */
+      lastErr = String(e.message || e);
     }
   }
-  // Probe board page for login wall
+  // Probe board page for login wall (only after all GraphQL attempts)
   try {
     const res = await fetch(BOARD, { credentials: "include", redirect: "follow" });
     const text = await res.text();
     const ct = res.headers.get("content-type") || "";
     if (isLoginResponse(res.status, ct, text, res.url || BOARD)) {
-      return { status: "needs_login", loads: [], error: "Arrive login required" };
+      sawLogin = true;
     }
   } catch (e) {
     return { status: "error", loads: [], error: String(e.message || e) };
   }
+  if (sawLogin) {
+    return { status: "needs_login", loads: [], error: "Arrive login required" };
+  }
   return {
     status: "no_tab",
     loads: [],
-    error: "Open Arrive find-loads once so the extension can capture GraphQL",
+    error: lastErr || "Open Arrive find-loads once so the extension can capture GraphQL",
   };
 }

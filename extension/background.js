@@ -1,9 +1,9 @@
 /**
  * Unified Load Board — MV3 service worker.
- * Alarm ~60s: fetch brokers (cookies + content scripts), merge, POST localhost:8765/api/loads.
+ * Alarm ~60s: fetch brokers (cookies + MAIN-world + content scripts), merge, POST localhost:8765/api/loads.
  */
-import { BROKER_URLS, nowIsoZ } from "./lib/normalize.js";
-import { mergeSources, shouldReuseLastGood, dedupeById, groupBySource } from "./lib/merge.js";
+import { BROKER_URLS, nowIsoZ, looksLikeLoginUrl } from "./lib/normalize.js";
+import { mergeSources, shouldReuseLastGood, dedupeById } from "./lib/merge.js";
 import { fetchArrive, loadsFromArrivePayload, isArriveInterestingUrl } from "./brokers/arrive.js";
 import { fetchRxo, loadsFromRxoPayload, isRxoInterestingUrl } from "./brokers/rxo.js";
 import { fetchArcbest, loadsFromSummaries, loadsFromArcbestPayload } from "./brokers/arcbest.js";
@@ -44,7 +44,7 @@ async function loadStore() {
   };
 }
 
-async function saveStore( partial ) {
+async function saveStore(partial) {
   await chrome.storage.local.set(partial);
 }
 
@@ -81,6 +81,34 @@ function parseNetPayload(broker, url, body) {
   return [];
 }
 
+/** Focus an existing broker tab if present; otherwise create one. */
+async function openOrFocusBroker(url) {
+  if (!url) return { ok: false };
+  try {
+    const origin = new URL(url).origin;
+    const tabs = await chrome.tabs.query({ url: [`${origin}/*`] });
+    // Prefer a tab whose path looks like the board URL
+    const pathHint = new URL(url).pathname.split("/").filter(Boolean)[0] || "";
+    let best = tabs.find((t) => t.url && pathHint && t.url.includes(pathHint));
+    if (!best) best = tabs[0];
+    if (best?.id != null) {
+      await chrome.tabs.update(best.id, { active: true });
+      if (best.windowId != null) {
+        try {
+          await chrome.windows.update(best.windowId, { focused: true });
+        } catch {
+          /* ignore */
+        }
+      }
+      return { ok: true, reused: true, tabId: best.id };
+    }
+  } catch {
+    /* fall through to create */
+  }
+  const tab = await chrome.tabs.create({ url });
+  return { ok: true, reused: false, tabId: tab.id };
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || !msg.type) return;
   if (msg.type === "net_payload") {
@@ -92,7 +120,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const store = await loadStore();
         const lg = { ...(store.lastGood || {}) };
         lg[broker] = { loads, savedAt: Date.now() };
-        // ArcBest may include MoLo
         if (broker === "ArcBest") {
           const molo = loads.filter((L) => L.source === "MoLo");
           const arc = loads.filter((L) => L.source === "ArcBest");
@@ -126,7 +153,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg.type === "open_broker") {
     const key = msg.broker;
-    const url = BROKER_URLS[key] || BROKER_URLS[key?.charAt(0).toUpperCase() + key?.slice(1)];
     const map = {
       arrive: BROKER_URLS.Arrive,
       rxo: BROKER_URLS.RXO,
@@ -139,15 +165,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       Echo: BROKER_URLS.Echo,
       CHR: BROKER_URLS.CHR,
     };
-    const u = map[key] || url;
-    if (u) chrome.tabs.create({ url: u });
-    sendResponse({ ok: true });
-    return false;
+    const u = map[key] || BROKER_URLS[key] || BROKER_URLS[key?.charAt(0).toUpperCase() + key?.slice(1)];
+    openOrFocusBroker(u).then((r) => sendResponse(r));
+    return true;
   }
   if (msg.type === "open_board") {
-    chrome.tabs.create({ url: "http://localhost:8765/" });
-    sendResponse({ ok: true });
-    return false;
+    openOrFocusBroker("http://localhost:8765/").then((r) => sendResponse(r));
+    return true;
   }
 });
 
@@ -160,43 +184,151 @@ async function queryBrokerTabs(broker) {
     CHR: ["*://www.navispherecarrier.com/*", "*://*.navispherecarrier.com/*"],
   };
   const tabs = await chrome.tabs.query({ url: patterns[broker] || [] });
-  return tabs.filter((t) => t.id != null);
+  return tabs.filter((t) => t.id != null && !looksLikeLoginUrl(t.url || ""));
+}
+
+/** Inject page-world network hook (CSP-safe via chrome.scripting). */
+async function ensureMainWorldHook(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      files: ["content/injected_hook.js"],
+    });
+  } catch {
+    /* tab may be restricted */
+  }
+}
+
+/**
+ * Read ArcBest Vue shipmentSummaries from MAIN world.
+ * CSP often blocks inline script.textContent; executeScript world:MAIN works.
+ */
+async function readArcbestMainWorld(tabId) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        try {
+          const app = window.shipmentsListApp || null;
+          const list =
+            (app && (app.shipmentSummaries || (app.$data && app.$data.shipmentSummaries))) ||
+            null;
+          const out = [];
+          if (list && list.length) {
+            for (let i = 0; i < list.length; i++) {
+              const s = list[i];
+              if (!s) continue;
+              const ship = s.shipperLocation || {};
+              const cons = s.consigneeLocation || {};
+              out.push({
+                shipmentId: s.shipmentId,
+                referenceNumber: s.referenceNumber,
+                shipmentType: s.shipmentType,
+                source: s.source,
+                status: s.status,
+                partial: s.partial,
+                preferred: s.preferred,
+                suggestedRate: s.suggestedRate,
+                currentOfferAmount: s.currentOfferAmount,
+                weight: s.weight,
+                miles: s.miles,
+                equipmentTypes: s.equipmentTypes,
+                pickupStartDateTime: s.pickupStartDateTime,
+                pickupTimeZone: s.pickupTimeZone,
+                deliveryStartDateTime: s.deliveryStartDateTime,
+                deliveryTimeZone: s.deliveryTimeZone,
+                shipperLocation: { city: ship.city || null, state: ship.state || null },
+                consigneeLocation: { city: cons.city || null, state: cons.state || null },
+              });
+            }
+          }
+          return {
+            summaries: out,
+            href: String(location.href || ""),
+            hasApp: !!app,
+          };
+        } catch (e) {
+          return { summaries: [], error: String(e), href: String(location.href || "") };
+        }
+      },
+    });
+    return results?.[0]?.result || null;
+  } catch (e) {
+    return { summaries: [], error: String(e.message || e) };
+  }
 }
 
 async function collectFromTabs(broker) {
   const tabs = await queryBrokerTabs(broker);
   if (!tabs.length) return null;
+  let last = null;
   for (const tab of tabs) {
+    await ensureMainWorldHook(tab.id);
     try {
       const result = await chrome.tabs.sendMessage(tab.id, { type: "collect" });
-      if (result) return result;
+      if (result) {
+        last = result;
+        // Prefer any result that already has loads / summaries
+        if (result.loads?.length || result.summaries?.length) return result;
+        // Confirmed login URL on the tab itself
+        if (result.status === "needs_login" && looksLikeLoginUrl(tab.url || result.pageUrl || "")) {
+          return result;
+        }
+      }
     } catch {
       /* content script may not be ready */
     }
   }
-  return { status: "no_tab", loads: [], error: "tab open but content script not ready" };
+  return last || { status: "no_tab", loads: [], error: "tab open but content script not ready" };
 }
 
+/**
+ * fetchOne: never short-circuit solely on content-script needs_login.
+ * Always try MAIN-world (ArcBest) + background GraphQL/API; content script is bonus.
+ */
 async function fetchOne(broker, store) {
   const opts = {
     discoveredEndpoints: store.discoveredEndpoints,
     lastRequestBodies: store.lastRequestBodies,
   };
-  // Content script first when tab is open
+
+  let confirmedLogin = false;
+  let tabHint = null;
+
+  // --- 1) Content script collect (bonus; do NOT trust soft needs_login alone) ---
   const fromTab = await collectFromTabs(broker);
   if (fromTab) {
-    if (fromTab.status === "needs_login") {
-      return { status: "needs_login", loads: [], error: fromTab.error || "needs login" };
+    tabHint = fromTab;
+    if (fromTab.status === "needs_login" && looksLikeLoginUrl(fromTab.pageUrl || "")) {
+      confirmedLogin = true;
     }
     if (broker === "ArcBest" && fromTab.summaries?.length) {
       const loads = loadsFromSummaries(fromTab.summaries);
-      return { status: loads.length ? "ok" : "empty", loads, error: "" };
+      if (loads.length) return { status: "ok", loads, error: "" };
     }
     if (fromTab.loads?.length) {
       return { status: "ok", loads: fromTab.loads, error: "" };
     }
   }
 
+  // --- 2) MAIN-world Vue scrape for ArcBest (CSP-safe) ---
+  if (broker === "ArcBest") {
+    const tabs = await queryBrokerTabs(broker);
+    for (const tab of tabs) {
+      const mw = await readArcbestMainWorld(tab.id);
+      if (mw?.summaries?.length) {
+        const loads = loadsFromSummaries(mw.summaries);
+        if (loads.length) {
+          return { status: "ok", loads, error: "" };
+        }
+      }
+      if (mw?.href && looksLikeLoginUrl(mw.href)) confirmedLogin = true;
+    }
+  }
+
+  // --- 3) Background cookie GraphQL / API (try ALL endpoints; don't bail on first login miss) ---
   let result;
   if (broker === "Arrive") result = await fetchArrive(opts);
   else if (broker === "RXO") result = await fetchRxo(opts);
@@ -205,32 +337,57 @@ async function fetchOne(broker, store) {
   else if (broker === "CHR") result = await fetchChr(opts);
   else result = { status: "error", loads: [], error: "unknown broker" };
 
-  // If background said no_tab but we have recent last-good from network hook, surface as kept
-  if ((!result.loads || !result.loads.length) && store.lastGood?.[broker]?.loads?.length) {
-    const reused = shouldReuseLastGood(
-      result.loads || [],
-      store.lastGood[broker].loads,
-      store.lastGood[broker].savedAt
-    );
-    if (reused) {
-      return {
-        status: result.status === "needs_login" ? "needs_login" : "kept_previous",
-        loads: reused,
-        error: result.error || "",
-        keptPrevious: true,
-      };
-    }
-  }
-  if (result.loads?.length && result.status !== "needs_login") {
+  if (result.status === "needs_login") confirmedLogin = true;
+
+  if (result.loads?.length) {
     const reused = shouldReuseLastGood(
       result.loads,
       store.lastGood?.[broker]?.loads,
       store.lastGood?.[broker]?.savedAt
     );
-    if (reused) {
+    if (reused && reused.length > result.loads.length) {
       return { status: "kept_previous", loads: reused, error: "", keptPrevious: true };
     }
+    return { status: result.status === "needs_login" ? "ok" : result.status || "ok", loads: result.loads, error: "" };
   }
+
+  // --- 4) lastGood / network-hook stash ---
+  if (store.lastGood?.[broker]?.loads?.length) {
+    const reused = shouldReuseLastGood(
+      [],
+      store.lastGood[broker].loads,
+      store.lastGood[broker].savedAt
+    );
+    if (reused) {
+      return {
+        status: confirmedLogin ? "needs_login" : result.status === "no_tab" ? "kept_previous" : result.status || "kept_previous",
+        loads: reused,
+        error: confirmedLogin
+          ? "sign in to refresh"
+          : result.error || tabHint?.error || "",
+        keptPrevious: true,
+      };
+    }
+  }
+
+  // Soft content needs_login without confirmed URL → treat as empty/listening, not hard login
+  if (confirmedLogin) {
+    return {
+      status: "needs_login",
+      loads: [],
+      error: result.error || tabHint?.error || `${broker} login required`,
+    };
+  }
+
+  // Prefer tab listening/empty over hard needs_login
+  if (tabHint && tabHint.status && tabHint.status !== "needs_login") {
+    return {
+      status: result.status || tabHint.status || "empty",
+      loads: [],
+      error: result.error || tabHint.error || "",
+    };
+  }
+
   return result;
 }
 
@@ -271,15 +428,19 @@ async function runScan(reason = "alarm") {
       }
       let loads = result.loads || [];
 
-      // Empty + needs_login/error: keep previous from storage / loads
+      // Empty + needs_login/error: keep previous from storage
       if (!loads.length) {
         const prev =
-          store.sourceLoads?.[broker] ||
-          store.lastGood?.[broker]?.loads ||
-          [];
-        if (prev.length && ["needs_login", "error", "empty", "no_tab", "kept_previous"].includes(result.status)) {
+          store.sourceLoads?.[broker] || store.lastGood?.[broker]?.loads || [];
+        if (
+          prev.length &&
+          ["needs_login", "error", "empty", "no_tab", "kept_previous", "listening"].includes(
+            result.status
+          )
+        ) {
           loads = prev;
           result.keptPrevious = true;
+          // Keep needs_login status but show prior count (popup: "sign in to refresh")
           if (result.status !== "needs_login") result.status = "kept_previous";
         }
       }
@@ -287,7 +448,6 @@ async function runScan(reason = "alarm") {
       if (broker === "ArcBest") {
         sourceLoads.ArcBest = loads.filter((L) => L.source === "ArcBest");
         sourceLoads.MoLo = loads.filter((L) => L.source === "MoLo");
-        // If all tagged ArcBest only, still fine
         if (!sourceLoads.ArcBest.length && !sourceLoads.MoLo.length) {
           sourceLoads.ArcBest = loads;
         }
@@ -315,7 +475,6 @@ async function runScan(reason = "alarm") {
       }
     }
 
-    // Also apply MoLo meta
     if (sourceLoads.MoLo?.length) {
       meta.MoLo = {
         status: meta.ArcBest?.status || "ok",
@@ -341,7 +500,6 @@ async function runScan(reason = "alarm") {
       state.lastError = "";
     } catch (e) {
       state.lastError = String(e.message || e);
-      // Still keep chrome.storage; board server may be down
     }
 
     state.lastScanAt = nowIsoZ();
@@ -368,7 +526,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM) runScan("alarm");
 });
 
-// Ensure alarm exists when SW wakes
 chrome.alarms.get(ALARM, (a) => {
   if (!a) chrome.alarms.create(ALARM, { periodInMinutes: 1 });
 });

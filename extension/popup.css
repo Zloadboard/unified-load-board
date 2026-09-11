@@ -75,3 +75,7 @@ li.broker {
 .hint p { margin: 0 0 6px; }
 .muted { opacity: .85; }
 .count { font-variant-numeric: tabular-nums; color: var(--text); }
+
+.count.has-loads { font-weight: 800; font-size: 14px; color: var(--ok); }
+.pill.stale { color: var(--warn); border-color: #a16207; }
+#total { font-size: 18px; font-weight: 800; color: var(--ok); }

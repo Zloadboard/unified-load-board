@@ -110,7 +110,7 @@ export async function fetchChr(/* opts */) {
     const ct = res.headers.get("content-type") || "";
     if (
       isLoginResponse(res.status, ct, text, res.url || BOARD) ||
-      /login|signin|okta|sso/i.test(res.url || "")
+      /okta\.|auth0\.|\/sso\//i.test(res.url || "")
     ) {
       return { status: "needs_login", loads: [], error: "CHR / Navisphere login required" };
     }

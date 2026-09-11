@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
 OUT = ROOT / "ulb-extension.zip"
-SKIP_NAMES = {".git", "__pycache__", ".DS_Store", "ulb-extension.zip", "pack.py", "pack.ps1"}
+SKIP_NAMES = {".git", "__pycache__", ".DS_Store", "ulb-extension.zip", "pack.py", "pack.ps1", "test"}
 SKIP_SUFFIXES = {".pyc", ".log", ".zip"}
 
 

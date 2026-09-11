@@ -2,6 +2,8 @@
 
 **Preferred daily path.** Sign into brokers in **normal Chrome**. No CDP / scanner profile window.
 
+**Current version: 1.0.1**
+
 ## Download
 
 | Where | URL |
@@ -24,7 +26,7 @@ Chrome Web Store is **not** required for v1 (unpacked / Load unpacked). Store pa
 6. Select the unzipped **`extension`** folder (the one that contains `manifest.json`).
 7. Pin the extension if you like (puzzle icon → pin).
 
-After updates: download a new zip, overwrite the folder, then click **Reload** on `chrome://extensions`.
+**After updates:** overwrite the folder (or pull), then click **Reload** on `chrome://extensions`. Then open each broker board tab once and hit **Scan now**.
 
 ## Daily use
 
@@ -32,12 +34,22 @@ After updates: download a new zip, overwrite the folder, then click **Reload** o
 2. Ensure `serve_board.py` is running (`SILENT_START.vbs` / Task Scheduler — board only, no CDP).
 3. Open the board: [http://localhost:8765/](http://localhost:8765/)
 4. **One-time (or after cookie expiry):** use the extension popup → **Open** for Arrive / RXO / ArcBest / Echo / CHR → sign in.  
-   - ArcBest: leave the **Shipments** tab open (or reopen when you want fresh MoLo/ArcBest rows).  
-   - CHR: open Navisphere and run a search when you want CHR rows.
+   - **Open reuses an existing tab** (focus) instead of piling new tabs.
+   - ArcBest: leave the **Shipments** tab open with the list visible (extension reads Vue `shipmentSummaries` via MAIN-world `executeScript`).  
+   - CHR: open Navisphere and **run a search** when you want CHR rows (network capture).
 5. Extension scans ~every 60s and POSTs to `http://localhost:8765/api/loads`.
-6. Popup shows per-broker status: **ok** / **needs login** / **open tab** / **kept last** / **error**.
+6. Popup shows per-broker status: **ok** / **needs login** / **sign in to refresh** (has prior loads) / **open tab** / **kept last** / **error**. Counts stay visible even when status is needs_login if last-good loads exist.
 
 Empty or logged-out sources **keep last-good loads** for that source (do not wipe the board).
+
+## How capture works (v1.0.1)
+
+1. Content scripts inject a MAIN-world network hook (fetch/XHR) and never alone short-circuit the scan on soft `needs_login`.
+2. Background always tries cookie GraphQL/API across **all** known + discovered endpoints (does not bail on the first soft login miss).
+3. ArcBest Vue state is read with `chrome.scripting.executeScript({ world: 'MAIN' })` (CSP-safe; inline `script.textContent` is blocked on many boards).
+4. When a broker tab is open, the extension also ensures the network hook is present and collects captured payloads.
+
+**Honest limits:** ArcBest needs the Shipments list loaded in a visible tab. CHR needs you to run a search so the API fires (the extension listens; it does not invent a search for you).
 
 ## Rebuild the zip (dev)
 

@@ -183,12 +183,14 @@ async function tryUrl(url, method, bodyText) {
 export async function fetchRxo(opts = {}) {
   const discovered = opts.discoveredEndpoints?.RXO || [];
   const bodies = opts.lastRequestBodies?.RXO || [];
+  let sawLogin = false;
+  let lastErr = "";
   // Prefer replaying captured loadboard POSTs
   for (const b of bodies) {
     if (!b.url || !isRxoInterestingUrl(b.url)) continue;
     try {
       const r = await tryUrl(b.url, b.method || "POST", b.bodyText);
-      if (r.status === "needs_login") return r;
+      if (r.status === "needs_login") { sawLogin = true; lastErr = r.error; continue; }
       if (r.loads.length) return r;
     } catch { /* next */ }
   }
@@ -205,11 +207,13 @@ export async function fetchRxo(opts = {}) {
         origin: { city: "Romeoville", state: "IL", deadhead: 150 },
       });
       let r = await tryUrl(url, "POST", body);
-      if (r.status === "needs_login") return r;
-      if (r.loads.length) return r;
+      if (r.status === "needs_login") { sawLogin = true; lastErr = r.error; }
+      else if (r.loads.length) return r;
+      else lastErr = r.error || lastErr;
       r = await tryUrl(url, "GET");
-      if (r.status === "needs_login") return r;
-      if (r.loads.length) return r;
+      if (r.status === "needs_login") { sawLogin = true; lastErr = r.error; }
+      else if (r.loads.length) return r;
+      else lastErr = r.error || lastErr;
     } catch { /* next */ }
   }
   try {
@@ -217,15 +221,18 @@ export async function fetchRxo(opts = {}) {
     const text = await res.text();
     const ct = res.headers.get("content-type") || "";
     if (isLoginResponse(res.status, ct, text, res.url || BOARD) ||
-        /login\.id\.rxo\.com|sign\s*in/i.test(res.url + text.slice(0, 2000))) {
-      return { status: "needs_login", loads: [], error: "RXO login required" };
+        /login\.id\.rxo\.com/i.test(res.url || "")) {
+      sawLogin = true;
     }
   } catch (e) {
     return { status: "error", loads: [], error: String(e.message || e) };
   }
+  if (sawLogin) {
+    return { status: "needs_login", loads: [], error: "RXO login required" };
+  }
   return {
     status: "no_tab",
     loads: [],
-    error: "Open RXO Available Loads once so the extension can capture search/loadboard",
+    error: lastErr || "Open RXO Available Loads once so the extension can capture search/loadboard",
   };
 }

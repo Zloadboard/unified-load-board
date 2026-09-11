@@ -139,11 +139,13 @@ async function tryUrl(url, method, bodyText) {
 
 export async function fetchEcho(opts = {}) {
   const bodies = opts.lastRequestBodies?.Echo || [];
+  let sawLogin = false;
+  let lastErr = "";
   for (const b of bodies) {
     if (!b.url || !isEchoInterestingUrl(b.url)) continue;
     try {
       const r = await tryUrl(b.url, b.method || "POST", b.bodyText);
-      if (r.status === "needs_login") return r;
+      if (r.status === "needs_login") { sawLogin = true; lastErr = r.error; continue; }
       if (r.loads.length) return r;
     } catch { /* next */ }
   }
@@ -154,8 +156,9 @@ export async function fetchEcho(opts = {}) {
     seen.add(url);
     try {
       const r = await tryUrl(url, "POST");
-      if (r.status === "needs_login") return r;
+      if (r.status === "needs_login") { sawLogin = true; lastErr = r.error; continue; }
       if (r.loads.length) return r;
+      lastErr = r.error || lastErr;
     } catch { /* next */ }
   }
   try {
@@ -163,14 +166,17 @@ export async function fetchEcho(opts = {}) {
     const text = await res.text();
     const ct = res.headers.get("content-type") || "";
     if (isLoginResponse(res.status, ct, text, res.url || BOARD) || /auth0\.com|\/u\/login/i.test(res.url || "")) {
-      return { status: "needs_login", loads: [], error: "Echo login required" };
+      sawLogin = true;
     }
   } catch (e) {
     return { status: "error", loads: [], error: String(e.message || e) };
   }
+  if (sawLogin) {
+    return { status: "needs_login", loads: [], error: "Echo login required" };
+  }
   return {
     status: "no_tab",
     loads: [],
-    error: "Open Echo Available Loads once so the extension can capture getOpenBoardLoadsV3",
+    error: lastErr || "Open Echo Available Loads once so the extension can capture getOpenBoardLoadsV3",
   };
 }
